@@ -133,7 +133,15 @@
     surge: '<path d="M28 3L10 27h11l-4 18 21-26H26z" fill="#ffe066" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>'
   };
   const spic = (id) => SVGH(48, 48, SPIC[id] || SPIC.hornet, 'ico');
-  const RICON = { alloy: () => coinIcon('alloy'), offline: () => pic('clock'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), xp: () => pic('star'), dmg: () => slotIcon('cannon'), hull: () => slotIcon('plating') };
+  const TECH_ICON = { ftimer: () => pic('bolt'), fcost: () => coinIcon('credits'), sell: () => pic('chest'), batch: () => pic('merge'), free: () => pic('star'), offline: () => pic('clock'), salv: () => coinIcon('alloy'), alloy: () => coinIcon('alloy'), patrol: () => pic('sword'),
+    dmgc: () => slotIcon('cannon'), dmgp: () => slotIcon('pod'), dmga: () => slotIcon('array'), dmgr: () => slotIcon('coil'), hulp: () => slotIcon('plating'), hulb: () => slotIcon('bulkhead'), hule: () => slotIcon('emitter'), huls: () => slotIcon('spar'),
+    techspd: () => pic('fast'), techcst: () => coinIcon('shards'), odmg: () => pic('sword'), ohull: () => pic('crown'), woff: () => pic('clan'), wsup: () => pic('user'), summon: () => pic('box'), wtwin: () => pic('plus'), heist: () => coinIcon('shards'), convoy: () => coinIcon('cores') };
+  const TECH_NAME = { ftimer: 'Forge Timer', fcost: 'Forge Upgrade Cost', sell: 'Sell Price', batch: 'Multi-Forge', free: 'Free Forge', offline: 'Deep-Range Comms', salv: 'Salvage Run Bonus', alloy: 'Alloy Output', patrol: 'Patrol Pay',
+    dmgc: 'Cannon Mastery', dmgp: 'Pod Mastery', dmga: 'Array Mastery', dmgr: 'Coil Mastery', hulp: 'Plating Mastery', hulb: 'Bulkhead Mastery', hule: 'Emitter Mastery', huls: 'Spar Mastery',
+    techspd: 'Research Time', techcst: 'Research Cost', odmg: 'Damage Doctrine', ohull: 'Hull Doctrine', woff: 'Attack Wing', wsup: 'Support Wing', summon: 'Summon Cost', wtwin: 'Twin Summon', heist: 'Data Heist Bonus', convoy: 'Convoy Bonus' };
+  const BRANCH_ICON = { forge: () => pic('gear'), power: () => pic('sword'), fleet: () => pic('clan') };
+  const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
+  const RICON = { alloy: () => coinIcon('alloy'), offline: () => pic('clock'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), xp: () => pic('star'), dmg: () => slotIcon('cannon'), hull: () => slotIcon('plating'), batch: () => pic('fast') };
   const DICON = { alloy: () => coinIcon('alloy'), shards: () => coinIcon('shards'), cores: () => coinIcon('cores') };
   const pipsRow = (n, max) => { let s = ''; for (let i = 0; i < max; i++) s += '<i class="' + (i < n ? 'on' : '') + '"></i>'; return '<span class="pp">' + s + '</span>'; };
   const infoBtn = (k) => '<button class="info" data-act="info" data-k="' + k + '" aria-label="Info">i</button>';
@@ -148,13 +156,13 @@
     arena: () => '<h3>Arena</h3><p class="sb">Simulated rivals built to your level. Win +25 league points and Medals, lose −12. ' + V.CFG.ARENA_ATTEMPTS + ' fights a day.</p>',
     shop: () => '<h3>Medal shop</h3><p class="sb">Spend Medals from the Arena. Each item can be bought ' + V.CFG.SHOP_LIMIT + ' times a day.</p>',
     clan: () => '<h3>Clans</h3><p class="sb">Simulated crews that play on their own schedule. Your crew fills most of the daily goal. Convoy wins and sweeps add ' + V.CFG.CLAN_WIN_POINTS + ' points each. Joining unlocks the Clan Convoy mission.</p>',
-    xp: () => '<h3>Commander XP</h3><p class="sb">XP comes only from forging: 10 per Rusted or Refitted part, 20 per Hardened, Classified or Voidborn, 30 per Exotic. Fights give none. Each level adds +' + (V.CFG.LEVEL_BONUS * 100).toFixed(1).replace('.0', '') + '% Damage and Hull. At each rank cap you need a promotion.</p>',
+    xp: () => '<h3>Commander XP</h3><p class="sb">XP comes only from forging: better tiers give more XP per part (10 up to 70). Fights give none. Each level adds +' + (V.CFG.LEVEL_BONUS * 100).toFixed(1).replace('.0', '') + '% Damage and Hull. At each rank cap you need a promotion.</p>',
     research: () => '<h3>Research</h3><p class="sb">Data Shards come from boss first clears, every fifth stage first clear, Data Heist and promotions. Tap a node to upgrade it.</p>',
-    hold: () => '<h3>Cargo hold</h3><p class="sb">Stash parts from the forge popup to keep them. Tap a part to fit or sell it. Fitting swaps with the part on your ship.</p>',
+    research: () => '<h3>Research</h3><p class="sb">Three branches: Forge, Power and Fleet. Every upgrade has 5 tiers of 5 levels. Each level costs Data Shards and takes real time, and later tiers cost more and take longer. One research at a time. Flux finishes it early. A higher tier needs a higher commander level. Multi-Forge adds parts per forge, up to 10.</p>',
     codex: () => '<h3>Codex</h3><p class="sb">Every new part you forge adds +' + (V.CFG.CODEX_PART * 100) + '% to all stats. Finishing a whole tier adds +' + Math.round(V.CFG.CODEX_TIER * 100) + '% more. Now: +' + (V.codexBonus(S) * 100).toFixed(2).replace(/\.?0+$/, '') + '%. The numbers on the right are set bonuses for 4 and 8 parts of that tier or better. Only your best set counts.</p>',
     wing: () => { const lvl = V.bayLevel(S), odds = V.summonOdds(lvl); return '<h3>Summon bay ' + lvl + '</h3><div class="chips">' + odds.map((o, r) => o > 0.0005 ? '<span class="chipx" style="--tc:' + V.RANK_COLORS[r] + '">' + V.RANKS[r] + ' ' + (o * 100 < 1 ? '<1' : (o * 100 < 10 ? (o * 100).toFixed(1) : Math.round(o * 100))) + '%</span>' : '').join('') + '</div><p class="sb">AI Cores come from first clears (' + V.CFG.CORE_FIRST + '), boss first clears (' + V.CFG.CORE_BOSS + ') and a ' + Math.round(V.CFG.CORE_DROP * 100) + '% chance on every win. Every ' + V.CFG.BAY_STEP + ' summons raises the bay for better odds. Fuse 3 of the same companion and rank into 1 of the next rank. Companions act in turn order beside your ship.</p>'; },
     depot: () => '<h3>Depot</h3><p class="sb">Ads are never forced. Each has a daily limit and a cooldown and is a small help, not a shortcut. Deals are paid in Flux and change at midnight UTC.</p>',
-    keep: () => '<h3>Keep list</h3><p class="sb">When Auto-Salvage or Forge ×10 / MAX finds a part that is not an upgrade but has these bonus lines, it goes to the cargo hold instead of being sold (if there is room).</p>'
+    orders: () => '<h3>Orders</h3><p class="sb">A few small bonus jobs for every 20 campaign stages. Finish one, tap it to collect. Small rewards only. A new set opens when you clear the stages before it.</p>'
   };
   function infoSheet(k) { sheet(INFO[k](), 'info'); }
 
@@ -166,7 +174,7 @@
     $('foundryRest').innerHTML = '<div id="bay">' + bayHtml() + '</div><div class="xpr"><b id="lvl"></b><div class="bar xl"><i id="xpfill"></i><span id="xpt"></span></div>' + infoBtn('home') + '</div>' + homeGearHtml() +
       '<div class="forgerow"><button class="anvil" id="forgeBtn" data-act="forge" aria-label="Forge">' + anvilSvg() + '<span class="ac">' + coinIcon('alloy') + '<b id="fcost"></b></span></button>' +
       '<div class="fcol"><div class="ftime" id="ftime"></div><button class="fbtn" id="fbtn" data-act="foundry"><small>Foundry</small><b>Level ' + L + '</b><em class="dot" id="fdot" hidden></em></button>' +
-      '<div class="row"><button class="btn sm" id="f10" data-act="f10">×10</button><button class="btn sm" id="fmax" data-act="fmax">MAX</button></div></div></div>';
+      '<button class="btn sm" id="f10" data-act="f10"></button></div></div>';
     if (modalKind === 'foundry' && !$('modal').hidden) foundryModal();
     live();
   }
@@ -185,16 +193,16 @@
   }
   function bayHtml() {
     if (!S.pending) return '';
-    const it = S.pending, free = V.holdFree(S) > 0, cur = S.gear[it.slot];
+    const it = S.pending;
     const p0 = V.power(S), p1 = V.powerWith(S, it), up = p1.rating > p0.rating + 1e-9, dn = p1.rating < p0.rating - 1e-9;
     const r = p0.rating > 0 ? (p1.rating / p0.rating - 1) * 100 : 100;
     return '<div class="pend" style="--tc:' + tcol(it.tier) + '"><div class="tile big">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></div>' +
       '<div class="pinfo"><div class="pn">' + esc(V.itemName(it)) + (S.pendingNew ? '<span class="chip">NEW</span>' : '') + '</div><div class="pst">+' + V.fmt(V.itemStat(it)) + ' ' + statLabel(it.slot) + '</div>' +
       '<div class="' + (up ? 'up' : dn ? 'dn' : 'dim') + ' pd">' + (up ? '▲ ' : dn ? '▼ ' : '') + (r >= 0 ? '+' : '') + r.toFixed(Math.abs(r) < 10 ? 1 : 0) + '%</div></div>' +
-      '<div class="pbtn"><button class="btn pri" data-act="equip">Equip</button><div class="row"><button class="btn sm" data-act="stash"' + (free ? '' : ' disabled') + '>Stash</button><button class="btn sm" data-act="sell">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button></div></div></div>';
+      '<div class="pbtn"><button class="btn pri" data-act="equip">Equip</button><button class="btn sm" data-act="sell">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button></div></div>';
   }
   function tierIcon(i) {
-    const c = V.TIERS[i].color; let d = ''; for (let k = 0; k <= i; k++) d += '<circle cx="' + (24 - i * 4.5 + k * 9) + '" cy="24" r="3" fill="#fff"/>';
+    const c = V.TIERS[i].color, d = '<text x="24" y="31" text-anchor="middle" font-size="20" font-weight="900" fill="#fff" stroke="#0a0d40" stroke-width="1.5" paint-order="stroke" font-family="system-ui,sans-serif">' + (i + 1) + '</text>';
     return SVGH(48, 48, '<path d="M24 3l18 10v22L24 45 6 35V13z" fill="' + c + '" stroke="#0a0d40" stroke-width="3"/><path d="M24 9l12 7v16l-12 7-12-7V16z" fill="#ffffff33"/>' + d, 'ti');
   }
   function foundryModal() {
@@ -213,9 +221,9 @@
   function upgradeHtml(u, up) {
     if (u.maxed) return '<div class="segbar"><i style="width:100%"></i></div>';
     const T = V.TIERS, unlocks = T.findIndex((t) => t.launch && t.unlock === u.to);
-    const seg = '<div class="segbar"><i id="ubar"></i></div>';
+    const seg = '<div class="segbar"><i id="ubar"' + (!up && u.parts > 1 ? ' style="width:' + (u.paid / u.parts * 100).toFixed(0) + '%"' : '') + '></i></div>';
     if (up) return seg + '<div class="utimer">' + pic('clock') + '<b id="utime"></b></div><button class="btn big3 fl" id="rushBtn" data-act="rush"></button>';
-    return seg + '<button class="btn big3" id="ubtn" data-act="upgrade"><span>Level up</span><b>' + coinIcon('credits') + V.fmt(u.credits) + '</b><small>' + V.fmtTime(u.seconds) + '</small></button>';
+    return seg + '<button class="btn big3" id="ubtn" data-act="upgrade"><span>' + (u.parts > 1 ? 'Pay ' + (u.paid + 1) + '/' + u.parts : 'Level up') + '</span><b>' + coinIcon('credits') + V.fmt(u.credits) + '</b><small>' + (u.parts > 1 && u.paid + 1 < u.parts ? 'then ' : '') + V.fmtTime(u.seconds) + '</small></button>';
   }
 
   /* ---------- Ship (commander) ---------- */
@@ -229,12 +237,8 @@
       const goals = V.questGoals(S);
       h += '<div class="promo' + (cap || canP ? ' hot' : '') + '"><div class="pq">' + goals.map((g) => '<span class="' + (g.ok ? 'ok' : '') + '">' + (g.ok ? '✔' : '○') + ' ' + esc(g.label) + ' <b>' + V.fmt(Math.min(g.have, g.need)) + '/' + V.fmt(g.need) + '</b></span>').join('') + '</div><button class="btn pri" data-act="promote"' + (canP ? '' : ' disabled') + '>' + pic('star') + ' ' + V.RANK_NAMES[c.rank + 1] + '</button></div>';
     }
-    h += '<div class="rhead">' + coinIcon('shards') + '<b>' + V.fmt(S.shards) + '</b>' + infoBtn('research') + '</div><div class="rgrid">';
-    V.RESEARCH.forEach((n) => {
-      const l = V.rLevel(S, n.id), max = l >= n.max, cost = V.researchCost(n, l), can = !max && S.shards >= cost;
-      h += '<button class="rnode' + (can ? ' can' : '') + '" data-act="research" data-id="' + n.id + '"' + (can ? '' : ' disabled') + '><span class="ri">' + RICON[n.id]() + '</span><span class="rl">' + l + '/' + n.max + '</span><span class="rc2">' + (max ? 'MAX' : coinIcon('shards') + cost) + '</span></button>';
-    });
-    $('tab-ship').innerHTML = h + '</div></div>';
+    h += '<button class="btn big2" data-act="goto" data-tab="armory" style="margin-top:8px">' + pic('gear') + ' ' + coinIcon('shards') + V.fmt(S.shards) + '</button>';
+    $('tab-ship').innerHTML = h + '</div>';
   }
 
   /* ---------- Missions ---------- */
@@ -254,7 +258,7 @@
     modal('<div class="res ' + (win ? 'w' : 'l') + '">' + (win ? 'VICTORY' : 'DEFEAT') + '</div><h3 style="text-align:center">' + title + '</h3><div class="kv">' + (lines || '') + '</div>', () => { renderMissions(); if (isMS(prev)) missionSheet(prev); });
     modalKind = null;
   }
-  const isMS = (k) => !!k && (k === 'arena' || k === 'shop' || k === 'clan' || k.indexOf('daily:') === 0);
+  const isMS = (k) => !!k && (k === 'arena' || k === 'shop' || k === 'clan' || k === 'orders' || k.indexOf('daily:') === 0);
   function banArt(id) {
     const A = {
       alloy: '<defs><linearGradient id="ba1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb36b"/><stop offset="1" stop-color="#d9603a"/></linearGradient></defs><rect width="400" height="120" fill="url(#ba1)"/><circle cx="310" cy="38" r="26" fill="#ffe9a8" opacity=".8"/><path d="M0 95l40-30 30 18 50-40 40 32 60-26 50 30 40-22 90 36v27H0z" fill="#8a3a2a"/><path d="M0 108l60-18 70 14 80-16 90 16 100-10v26H0z" fill="#4a1f1f"/><g transform="translate(250 40)"><circle cx="40" cy="40" r="26" fill="#9fb0c2" stroke="#2a3340" stroke-width="4"/><circle cx="40" cy="40" r="9" fill="#2a3340"/><path d="M40 6v10M40 64v10M6 40h10M64 40h10M16 16l7 7M57 57l7 7M64 16l-7 7M23 57l-7 7" stroke="#9fb0c2" stroke-width="9"/></g><path d="M40 82l50-22 40 8 30 18-20 10H50z" fill="#3a4350" stroke="#1a1f27" stroke-width="3"/>',
@@ -275,8 +279,10 @@
     });
     const L = V.leagueOf(S.arena.lp), lo = V.CFG.LEAGUE_LP[L], hi = V.CFG.LEAGUE_LP[L + 1], aleft = V.arenaLeft(S, now), cp = V.clanProgress(S, now);
     const claimable = cp && cp.steps.some((st) => st.reached && !st.claimed);
+    const oq = V.visibleQuests(S).filter((q) => !S.quests[q.id]), ordersLeft = oq.length, ordersReady = oq.some((q) => V.questProgress(S, q) >= q.need);
     h += '</div><div class="mtiles">' +
       '<button class="mt" data-act="sheet" data-k="arena">' + pic('trophy') + '<b>' + V.LEAGUES[L].replace(' League', '') + '</b><div class="bar"><i style="width:' + (hi ? Math.min(100, (S.arena.lp - lo) / (hi - lo) * 100) : 100) + '%"></i></div>' + pipsRow(aleft, V.CFG.ARENA_ATTEMPTS) + '</button>' +
+      '<button class="mt' + (ordersReady ? ' hot' : '') + '" data-act="sheet" data-k="orders">' + pic('chest') + '<b>' + ordersLeft + '</b></button>' +
       '<button class="mt" data-act="sheet" data-k="shop">' + pic('medal') + '<b>' + V.fmt(S.medals) + '</b></button>' +
       '<button class="mt' + (claimable ? ' hot' : '') + '" data-act="sheet" data-k="clan">' + pic('clan') + '<b>' + (cp ? cp.total + '/' + V.CFG.CLAN_TARGET : '') + '</b></button></div></div>';
     $('tab-missions').innerHTML = h;
@@ -295,6 +301,11 @@
       const L = V.leagueOf(S.arena.lp), lo = V.CFG.LEAGUE_LP[L], hi = V.CFG.LEAGUE_LP[L + 1], aleft = V.arenaLeft(S, now), opp = V.arenaOpponents(S, now);
       sheet('<div class="sh-h">' + pic('trophy') + '<b>' + V.LEAGUES[L] + '</b>' + infoBtn('arena') + '</div><div class="bar xl"><i style="width:' + (hi ? Math.min(100, (S.arena.lp - lo) / (hi - lo) * 100) : 100) + '%"></i><span>' + S.arena.lp + (hi ? ' / ' + hi : '') + '</span></div><div class="sh-row">' + pipsRow(aleft, V.CFG.ARENA_ATTEMPTS) + '<span class="mcount">' + coinIcon('medals') + V.fmt(S.medals) + '</span></div>' +
         opp.map((o, i) => '<div class="opp"><div class="oav">' + foeShip(['drone', 'gunship', 'raider'][i % 3], false) + '</div><div class="oi"><b>' + esc(o.name) + '</b><span>' + Math.round(o.f * 100) + '%</span></div><button class="btn pri go" data-act="arenaGo" data-i="' + i + '"' + (aleft > 0 ? '' : ' disabled') + '>' + pic('sword') + '</button></div>').join(''), 'arena');
+    } else if (k === 'orders') {
+      const oq = V.visibleQuests(S).filter((q) => !S.quests[q.id]);
+      const rw = (r) => (r.alloy ? coinIcon('alloy') + r.alloy : '') + (r.flux ? coinIcon('flux') + r.flux : '');
+      sheet('<div class="sh-h">' + pic('chest') + '<b>' + oq.length + '</b>' + infoBtn('orders') + '</div>' + (oq.length ? oq.map((q) => { const have = V.questProgress(S, q), ok = have >= q.need;
+        return '<div class="opp"><div class="oi"><b>' + (q.kind === 'stage' ? pic('sword') + ' ' + V.stageLabel(q.need) : pic('gear') + ' ' + V.fmt(q.need)) + '</b><div class="bar"><i style="width:' + Math.min(100, have / q.need * 100).toFixed(1) + '%"></i></div></div><button class="btn' + (ok ? ' pri' : '') + '" data-act="quest" data-id="' + q.id + '"' + (ok ? '' : ' disabled') + '>' + rw(q.reward) + '</button></div>'; }).join('') : '<p class="sb" style="text-align:center">' + pic('star') + '</p>'), 'orders');
     } else if (k === 'shop') {
       sheet('<div class="sh-h">' + pic('medal') + '<b>' + V.fmt(S.medals) + '</b>' + infoBtn('shop') + '</div>' + V.SHOP.map((it) => { const used = S.daily.shop[it.id] || 0; const kk = Object.keys(it.give)[0]; return '<div class="opp"><div class="oav sq">' + coinIcon(kk) + '</div><div class="oi"><b>' + it.text + '</b>' + pipsRow(V.CFG.SHOP_LIMIT - used, V.CFG.SHOP_LIMIT) + '</div><button class="btn" data-act="shopBuy" data-id="' + it.id + '"' + (used < V.CFG.SHOP_LIMIT && S.medals >= it.cost ? '' : ' disabled') + '>' + coinIcon('medals') + it.cost + '</button></div>'; }).join(''), 'shop');
     } else {
@@ -418,28 +429,54 @@
   }
 
   /* ---------- Armory ---------- */
-  let armView = 'hold';
+  let labView = 'research', labBranch = 'forge';
+  function techNodeHtml(n) {
+    const o = V.techInfo(S, n.id), doing = S.tech && S.tech.id === n.id;
+    const st = o.maxed ? 'MAX' : doing ? pic('clock') : o.locked ? pic('lock') + 'Lv.' + o.gate : coinIcon('shards') + o.cost;
+    return '<button class="rnode' + (!o.maxed && !o.locked && !S.tech && S.shards >= o.cost ? ' can' : '') + (doing ? ' doing' : '') + (o.maxed ? ' done' : '') + '" data-act="tech" data-id="' + n.id + '"><span class="ri">' + TECH_ICON[n.id]() + '</span><span class="rl">' + ROMAN[Math.min(4, Math.floor(o.level / 5))] + ' · ' + o.level + '/' + o.max + '</span><span class="rc2">' + st + '</span></button>';
+  }
+  function techBarHtml() {
+    if (!S.tech) return '<div class="techbar idle">' + coinIcon('shards') + '<b>' + V.fmt(S.shards) + '</b></div>';
+    const c = V.techRushCost(S, Date.now());
+    return '<div class="techbar">' + TECH_ICON[S.tech.id]() + '<div class="bar"><i id="techbar"></i><span id="techtime"></span></div><button class="btn sm fl" id="techRush" data-act="techRush">' + pic('bolt') + coinIcon('flux') + '<b id="techflux">' + c + '</b></button></div>';
+  }
   function renderArmory() {
-    const hu = V.holdUpgrade(S), cur = V.power(S).set;
-    let h = '<div class="pg"><div class="seg"><button class="' + (armView === 'hold' ? 'on' : '') + '" data-act="arm" data-v="hold">' + pic('box') + '<b>' + S.hold.length + '/' + S.holdCap + '</b></button><button class="' + (armView === 'codex' ? 'on' : '') + '" data-act="arm" data-v="codex">' + pic('star') + '<b>' + V.codexCount(S) + '/' + V.LAUNCH_TIERS * 8 + '</b></button>' + infoBtn(armView) + '</div>';
-    if (armView === 'hold') {
-      h += '<div class="scroll"><div class="holdg">';
-      for (let i = 0; i < S.holdCap; i++) {
-        const it = S.hold[i];
-        h += it ? '<button class="tile" data-act="part" data-ref="h:' + i + '" style="--tc:' + tcol(it.tier) + '">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></button>' : '<div class="tile empty"></div>';
-      }
-      h += '</div></div><div class="row">' + (S.hold.length ? '<button class="btn" data-act="hSellAll">' + coinIcon('credits') + ' ALL</button>' : '') + (hu.maxed ? '' : '<button class="btn" data-act="hBuy"' + (S.credits < hu.cost ? ' disabled' : '') + '>' + pic('plus') + V.CFG.HOLD_STEP + ' ' + coinIcon('credits') + V.fmt(hu.cost) + '</button>') + '</div>';
+    const cur = V.power(S).set;
+    let h = '<div class="pg"><div class="seg"><button class="' + (labView === 'research' ? 'on' : '') + '" data-act="lab" data-v="research">' + pic('gear') + '<b>' + (S.stats.researched || 0) + '</b></button><button class="' + (labView === 'codex' ? 'on' : '') + '" data-act="lab" data-v="codex">' + pic('star') + '<b>' + V.codexCount(S) + '/' + V.LAUNCH_TIERS * 8 + '</b></button>' + infoBtn(labView) + '</div>';
+    if (labView === 'research') {
+      h += techBarHtml() + '<div class="chiprow">' + V.TECH_BRANCHES.map((b) => '<button class="chipb' + (labBranch === b.id ? ' on' : '') + '" data-act="labBranch" data-v="' + b.id + '">' + BRANCH_ICON[b.id]() + '</button>').join('') + '</div>';
+      h += '<div class="scroll"><div class="rgrid">' + V.TECH_NODES.filter((n) => n.branch === labBranch).map(techNodeHtml).join('') + '</div></div>';
     } else {
-      h += '<div class="codex">';
+      h += '<div class="scroll"><div class="codex">';
       V.TIERS.forEach((t, i) => {
-        if (!t.launch) return;
         h += '<div class="crow' + (cur.tier === i ? ' cur' : '') + '" style="--tc:' + t.color + '"><div class="cmini">' + V.SLOTS.map((s2) => '<span class="' + (S.codex[i + ':' + s2.id] ? 'got' : '') + '">' + slotIcon(s2.id) + '</span>').join('') + '</div><div class="cset"><b>4</b>+' + Math.round(V.CFG.SET4[i] * 100) + '<b>8</b>+' + Math.round(V.CFG.SET8[i] * 100) + '</div></div>';
       });
-      h += '</div>';
+      h += '</div></div>';
     }
     $('tab-armory').innerHTML = h + '</div>';
+    if (labView === 'research') liveTech();
+    if (isTS(modalKind) && !$('modal').hidden) techSheet(modalKind.slice(5));
   }
-
+  const isTS = (k) => !!k && k.indexOf('tech:') === 0;
+  function liveTech() {
+    const t = S.tech; if (!t || !$('techbar')) return;
+    const left = Math.max(0, t.endAt - Date.now()), total = Math.max(1, t.endAt - t.startAt);
+    $('techbar').style.width = Math.min(100, (1 - left / total) * 100).toFixed(1) + '%'; $('techtime').textContent = V.fmtTime(left / 1000);
+    const c = V.techRushCost(S, Date.now()); $('techflux').textContent = c; $('techRush').disabled = S.flux < c;
+  }
+  function techSheet(id) {
+    const o = V.techInfo(S, id), n = o.node;
+    const inTier = o.maxed ? 5 : o.level % 5;
+    const pips = Array.from({ length: 5 }, (_, i) => '<i class="' + (i < inTier || o.maxed ? 'on' : '') + '"></i>').join('');
+    let body = '<div class="sh-h"><div class="tile big">' + TECH_ICON[id]() + '</div><div><b>' + TECH_NAME[id] + '</b><div class="sb">' + ROMAN[Math.min(4, Math.floor(o.level / 5))] + ' · ' + o.level + '/' + o.max + '</div></div></div><div class="pp techpips">' + pips + '</div>' +
+      '<div class="rwbox" style="flex-direction:column;gap:2px"><b>' + n.text(o.level) + '</b>' + (o.maxed ? '' : '<b style="color:var(--good)">▶ ' + n.text(o.level + 1) + '</b>') + '</div>';
+    if (!o.maxed) {
+      body += '<div class="sh-row" style="justify-content:center;gap:16px"><span>' + coinIcon('shards') + '<b>' + V.fmt(o.cost) + '</b></span><span>' + pic('clock') + '<b>' + V.fmtTime(o.secs) + '</b></span><span>' + coinIcon('flux') + '<b>' + V.fmt(o.flux) + '</b></span></div>';
+      const why = o.locked ? pic('lock') + ' Lv.' + o.gate : S.tech ? pic('clock') : '';
+      body += '<div class="row"><button class="btn big3 pri" data-act="techGo" data-id="' + o.id + '"' + (!o.locked && !S.tech && S.shards >= o.cost ? '' : ' disabled') + '><span>' + (why || 'Research') + '</span></button></div>';
+    }
+    sheet(body, 'tech:' + id);
+  }
   /* ---------- Records ---------- */
   function statsHtml() {
     const st = S.stats, kv = [
@@ -451,23 +488,11 @@
       ['Time at the forge', V.fmtTime(st.seconds)], ['Service began', new Date(S.created).toLocaleDateString()]
     ];
     return '<h2>Service record</h2><div class="panel"><div class="kv">' + kv.map((r) => '<span>' + r[0] + '</span><span>' + r[1] + '</span>').join('') + '</div></div>' +
-      '<h2>Coming in later updates</h2><div class="panel dim" style="font-size:13px">Ascension and more tiers · Balance pass</div>';
+      '<h2>Coming in later updates</h2><div class="panel dim" style="font-size:13px">Ascension (after Foundry level 25) · Balance pass</div>';
   }
 
   /* ---------- Settings ---------- */
   let wipeT = 0;
-  function settingsHtml() {
-    const au = V.autoUnlocked(S);
-    return       '<h2>Callsign</h2><input type="text" id="nameIn" maxlength="20" value="' + esc(S.name) + '" aria-label="Callsign">' +
-      '<h2>Options</h2><div class="panel">' +
-      '<div class="tog"><div>Vibration<small>A small buzz when you forge</small></div><label class="sw"><input type="checkbox" id="vibIn"' + (S.settings.vibrate ? ' checked' : '') + '><i></i></label></div>' +
-      '<div class="tog"><div>Auto-Salvage<small>' + (au ? 'Fit upgrades automatically, sell everything else' : 'Unlocks at Foundry level ' + V.CFG.AUTO_UNLOCK_LEVEL) + '</small></div><label class="sw"><input type="checkbox" id="autoIn"' + (S.settings.auto && au ? ' checked' : '') + (au ? '' : ' disabled') + '><i></i></label></div></div>' +
-      '<h2>Keep list</h2><div class="panel"><div class="sb dim" style="margin-bottom:8px;font-size:13px">When Auto-Salvage or Forge ×10 / max finds a part that is not an upgrade but has these bonus lines, it goes to the cargo hold instead of being sold (if there is room).</div><div class="fgrid">' + V.SUB_KEYS.map((k) => '<label><input type="checkbox" class="flt" data-k="' + k + '"' + (S.settings.filter.includes(k) ? ' checked' : '') + '>' + V.SUBS[k].name + '</label>').join('') + '</div><div class="tog" style="border:0;padding-bottom:0"><div>Lines needed</div><select id="fltMin"><option value="1"' + (S.settings.filterMin === 2 ? '' : ' selected') + '>At least 1</option><option value="2"' + (S.settings.filterMin === 2 ? ' selected' : '') + '>At least 2</option></select></div></div>' +
-      '<h2>Save backup</h2><div class="panel"><div class="sb dim" style="margin-bottom:8px">Your game saves itself on this device. Copy this code somewhere safe to keep a backup, or paste a code to restore.</div>' +
-      '<textarea id="codeBox" aria-label="Save code" placeholder="Save code"></textarea><div class="row" style="margin-top:8px"><button class="btn" data-act="export">Make code</button><button class="btn" data-act="copy">Copy</button><button class="btn" data-act="import">Load code</button></div></div>' +
-      '<h2>Danger zone</h2><button class="btn bad" id="wipeBtn" data-act="wipe" style="width:100%">Erase everything</button>' +
-      '<p class="dim tiny" style="text-align:center;margin-top:18px">' + V.CFG.NAME + ' · v8 · depot build</p>';
-  }
 
   /* ---------- Depot ---------- */
   function adStandIn(title, rewardText, grant) {
@@ -502,17 +527,18 @@
     });
     $('tab-depot').innerHTML = h + '</div></div>';
   }
-  function adCreditsPreview() { return Math.round(V.creditsWin(Math.max(1, S.combat.best), S) * 40); }
+  function adCreditsPreview() { return Math.round(V.typicalSell(S) * 25); }
   function badges() {
     const now = Date.now(), set = (t, on) => { const b = document.querySelector('nav button[data-tab=' + t + '] .dot'); if (b) b.hidden = !on; };
     V.rollDaily(S, now);
     const cp = V.clanProgress(S, now);
     set('depot', !S.daily.gift);
-    set('missions', V.DAILIES.some((d) => !V.ladderLocked(S, d.id) && V.attemptsLeft(S, d.id, now) > 0 && S.ladders[d.id] < V.CFG.MAX_STAGE) || V.arenaLeft(S, now) > 0 || !!(cp && cp.steps.some((st) => st.reached && !st.claimed)));
-    set('ship', V.canPromote(S) || V.RESEARCH.some((n) => V.rLevel(S, n.id) < n.max && S.shards >= V.researchCost(n, V.rLevel(S, n.id))));
+    set('missions', V.DAILIES.some((d) => !V.ladderLocked(S, d.id) && V.attemptsLeft(S, d.id, now) > 0 && S.ladders[d.id] < V.CFG.MAX_STAGE) || V.arenaLeft(S, now) > 0 || V.visibleQuests(S).some((q) => !S.quests[q.id] && V.questProgress(S, q) >= q.need) || !!(cp && cp.steps.some((st) => st.reached && !st.claimed)));
+    set('ship', V.canPromote(S));
+    set('armory', V.techReady(S));
   }
   function renderMore() {
-    const tiles = [['stats', 'chart', 'Stats'], ['name', 'user', 'Callsign'], ['opts', 'gear', 'Options'], ['keep', 'filter', 'Keep list'], ['backup', 'save', 'Backup'], ['wipe', 'trash', 'Erase']];
+    const tiles = [['stats', 'chart', 'Stats'], ['name', 'user', 'Callsign'], ['opts', 'gear', 'Options'], ['backup', 'save', 'Backup'], ['wipe', 'trash', 'Erase']];
     $('tab-more').innerHTML = '<div class="pg"><div class="moregrid">' + tiles.map((t) => '<button class="mbtn' + (t[0] === 'wipe' ? ' bad' : '') + '" data-act="more" data-k="' + t[0] + '">' + pic(t[1]) + '<b>' + t[2] + '</b></button>').join('') + '</div><p class="dim tiny" style="text-align:center">' + V.CFG.NAME + ' · v21</p></div>';
   }
   function moreSheet(k) {
@@ -522,12 +548,6 @@
       const au = V.autoUnlocked(S);
       sheet('<div class="tog"><div>Vibration</div><label class="sw"><input type="checkbox" id="vibIn"' + (S.settings.vibrate ? ' checked' : '') + '><i></i></label></div><div class="tog"><div>Auto-Salvage<small>' + (au ? '' : 'Foundry ' + V.CFG.AUTO_UNLOCK_LEVEL) + '</small></div><label class="sw"><input type="checkbox" id="autoIn"' + (S.settings.auto && au ? ' checked' : '') + (au ? '' : ' disabled') + '><i></i></label></div>', 'more');
       $('vibIn').onchange = (e) => { S.settings.vibrate = e.target.checked; save(); }; $('autoIn').onchange = (e) => { S.settings.auto = e.target.checked; save(); };
-      return;
-    }
-    if (k === 'keep') {
-      sheet('<div class="sh-h"><b>Keep list</b>' + infoBtn('keep') + '</div><div class="fgrid">' + V.SUB_KEYS.map((x) => '<label><input type="checkbox" class="flt" data-k="' + x + '"' + (S.settings.filter.includes(x) ? ' checked' : '') + '>' + V.SUBS[x].name + '</label>').join('') + '</div><div class="tog" style="border:0"><div>Lines needed</div><select id="fltMin"><option value="1"' + (S.settings.filterMin === 2 ? '' : ' selected') + '>1+</option><option value="2"' + (S.settings.filterMin === 2 ? ' selected' : '') + '>2+</option></select></div>', 'more');
-      document.querySelectorAll('.flt').forEach((c) => { c.onchange = () => { const kk = c.dataset.k, f = S.settings.filter; if (c.checked && !f.includes(kk)) f.push(kk); if (!c.checked) S.settings.filter = f.filter((y) => y !== kk); save(); }; });
-      $('fltMin').onchange = (e) => { S.settings.filterMin = +e.target.value; save(); };
       return;
     }
     if (k === 'backup') return sheet('<textarea id="codeBox" aria-label="Save code" placeholder="Save code"></textarea><div class="row" style="margin-top:8px"><button class="btn" data-act="export">Make</button><button class="btn" data-act="copy">Copy</button><button class="btn" data-act="import">Load</button></div>', 'more');
@@ -549,6 +569,7 @@
     if ($('lvl')) { $('lvl').textContent = 'Lv.' + S.cmd.level; $('xpfill').style.width = Math.min(100, S.cmd.xp / V.CFG.XP_NEED(S.cmd.level) * 100).toFixed(1) + '%'; $('xpt').textContent = V.fmt(S.cmd.xp) + ' / ' + V.fmt(V.CFG.XP_NEED(S.cmd.level)); }
     $('shards').textContent = V.fmt(S.shards);
     if (tab === 'missions') ticketLabel();
+    if (tab === 'armory') liveTech();
     badges();
     const fb = $('forgeBtn');
     if (fb) {
@@ -557,7 +578,7 @@
       const fu = S.forge.upgrade, uu = V.upgradeInfo(S);
       $('ftime').textContent = fu ? V.fmtTime(Math.max(0, fu.endAt - Date.now()) / 1000) : '';
       $('fdot').hidden = !!fu || uu.maxed || S.credits < uu.credits;
-      const m = V.maxForges(S); $('f10').disabled = m < 2; $('fmax').disabled = m < 2; $('fmax').textContent = 'MAX' + (m >= 2 ? ' ' + V.fmt(m) : '');
+      const m = V.maxForges(S), bs = V.batchSize(S); $('f10').disabled = bs < 2 || m < 2; $('f10').innerHTML = bs > 1 ? '×' + bs : pic('lock');
       const up = S.forge.upgrade;
       if (up) {
         const total = up.endAt - up.startAt, left = Math.max(0, up.endAt - Date.now());
@@ -586,21 +607,20 @@
     save(); refresh();
   }
   function act(a, el) {
-    if (['assign', 'unassign', 'fuse', 'hEquip', 'hSell'].includes(a)) { $('modal').hidden = true; modalKind = null; }
+    if (['assign', 'unassign', 'fuse'].includes(a)) { $('modal').hidden = true; modalKind = null; }
     if (a === 'info') return infoSheet(el.dataset.k);
     if (a === 'sheet') return missionSheet(el.dataset.k);
     if (a === 'wsheet') return wingSheet(el.dataset.key);
-    if (a === 'arm') { armView = el.dataset.v; return renderArmory(); }
     if (a === 'more') return moreSheet(el.dataset.k);
     if (a === 'forge') return doForge();
     if (a === 'foundry') return foundryModal();
     if (a === 'goto') { tab = el.dataset.tab; showTab(); return; }
-    if (a === 'f10' || a === 'fmax') {
-      const n = a === 'f10' ? 10 : V.maxForges(S);
+    if (a === 'f10') {
+      const n = Math.min(V.batchSize(S), V.maxForges(S)); if (n < 2) return;
       const r = V.forgeBatch(S, n, rng); if (!r.forged) return;
       buzz(25);
       S.lastMsg = 'Last batch: ' + r.forged + ' forged · ' + r.equipped + ' fitted · ' + r.sold + ' sold';
-      toast('<b>' + r.forged + ' parts forged</b><br>' + r.equipped + ' fitted upgrades · ' + (r.kept ? r.kept + ' kept · ' : '') + r.sold + ' sold for ' + V.fmt(r.credits) + ' Credits' + (r.newParts ? '<br><span style="color:var(--cyan)">' + r.newParts + ' new Codex part' + (r.newParts > 1 ? 's' : '') + '</span>' : '') + (r.tiersDone.length ? '<br><b>Tier complete: ' + r.tiersDone.map((t) => V.TIERS[t].name).join(', ') + '!</b>' : '') + (r.levels ? '<br><b>Commander level ' + S.cmd.level + '</b>' : '') + (r.best ? '<br>Best: <span style="color:' + tcol(r.best.tier) + '">' + esc(V.itemName(r.best)) + '</span>' : ''));
+      toast('<b>' + r.forged + ' parts forged</b><br>' + r.equipped + ' fitted upgrades · ' + r.sold + ' sold for ' + V.fmt(r.credits) + ' Credits' + (r.newParts ? '<br><span style="color:var(--cyan)">' + r.newParts + ' new Codex part' + (r.newParts > 1 ? 's' : '') + '</span>' : '') + (r.tiersDone.length ? '<br><b>Tier complete: ' + r.tiersDone.map((t) => V.TIERS[t].name).join(', ') + '!</b>' : '') + (r.levels ? '<br><b>Commander level ' + S.cmd.level + '</b>' : '') + (r.best ? '<br>Best: <span style="color:' + tcol(r.best.tier) + '">' + esc(V.itemName(r.best)) + '</span>' : ''));
       save(); return refresh();
     }
     if (a === 'equip') { const r = V.equipPending(S); if (r) { buzz(18); S.lastMsg = 'Fitted ' + esc(V.itemName(r.item)); save(); refresh(); } return; }
@@ -633,16 +653,15 @@
     if (a === 'clanJoin') { if (V.joinClan(S, el.dataset.id)) { toast('Joined ' + V.CLANS.find((c) => c.id === el.dataset.id).name); save(); renderMissions(); } return; }
     if (a === 'clanLeave') { V.leaveClan(S); save(); renderMissions(); return; }
     if (a === 'clanClaim') { if (V.claimClan(S, +el.dataset.i, Date.now())) { buzz(20); save(); head(); live(); renderMissions(); } return; }
-    if (a === 'research') { if (V.buyResearch(S, el.dataset.id)) { buzz(20); save(); renderShip(); head(); live(); } return; }
+    if (a === 'lab') { labView = el.dataset.v; return renderArmory(); }
+    if (a === 'labBranch') { labBranch = el.dataset.v; return renderArmory(); }
+    if (a === 'tech') return techSheet(el.dataset.id);
+    if (a === 'techGo') { if (V.startTech(S, el.dataset.id, Date.now())) { buzz(20); $('modal').hidden = true; modalKind = null; save(); head(); live(); renderArmory(); } return; }
+    if (a === 'techRush') { if (V.rushTech(S, Date.now())) { buzz(30); save(); tick(); } return; }
     if (a === 'promote') { const r = V.promote(S); if (r) { buzz([40, 40, 40]); toast('<b>Promoted to ' + V.RANK_NAMES[r.rank] + '</b><br>+' + r.reward.flux + ' Flux · +' + r.reward.cores + ' AI Cores · +' + r.reward.shards + ' Data Shards'); save(); head(); live(); renderShip(); } return; }
     if (a === 'rush') { if (V.rushUpgrade(S, Date.now())) { buzz(30); save(); tick(); } return; }
-    if (a === 'stash') { if (V.stashPending(S)) { S.lastMsg = 'Stashed in the cargo hold'; save(); refresh(); } return; }
-    if (a === 'hEquip') { if (V.equipFromHold(S, +el.dataset.i)) { buzz(18); save(); refresh(); } return; }
-    if (a === 'hSell') { const v = V.sellFromHold(S, +el.dataset.i); if (v) { save(); refresh(); } return; }
-    if (a === 'hSellAll') { const v = V.sellAllHold(S); toast('Sold the whole hold for ' + V.fmt(v) + ' Credits'); save(); refresh(); return; }
-    if (a === 'hBuy') { if (V.buyHold(S)) { save(); refresh(); } return; }
     if (a === 'part') { partSheet(el.dataset.ref); return; }
-    if (a === 'unfit') { $('modal').hidden = true; if (V.unfit(S, el.dataset.slot)) { save(); refresh(); } return; }
+    if (a === 'quest') { if (V.claimQuest(S, el.dataset.id)) { buzz(20); save(); head(); live(); renderMissions(); missionSheet('orders'); } return; }
     if (a === 'close') { $('modal').hidden = true; modalKind = null; return; }
     if (a === 'upgrade') { const r = V.startUpgrade(S, Date.now()); if (r.ok) { buzz(30); save(); refresh(); } return; }
     if (a === 'export') { $('codeBox').value = encode(); return; }
@@ -652,13 +671,13 @@
       return;
     }
     if (a === 'import') {
-      try { const o = V.migrate(decode($('codeBox').value), Date.now()); S = o; F = null; save(); toast('Save loaded'); tab = 'foundry'; showTab(); refresh(); }
+      try { const o = V.migrate(decode($('codeBox').value), Date.now()); S = o; F = null; $('modal').hidden = true; modalKind = null; save(); toast('Save loaded'); tab = 'foundry'; showTab(); refresh(); }
       catch (e) { toast('That code did not work. Copy the whole thing and try again.'); }
       return;
     }
     if (a === 'wipe') {
       const b = $('wipeBtn');
-      if (b.dataset.arm) { clearTimeout(wipeT); try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } S = V.newState(Date.now()); F = null; save(); toast('Everything erased'); tab = 'foundry'; showTab(); refresh(); return; }
+      if (b.dataset.arm) { clearTimeout(wipeT); try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ } S = V.newState(Date.now()); F = null; $('modal').hidden = true; modalKind = null; save(); toast('Everything erased'); tab = 'foundry'; showTab(); refresh(); return; }
       b.dataset.arm = '1'; b.textContent = 'Tap again to erase everything'; wipeT = setTimeout(() => { b.dataset.arm = ''; b.textContent = 'Erase everything'; }, 4000);
     }
   }
@@ -673,13 +692,11 @@
   }
   document.querySelectorAll('nav button').forEach((b) => { b.onclick = () => { tab = b.dataset.tab; showTab(); }; });
 
-  function partOf(ref) { const [k, x] = ref.split(':'); return k === 'g' ? S.gear[x] : S.hold[+x]; }
+  // details of a fitted part (read only)
   function partSheet(ref) {
-    const it = partOf(ref); if (!it) return;
-    const free = V.holdFree(S) > 0, fitted = ref[0] === 'g';
+    const it = S.gear[ref.split(':')[1]]; if (!it) return;
     sheet('<div class="sh-h"><div class="tile big" style="--tc:' + tcol(it.tier) + '">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></div><div><b style="color:' + tcol(it.tier) + '">' + esc(V.itemName(it)) + '</b><div class="pst">+' + V.fmt(V.itemStat(it)) + ' ' + statLabel(it.slot) + '</div></div></div>' +
-      (it.subs.length ? '<div class="chips">' + it.subs.map((x) => '<span class="chipx" style="--tc:var(--cyan)">' + V.SUBS[x.k].name + ' +' + x.v + '%</span>').join('') + '</div>' : '') +
-      '<div class="row" style="margin-top:10px">' + (fitted ? '<button class="btn" data-act="unfit" data-slot="' + it.slot + '"' + (free ? '' : ' disabled') + '>' + pic('box') + '</button>' : '<button class="btn pri" data-act="hEquip" data-i="' + ref.split(':')[1] + '">' + pic('plus') + '</button><button class="btn" data-act="hSell" data-i="' + ref.split(':')[1] + '">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button>') + '</div>', 'part');
+      (it.subs.length ? '<div class="chips">' + it.subs.map((x) => '<span class="chipx" style="--tc:var(--cyan)">' + V.SUBS[x.k].name + ' +' + x.v + '%</span>').join('') + '</div>' : ''), 'part');
   }
 
   /* ---------- time ---------- */
@@ -695,6 +712,7 @@
     if (dt > 5) { const rep = V.offline(S, now); S.last = now; save(); welcome(rep); refresh(); return; }
     S.last = now;
     V.earn(S, dt);
+    const td = V.checkTech(S, now); if (td) { buzz([30, 30]); toast('<b>Research done</b><br>' + TECH_NAME[td] + ' · ' + V.techNode(td).text(V.rLevel(S, td))); save(); refresh(); }
     const lv = V.checkUpgrade(S, now);
     if (lv) { buzz([40, 40, 40]); toast('<b>Foundry upgraded to level ' + lv + '</b>'); save(); refresh(); return; }
     if (now - lastSave > 5000) { lastSave = now; save(); }

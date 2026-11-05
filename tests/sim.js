@@ -11,9 +11,13 @@ function manageWing(s, rng) {
   for (const o of owned) { for (let i = 0; i < s.wing.owned[o.k] && pick.length < 3; i++) if (pick.filter((x) => x === o.k).length < s.wing.owned[o.k] && !pick.includes(o.k)) pick.push(o.k); }
   s.wing.active = pick;
 }
-const PRIORITY = ['alloy', 'offline', 'speed', 'credits', 'xp', 'dmg', 'hull'];
-function bank(s) { // spend Data Shards on the first affordable node in priority order
-  for (let guard = 0; guard < 50; guard++) { let bought = false; for (const id of PRIORITY) if (V.buyResearch(s, id)) { bought = true; break; } if (!bought) break; }
+const PRIORITY = ['ftimer', 'alloy', 'batch', 'offline', 'patrol', 'techspd', 'fcost', 'techcst', 'sell', 'odmg', 'ohull', 'woff', 'wsup', 'free', 'dmgc', 'dmgp', 'dmga', 'dmgr', 'hulp', 'hulb', 'hule', 'huls', 'summon', 'wtwin', 'heist', 'convoy', 'salv'];
+function bank(s, now) { // follow the Forge Master advice: efficiency first, power later. Save up for the top pick.
+  V.checkTech(s, now); if (s.tech) return;
+  for (const id of PRIORITY) {
+    const o = V.techInfo(s, id); if (o.maxed || o.locked) continue;
+    V.startTech(s, id, now); return;
+  }
 }
 function dailies(s, rng, now) { // a casual player does their daily missions, arena and clan claims at every check-in
   if (!s.clan) V.joinClan(s, 'vanguard');
@@ -32,16 +36,16 @@ function play(days, perDay, minutes) {
       const rep = V.offline(Object.assign(s, { last: s.last }), t * 1000);
       for (let k = 0; k < minutes * 60; k++) {
         t += 1; const n = t * 1000;
-        V.earn(s, 1); V.checkUpgrade(s, n);
-        if (!s.forge.upgrade) V.startUpgrade(s, n);
-        if (k % 10 === 0) { V.forgeBatch(s, 999, rng); V.promote(s); bank(s); }
+        V.earn(s, 1); V.checkUpgrade(s, n); V.checkTech(s, n);
+        if (!s.forge.upgrade) { for (let q = 0; q < 12; q++) { const r = V.startUpgrade(s, n); if (!r.ok || !r.partial) break; } }
+        if (k % 10 === 0) { V.forgeBatch(s, 999, rng); V.promote(s); bank(s, n); }
         if (k % 12 === 11) { const st = s.combat.stage, e = V.enemyFor(st); const r = V.simulateFight(V.fighter(s), e, rng); V.resolveFight(s, st, r.win, rng); manageWing(s, rng); }
       }
-      dailies(s, rng, t * 1000); V.forgeBatch(s, 9999, rng); V.promote(s); bank(s);
+      dailies(s, rng, t * 1000); V.forgeBatch(s, 9999, rng); V.promote(s); bank(s, t * 1000);
       trace.push({ day: t / dayS, rating: V.power(s).rating, best: s.combat.best, L: s.forge.level });
       s.last = t * 1000; nextCheck = t + gap - minutes * 60;
       const L = s.forge.level;
-      [3, 5, 8, 11, 12, 14].forEach((m) => { if (L >= m) mark('F' + m); });
+      [3, 5, 8, 11, 14, 17, 20, 25].forEach((m) => { if (L >= m) mark('F' + m); });
       [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200].forEach((m) => { if (s.combat.best >= m) mark('S' + V.stageLabel(m)); });
       [10, 25, 50, 75, 100].forEach((m) => { if (s.cmd.level >= m) mark('Lv' + m); });
       if (Math.floor(t / dayS) % (+process.env.EVERY || 30) === 0 && !log.some((e) => e.day === Math.floor(t / dayS))) log.push({ day: Math.floor(t / dayS), foundry: L, stage: V.stageLabel(Math.max(1, s.combat.best)), lv: s.cmd.level, rank: V.RANK_NAMES[s.cmd.rank], power: V.fmt(V.power(s).power), rating: Math.round(V.power(s).rating), credits: V.fmt(s.credits), alloy: V.fmt(s.alloy) });
@@ -59,5 +63,5 @@ console.log('milestone day:', JSON.stringify(r.marks));
 console.table(r.log);
 console.log('forged', r.s.stats.forged, 'wins', r.s.stats.wins, 'losses', r.s.stats.losses, 'shards unspent', r.s.shards, 'research', JSON.stringify(r.s.research));
 for (let L = 1; L <= V.CFG.MAX_FORGE_LEVEL; L++) { const o = V.tierOdds(L).reduce((a, b) => a + b, 0); if (Math.abs(o - 1) > 1e-9) throw new Error('odds at ' + L); }
-if (process.argv[5] === 'table') for (const L of [1, 5, 10, 15, 20, 25, 30, 35, 39]) console.log('L' + L, 'wait', V.fmtTime(V.CFG.UPGRADE_SECONDS(L)), 'credits', V.fmt(V.CFG.UPGRADE_CREDITS(L)));
+if (process.argv[5] === 'table') for (const L of [1, 5, 10, 15, 20, 24]) console.log('L' + L, 'wait', V.fmtTime(V.CFG.UPGRADE_SECONDS(L)), 'credits', V.fmt(V.CFG.UPGRADE_CREDITS(L)));
 }

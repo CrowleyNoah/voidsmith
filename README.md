@@ -7,16 +7,16 @@ A private idle forge game. Everything is saved on your device and works offline.
 
 ## What is in step 1
 - The Forge: spend Alloy, get a random part (8 slots, 6 tiers). Fit it or sell it.
-- Foundry upgrades: Credits plus a real-time wait for better odds and stronger gear. Only 14 levels at launch, each one a milestone: 30 seconds for the first, about two weeks for the last. A new tier unlocks at Foundry 1, 3, 5, 8, 11 and 14.
+- Foundry upgrades: Credits plus a real-time wait for better odds and stronger gear. 25 levels before Ascension. The odds, waits and costs follow Forge Master's table (35 levels) squeezed into 25 and made 1.5x slower. First step about 17 minutes, last steps about 18 days. All 10 tiers (Rusted, Refitted, Hardened, Classified, Voidborn, Exotic, Ancient, Dark Matter, Origin, Apex) unlock at Foundry 1, 2, 4, 6, 8, 10, 12, 14, 17 and 21.
 - One Alloy per forge, about one Alloy a minute. Alloy and Credits have no cap. The only limit is offline time: production counts for 4 hours while the app is closed (Research raises it).
 - Ship screen with Damage, Hull and Power. Records. Save backup and restore codes. Auto-Salvage unlocks at Foundry 3.
 
 ## Added in step 2
-- Cargo Hold: stash parts from the forge bay, swap them in later, expand it with Credits (6 to 30 slots).
+- (Cargo Hold, Stash and Keep list were removed in v23: equip or sell, like the games this follows. Old held parts are sold into Credits.)
 - Set bonuses: fit 4 or 8 parts of the same tier or better for a bonus (best set counts).
 - Codex: every part you forge is recorded. Each new part adds +0.25% to all stats; finishing a tier adds +3%.
 - Part comparison now shows the real change in Power, including set and Codex bonuses.
-- Tap a fitted part for details or to move it to the hold. Armory tab holds the hold, set table and Codex.
+- Tap a fitted part for its details. The Codex tab shows every part and the set table.
 
 ## Added in step 3
 - Missions tab: turn-order fights against drones, gunships, raiders, bulwarks and a boss every 10th stage. 200 stages shown as 1-1 to 20-10. The campaign lives on the main (Foundry) screen: your ship fights the current stage automatically, a win moves you to the next stage and a loss drops you back one. Swap your gear and the result changes. No arrows, no tickets. A fight has no round limit: it ends when one side is destroyed.
@@ -29,13 +29,12 @@ A private idle forge game. Everything is saved on your device and works offline.
 ## Added in step 4
 - Bonus lines on parts (Refitted and up): Crit chance, Crit damage, Armor pierce, Overcharge, Haste, Plating, Evasion, Hull leech. Weapons lean offensive, hull parts defensive. Higher tiers roll more and bigger lines.
 - Power stays the plain number (stats x set x Codex). Fights use the lines too, so two ships with equal Power can win very differently. Each part shows its Power change and its Build change; auto decisions use Build.
-- Keep list in More: parts with the lines you want go to the cargo hold instead of being sold.
 - Wing: three companion ships (Hornet, Longbow, Mender, Aegis, Static, Surge) that act in turn order. Summon with AI Cores, fuse 3 of the same rank into the next rank (6 ranks). The Summon Bay levels up with use for better odds.
 - AI Cores come from first clears, boss first clears and a 6% chance per win, and from patrol while closed.
 - Mission Outlook is now a real win chance from simulated fights.
 
 ## Tuning the numbers
-Every number is in the TABLES section at the top of `core.js`. `node tests/calibrate.js` shows win chances by Power ratio, `node tests/rules.js` checks the rules, and `node tests/sim.js` simulates players who check in 3, 8 or 24 times a day and prints how long the 40 foundry levels take.
+Every number is in the TABLES section at the top of `core.js`. `node tests/calibrate.js` shows win chances by Power ratio, `node tests/rules.js` checks the rules, and `node tests/sim.js` simulates players who check in 3, 8 or 24 times a day and prints how long the 25 foundry levels take.
 Bump `VERSION` in `sw.js` after any change.
 
 ## Commander, ranks and research (step 5)
@@ -70,3 +69,20 @@ Tier multipliers are now [1, 2.2, 4.8, 10, 20, 38] and the enemy curve was re-fi
 
 ### Step 9: visual pass (vs-v17)
 Main screen rebuilt to look like a game, not a text page: full-width fight scene with drawn ships, hit beams and floating numbers, icon gear tiles with levels, anvil with Alloy count, and a Foundry button that opens the upgrade + odds popup. Header is now avatar, power and icon-only currency pills; nav uses icons.
+
+## Added in v23
+- Forge Master's forge math: tier odds, waits and costs resampled from 35 levels to 25 Foundry levels, waits x1.5. Credit prices are scaled to what parts sell for (COST_SCALE in core.js (0.4)).
+- All 10 tiers are live (Codex is 80 parts). Level growth per Foundry level is 12%, tier multipliers go 1, 2.2, 4.8, 10, 20, 38, 70, 130, 240, 440. The enemy curve was re-fit with tests/fit.js.
+- A kill pays 1 Credit, a boss too. Credits come from selling parts.
+- Orders (Missions tab): 2 or 3 small jobs for every 20 campaign stages. Rewards are small (up to 200 Alloy or 2 Flux).
+- The Armory tab is now the Codex tab: no cargo hold.
+
+## Added in v25: research tree rebuilt from the Forge Master tech guide
+- Lab tab: Research and Codex. Three branches (Forge, Power, Fleet), 25 nodes, no Clan branch.
+- Each node has 25 levels in 5 tiers of 5 (I-V). Bonus per level is constant; cost and wait rise with the tier (Forge Master's T1-T5 tables, waits x1.5, Shards x SHARD_SCALE, Flux x1.5).
+- Values are about 0.8x Forge Master: Foundry speed +3%, upgrade cost -1.5%, sell +1.6%, Free Forge 0.8%, offline +12.8% of 4h per level, Power nodes +1.6% to one gear slot, research speed +3%, research cost -1.6%, summon cost -0.8%.
+- Multi-Forge: one upgrade per tier (+2,+2,+2,+2,+1, max 10 at once), commander level 6/20/38/56/75. Tiers I-V open at commander level 1/16/34/52/70.
+- v26 additions: Alloy Output (+1.6% per level on the 1 Alloy a minute base) and Patrol Pay (offline patrol 50% -> up to 90%) in the Forge branch. Offline time node stays (4h base, +12.8% of the base per level).
+- v26 installments: Foundry upgrades take several payments before the timer starts: 1 until about Foundry 8, then 2, 3 ... up to 9-10 near the end (CFG.INSTALL). One payment is PAY_X (0.2) of the old single price, so late levels are credit-limited, not just timer-limited.
+- Dropped (no equivalent here): Forging XP, crit/haste, eggs, mounts, level-ups.
+- One research at a time; Flux finishes it early. Old research is refunded 3 Shards per level.

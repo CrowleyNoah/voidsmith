@@ -1,7 +1,7 @@
 // Calibration helper: runs the casual bot against the current enemy curve and suggests new ENEMY_POINTS
 // so that the campaign lasts as long as SCHEDULE says. Usage: node tests/fit.js [days]
 const V = require('../core.js'); const { play } = require('./sim.js');
-const SCHEDULE = [[1, 0.0], [10, 0.04], [20, 0.3], [50, 10], [100, 75], [150, 180], [200, 330]]; // [stage, day the bot should first clear it]
+const SCHEDULE = [[1, 0.0], [10, 0.1], [20, 0.5], [50, 10], [100, 60], [150, 150], [200, 300]]; // [stage, day the bot should first clear it]
 const days = +process.argv[2] || 420;
 const r = play(days, 3, 10), tr = r.trace;
 const ratingAt = (d) => { let best = tr[0]; for (const e of tr) if (e.day <= d) best = e; return best.rating; };
