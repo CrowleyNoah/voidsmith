@@ -20,6 +20,7 @@
   function toast(msg) { const t = $('toast'); t.innerHTML = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 3200); }
   function buzz(ms) { if (S.settings.vibrate && navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) { /* ignore */ } } }
   function modal(html, onClose) {
+    modalKind = null;
     $('mbox').innerHTML = html + '<div class="row" style="margin-top:14px"><button class="btn pri" id="mok">Continue</button></div>';
     $('modal').hidden = false; $('mok').onclick = () => { $('modal').hidden = true; if (onClose) onClose(); };
   }
@@ -89,16 +90,80 @@
     more: '<path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'
   };
   function decorateChrome() {
+    $('modal').addEventListener('click', (e) => { if (e.target === $('modal') && modalKind !== 'ad') { $('modal').hidden = true; modalKind = null; } });
     document.querySelectorAll('nav button').forEach((b) => { const i = b.querySelector('i'); if (i) i.innerHTML = SVGH(24, 24, NAVICON[b.dataset.tab] || ''); });
     document.querySelectorAll('.cur[data-coin]').forEach((c) => { c.insertAdjacentHTML('afterbegin', coinIcon(c.dataset.coin)); });
   }
+
+  /* ---------- more art ---------- */
+  COIN.cores = '<rect x="3" y="3" width="10" height="10" rx="2" fill="#35f0ff" stroke="#c9fbff" stroke-width="1"/><rect x="6" y="6" width="4" height="4" fill="#06323a"/>';
+  COIN.medals = '<circle cx="8" cy="9" r="5.5" fill="#ff9a3d" stroke="#ffe0b8" stroke-width="1"/><path d="M5 1h6l-1.5 4h-3z" fill="#ff5a6a"/>';
+  const PIC = {
+    ticket: '<path d="M3 9a3 3 0 000 6v5h18v-5a3 3 0 000-6V4H3z" fill="currentColor"/><path d="M9 6v12" stroke="#0006" stroke-width="2" stroke-dasharray="2 2"/>',
+    video: '<rect x="2" y="6" width="14" height="12" rx="3" fill="currentColor"/><path d="M16 10l6-3v10l-6-3z" fill="currentColor"/>',
+    trophy: '<path d="M7 3h10v6a5 5 0 01-10 0z" fill="#ffc83d"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4" fill="none" stroke="#ffc83d" stroke-width="2"/><rect x="10" y="13" width="4" height="4" fill="#ffc83d"/><rect x="7" y="18" width="10" height="3" rx="1" fill="#c98a00"/>',
+    medal: '<circle cx="12" cy="14" r="7" fill="#ff9a3d" stroke="#ffe0b8" stroke-width="2"/><path d="M7 2h10l-3 8h-4z" fill="#ff5a6a"/><path d="M12 10l1.5 3 3 .4-2.2 2 .6 3-2.9-1.6-2.9 1.6.6-3-2.2-2 3-.4z" fill="#fff"/>',
+    clan: '<path d="M12 2l9 3v7c0 5-4 8-9 10-5-2-9-5-9-10V5z" fill="#4aa3ff" stroke="#bfe0ff" stroke-width="2"/><path d="M12 7l1.8 3.6 4 .6-2.9 2.8.7 4-3.6-1.9-3.6 1.9.7-4-2.9-2.8 4-.6z" fill="#fff"/>',
+    chest: '<path d="M3 11h18v9H3z" fill="#b8742e"/><path d="M3 11a9 7 0 0118 0z" fill="#e39a45"/><rect x="10" y="10" width="4" height="5" fill="#ffd54a"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor"/><path d="M8 11V8a4 4 0 018 0v3" fill="none" stroke="currentColor" stroke-width="2.5"/>',
+    sword: '<path d="M5 19L18 6l1 1L6 20zM15 4h5v5l-2-2z" fill="currentColor"/><path d="M4 17l3 3-2 2-3-3z" fill="currentColor"/>',
+    fast: '<path d="M3 5l8 7-8 7zM12 5l8 7-8 7z" fill="currentColor"/>',
+    star: '<path d="M12 2l3 7 7 .6-5.4 4.6 1.7 7.2L12 17.8 5.7 21.4l1.7-7.2L2 9.6 9 9z" fill="currentColor"/>',
+    clock: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 6v6l4 3" stroke="currentColor" stroke-width="3" fill="none"/>',
+    bolt: '<path d="M13 2L5 14h6l-1 8 9-13h-6z" fill="currentColor"/>',
+    gear: '<circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3" stroke="currentColor" stroke-width="3"/>',
+    chart: '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2" stroke="currentColor" stroke-width="3" fill="none"/>',
+    user: '<circle cx="12" cy="8" r="4.5" fill="currentColor"/><path d="M3 21c0-5 4-8 9-8s9 3 9 8z" fill="currentColor"/>',
+    save: '<path d="M4 3h13l3 3v15H4z" fill="currentColor"/><rect x="7" y="3" width="9" height="6" fill="#0006"/><rect x="7" y="13" width="10" height="8" fill="#0006"/>',
+    filter: '<path d="M3 4h18l-7 9v7l-4-2v-5z" fill="currentColor"/>',
+    trash: '<path d="M5 7h14l-1 14H6zM9 3h6v3H9z" fill="currentColor"/>',
+    crown: '<path d="M3 18l-1-11 6 5 4-8 4 8 6-5-1 11z" fill="#ffc83d" stroke="#c98a00" stroke-width="1.5"/>',
+    box: '<path d="M3 8l9-5 9 5v10l-9 5-9-5z" fill="#b8742e"/><path d="M3 8l9 5 9-5M12 13v10" stroke="#ffd08a" stroke-width="2" fill="none"/>',
+    plus: '<path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+    minus: '<path d="M4 12h16" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>',
+    merge: '<path d="M4 5l8 8 8-8M12 13v8" stroke="currentColor" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+  };
+  const pic = (k, cls) => SVGH(24, 24, PIC[k], 'pic ' + (cls || ''));
+  const SPIC = {
+    hornet: '<path d="M6 24l16-12 20 12-20 12z" fill="#fff"/><path d="M22 12v24" stroke="#ffb02e" stroke-width="3"/><path d="M36 24h10" stroke="#ff6b5e" stroke-width="4"/>',
+    longbow: '<path d="M10 24h30" stroke="#fff" stroke-width="5"/><path d="M40 24l6-4v8z" fill="#ff6b5e"/><circle cx="16" cy="24" r="7" fill="none" stroke="#7ee7ff" stroke-width="3"/><path d="M16 12v24M4 24h24" stroke="#7ee7ff" stroke-width="2"/>',
+    mender: '<rect x="18" y="6" width="12" height="36" rx="3" fill="#fff"/><rect x="6" y="18" width="36" height="12" rx="3" fill="#fff"/><rect x="21" y="9" width="6" height="30" rx="2" fill="#43e88a"/><rect x="9" y="21" width="30" height="6" rx="2" fill="#43e88a"/>',
+    aegis: '<path d="M24 4l17 6v13c0 10-7 16-17 21C14 39 7 33 7 23V10z" fill="#fff"/><path d="M24 10l11 4v9c0 7-4 11-11 15-7-4-11-8-11-15v-9z" fill="#4aa3ff"/>',
+    static: '<path d="M4 24q6-14 10 0t10 0 10 0 10 0" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M4 33q6-10 10 0t10 0 10 0 10 0" stroke="#b27cff" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    surge: '<path d="M28 3L10 27h11l-4 18 21-26H26z" fill="#ffe066" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>'
+  };
+  const spic = (id) => SVGH(48, 48, SPIC[id] || SPIC.hornet, 'ico');
+  const RICON = { alloy: () => coinIcon('alloy'), offline: () => pic('clock'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), xp: () => pic('star'), dmg: () => slotIcon('cannon'), hull: () => slotIcon('plating') };
+  const DICON = { alloy: () => coinIcon('alloy'), shards: () => coinIcon('shards'), cores: () => coinIcon('cores') };
+  const pipsRow = (n, max) => { let s = ''; for (let i = 0; i < max; i++) s += '<i class="' + (i < n ? 'on' : '') + '"></i>'; return '<span class="pp">' + s + '</span>'; };
+  const infoBtn = (k) => '<button class="info" data-act="info" data-k="' + k + '" aria-label="Info">i</button>';
+  function sheet(html, kind) {
+    $('mbox').innerHTML = html + '<div class="row" style="margin-top:12px"><button class="btn pri" data-act="close">OK</button></div>';
+    modalKind = kind || 'sheet'; $('modal').hidden = false;
+  }
+  const INFO = {
+    home: () => { const p = V.power(S), sb = p.set; return '<h3>Your ship</h3><div class="kv"><span>Damage</span><span>' + V.fmt(p.dmg) + '</span><span>Hull</span><span>' + V.fmt(p.hull) + '</span><span>Power</span><span style="color:var(--cyan)">' + V.fmt(p.power) + '</span><span>Set bonus</span><span>' + (sb.bonus ? '+' + Math.round(sb.bonus * 100) + '%' : 'none') + '</span><span>Codex bonus</span><span>+' + (p.codex * 100).toFixed(1).replace('.0', '') + '%</span></div><p class="sb dim">Tap a part to see it. Fit 4 or 8 parts of one tier or better for a set bonus. An undecided part is sold when you forge again.</p>'; },
+    sweep: () => '<h3>Sweep tickets</h3><p class="sb">One ticket every 2 hours, up to ' + V.CFG.SWEEP_MAX + '. Watching an ad adds one (' + V.CFG.SWEEP_ADS + ' a day). Tickets replay a mission stage you already cleared. Everything resets at midnight UTC.</p>',
+    daily: () => '<h3>Daily missions</h3><p class="sb">Each has its own stage ladder and ' + V.CFG.DAILY_ATTEMPTS + ' tries a day. Win to climb one stage. The sword fights the next stage, the arrows spend a ticket to collect the last stage you cleared. The % is your win chance.</p>',
+    arena: () => '<h3>Arena</h3><p class="sb">Simulated rivals built to your level. Win +25 league points and Medals, lose −12. ' + V.CFG.ARENA_ATTEMPTS + ' fights a day.</p>',
+    shop: () => '<h3>Medal shop</h3><p class="sb">Spend Medals from the Arena. Each item can be bought ' + V.CFG.SHOP_LIMIT + ' times a day.</p>',
+    clan: () => '<h3>Clans</h3><p class="sb">Simulated crews that play on their own schedule. Your crew fills most of the daily goal. Convoy wins and sweeps add ' + V.CFG.CLAN_WIN_POINTS + ' points each. Joining unlocks the Clan Convoy mission.</p>',
+    xp: () => '<h3>Commander XP</h3><p class="sb">XP comes only from forging: 10 per Rusted or Refitted part, 20 per Hardened, Classified or Voidborn, 30 per Exotic. Fights give none. Each level adds +' + (V.CFG.LEVEL_BONUS * 100).toFixed(1).replace('.0', '') + '% Damage and Hull. At each rank cap you need a promotion.</p>',
+    research: () => '<h3>Research</h3><p class="sb">Data Shards come from boss first clears, every fifth stage first clear, Data Heist and promotions. Tap a node to upgrade it.</p>',
+    hold: () => '<h3>Cargo hold</h3><p class="sb">Stash parts from the forge popup to keep them. Tap a part to fit or sell it. Fitting swaps with the part on your ship.</p>',
+    codex: () => '<h3>Codex</h3><p class="sb">Every new part you forge adds +' + (V.CFG.CODEX_PART * 100) + '% to all stats. Finishing a whole tier adds +' + Math.round(V.CFG.CODEX_TIER * 100) + '% more. Now: +' + (V.codexBonus(S) * 100).toFixed(2).replace(/\.?0+$/, '') + '%. The numbers on the right are set bonuses for 4 and 8 parts of that tier or better. Only your best set counts.</p>',
+    wing: () => { const lvl = V.bayLevel(S), odds = V.summonOdds(lvl); return '<h3>Summon bay ' + lvl + '</h3><div class="chips">' + odds.map((o, r) => o > 0.0005 ? '<span class="chipx" style="--tc:' + V.RANK_COLORS[r] + '">' + V.RANKS[r] + ' ' + (o * 100 < 1 ? '<1' : (o * 100 < 10 ? (o * 100).toFixed(1) : Math.round(o * 100))) + '%</span>' : '').join('') + '</div><p class="sb">AI Cores come from first clears (' + V.CFG.CORE_FIRST + '), boss first clears (' + V.CFG.CORE_BOSS + ') and a ' + Math.round(V.CFG.CORE_DROP * 100) + '% chance on every win. Every ' + V.CFG.BAY_STEP + ' summons raises the bay for better odds. Fuse 3 of the same companion and rank into 1 of the next rank. Companions act in turn order beside your ship.</p>'; },
+    depot: () => '<h3>Depot</h3><p class="sb">Ads are never forced. Each has a daily limit and a cooldown and is a small help, not a shortcut. Deals are paid in Flux and change at midnight UTC.</p>',
+    keep: () => '<h3>Keep list</h3><p class="sb">When Auto-Salvage or Forge ×10 / MAX finds a part that is not an upgrade but has these bonus lines, it goes to the cargo hold instead of being sold (if there is room).</p>'
+  };
+  function infoSheet(k) { sheet(INFO[k](), 'info'); }
 
   /* ---------- Foundry ---------- */
   let modalKind = null;
   function renderFoundry() {
     const L = S.forge.level;
     if (!$('arenaWrap')) { $('tab-foundry').innerHTML = '<div id="arenaWrap">' + arenaHtml() + '</div><div id="foundryRest"></div>'; missionStatic(); missionLive(); }
-    $('foundryRest').innerHTML = '<div id="bay">' + bayHtml() + '</div><div class="xpr"><b id="lvl"></b><div class="bar"><i id="xpfill"></i></div></div>' + homeGearHtml() +
+    $('foundryRest').innerHTML = '<div id="bay">' + bayHtml() + '</div><div class="xpr"><b id="lvl"></b><div class="bar xl"><i id="xpfill"></i><span id="xpt"></span></div>' + infoBtn('home') + '</div>' + homeGearHtml() +
       '<div class="forgerow"><button class="anvil" id="forgeBtn" data-act="forge" aria-label="Forge">' + anvilSvg() + '<span class="ac">' + coinIcon('alloy') + '<b id="fcost"></b></span></button>' +
       '<div class="fcol"><div class="ftime" id="ftime"></div><button class="fbtn" id="fbtn" data-act="foundry"><small>Foundry</small><b>Level ' + L + '</b><em class="dot" id="fdot" hidden></em></button>' +
       '<div class="row"><button class="btn sm" id="f10" data-act="f10">×10</button><button class="btn sm" id="fmax" data-act="fmax">MAX</button></div></div></div>';
@@ -128,70 +193,51 @@
       '<div class="' + (up ? 'up' : dn ? 'dn' : 'dim') + ' pd">' + (up ? '▲ ' : dn ? '▼ ' : '') + (r >= 0 ? '+' : '') + r.toFixed(Math.abs(r) < 10 ? 1 : 0) + '%</div></div>' +
       '<div class="pbtn"><button class="btn pri" data-act="equip">Equip</button><div class="row"><button class="btn sm" data-act="stash"' + (free ? '' : ' disabled') + '>Stash</button><button class="btn sm" data-act="sell">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button></div></div></div>';
   }
+  function tierIcon(i) {
+    const c = V.TIERS[i].color; let d = ''; for (let k = 0; k <= i; k++) d += '<circle cx="' + (24 - i * 4.5 + k * 9) + '" cy="24" r="3" fill="#fff"/>';
+    return SVGH(48, 48, '<path d="M24 3l18 10v22L24 45 6 35V13z" fill="' + c + '" stroke="#0a0d40" stroke-width="3"/><path d="M24 9l12 7v16l-12 7-12-7V16z" fill="#ffffff33"/>' + d, 'ti');
+  }
   function foundryModal() {
-    const L = S.forge.level, u = V.upgradeInfo(S), up = S.forge.upgrade;
-    let h = '<h3>Foundry level ' + L + '</h3><div class="panel" id="upg">' + upgradeHtml(u, up) + '</div><div class="odds" style="margin-top:12px">';
-    const odds = V.tierOdds(L);
+    const L = S.forge.level, u = V.upgradeInfo(S), up = S.forge.upgrade, o1 = V.tierOdds(L), o2 = u.maxed ? o1 : V.tierOdds(L + 1);
+    const pc = (x) => x === 0 ? '0%' : x * 100 < 1 ? (x * 100).toFixed(2).replace(/0$/, '') + '%' : x * 100 < 10 ? (x * 100).toFixed(1).replace('.0', '') + '%' : Math.round(x * 100) + '%';
+    let h = '<div class="prob"><h3 class="outl">Forge odds</h3><div class="phead"><span class="pl">Lv.' + L + '</span><span class="pa">▶</span><span class="pl nx">Lv.' + (u.maxed ? L : L + 1) + '</span></div>';
     V.TIERS.forEach((t, i) => {
       if (!t.launch) return;
-      if (odds[i] === 0) { h += '<span class="n" style="--tc:#3d4957;color:#3d4957">' + t.name + '</span><span class="lock">Foundry ' + t.unlock + '</span><span></span>'; return; }
-      h += '<span class="n" style="--tc:' + t.color + '">' + t.name + '</span><div class="bar" style="--tc:' + t.color + '"><i style="width:' + Math.max(2, odds[i] * 100).toFixed(1) + '%"></i></div><span class="p">' + (odds[i] * 100 < 1 ? '<1' : Math.round(odds[i] * 100)) + '%</span>';
+      const lock = o1[i] === 0 && o2[i] === 0, nw = o1[i] === 0 && o2[i] > 0;
+      h += '<div class="prow' + (lock ? ' lk' : '') + '" style="--tc:' + t.color + '">' + tierIcon(i) + '<b>' + t.name + '</b>' + (nw ? '<em class="chip">NEW</em>' : '') + '<span class="p1">' + pc(o1[i]) + '</span><span class="p2">' + (lock ? pic('lock') + t.unlock : pc(o2[i])) + '</span></div>';
     });
-    $('mbox').innerHTML = h + '</div><div class="row" style="margin-top:14px"><button class="btn pri" data-act="close">Close</button></div>';
+    h += '<div id="upg">' + upgradeHtml(u, up) + '</div></div>';
+    $('mbox').innerHTML = h + '<button class="xbtn" data-act="close" aria-label="Close">✕</button>';
     modalKind = 'foundry'; $('modal').hidden = false; live();
   }
   function upgradeHtml(u, up) {
-    if (u.maxed) return '<div class="nm">Max level for now</div>';
+    if (u.maxed) return '<div class="segbar"><i style="width:100%"></i></div>';
     const T = V.TIERS, unlocks = T.findIndex((t) => t.launch && t.unlock === u.to);
-    const note = unlocks > 0 ? '<div class="up" style="margin:4px 0">Unlocks ' + T[unlocks].name + ' gear</div>' : '';
-    if (up) return '<div class="row" style="align-items:center;justify-content:space-between"><div class="nm">Level ' + up.to + '</div><div id="utime" class="nm" style="color:var(--amber);flex:none"></div></div><div class="bar" style="margin-top:8px"><i id="ubar"></i></div>' + note + '<button class="btn" id="rushBtn" data-act="rush" style="margin-top:8px;width:100%"></button>';
-    return '<div class="nm">Level ' + u.from + ' → ' + u.to + '</div>' + note + '<div class="sb">' + coinIcon('credits') + ' <b>' + V.fmt(u.credits) + '</b> · ' + V.fmtTime(u.seconds) + '</div><button class="btn pri" id="ubtn" data-act="upgrade" style="margin-top:10px;width:100%">Upgrade</button>';
+    const seg = '<div class="segbar"><i id="ubar"></i></div>';
+    if (up) return seg + '<div class="utimer">' + pic('clock') + '<b id="utime"></b></div><button class="btn big3 fl" id="rushBtn" data-act="rush"></button>';
+    return seg + '<button class="btn big3" id="ubtn" data-act="upgrade"><span>Level up</span><b>' + coinIcon('credits') + V.fmt(u.credits) + '</b><small>' + V.fmtTime(u.seconds) + '</small></button>';
   }
 
-  /* ---------- Ship ---------- */
-  function shipSvg() {
-    const best = V.highestTier(S), c = best >= 0 ? tcol(best) : '#3d4957';
-    return '<svg class="ship" viewBox="0 0 300 150" aria-hidden="true"><defs><linearGradient id="hg" x1="0" x2="1"><stop offset="0" stop-color="#1a2430"/><stop offset="1" stop-color="#26323f"/></linearGradient></defs>' +
-      '<path d="M20 75 L110 40 L250 55 L285 75 L250 95 L110 110 Z" fill="url(#hg)" stroke="' + c + '" stroke-width="2"/>' +
-      '<path d="M110 40 L150 8 L190 50" fill="#18212b" stroke="' + c + '" stroke-width="2"/><path d="M110 110 L150 142 L190 100" fill="#18212b" stroke="' + c + '" stroke-width="2"/>' +
-      '<circle cx="215" cy="75" r="9" fill="' + c + '" opacity=".85"/><rect x="6" y="66" width="20" height="18" rx="3" fill="' + c + '" opacity=".6"/></svg>';
-  }
+  /* ---------- Ship (commander) ---------- */
   function renderShip() {
-    const p = V.power(S), sb = p.set;
-    let h = shipSvg() + '<div class="stat3"><div><span class="dim tiny">DAMAGE</span><b>' + V.fmt(p.dmg) + '</b></div><div><span class="dim tiny">HULL</span><b>' + V.fmt(p.hull) + '</b></div><div><span class="dim tiny">POWER</span><b style="color:var(--cyan)">' + V.fmt(p.power) + '</b></div></div>';
-    h += '<div class="panel" style="margin-bottom:8px"><div class="kv"><span>Set bonus</span><span style="color:' + (sb.bonus ? 'var(--good)' : 'var(--mute)') + '">' + (sb.bonus ? '+' + Math.round(sb.bonus * 100) + '% · ' + sb.pieces + ' parts ' + V.TIERS[sb.tier].name + '+' : 'none yet') + '</span><span>Codex bonus</span><span style="color:' + (p.codex ? 'var(--good)' : 'var(--mute)') + '">+' + (p.codex * 100).toFixed(1).replace('.0', '') + '%</span></div><div class="sb dim" style="margin-top:6px;font-size:12px">Fit 4 or 8 parts of the same tier or better for a set bonus. Tap a part to see it.</div></div><h2>Fitted systems</h2>';
-    V.SLOTS.forEach((s2) => {
-      const it = S.gear[s2.id];
-      if (it) h += itemCard(it, false, { gap: true, btn: true });
-      else h += '<div class="item empty" style="margin-bottom:6px"><div class="gl dim">' + s2.glyph + '</div><div><div class="nm dim">' + s2.name + '</div><div class="sb">Empty · adds ' + (s2.stat === 'dmg' ? 'Damage' : 'Hull') + '</div></div></div>';
-    });
-    h += commanderHtml() + researchHtml();
-    $('tab-ship').innerHTML = h;
-  }
-  function commanderHtml() {
-    const c = S.cmd, need = V.CFG.XP_NEED(c.level), cap = V.atCap(S), maxed = c.level >= V.CFG.LEVEL_MAX;
-    let h = '<h2>Commander · level ' + c.level + ' · ' + V.RANK_NAMES[c.rank] + '</h2><div class="panel"><div class="bar"><i style="width:' + Math.min(100, c.xp / need * 100).toFixed(1) + '%"></i></div>' +
-      '<div class="kv" style="margin-top:6px"><span>XP</span><span>' + V.fmt(c.xp) + ' / ' + V.fmt(need) + '</span><span>Bonus</span><span style="color:var(--good)">+' + ((c.level - 1) * V.CFG.LEVEL_BONUS * 100).toFixed(1).replace('.0', '') + '% Damage and Hull</span></div>' +
-      '<div class="sb dim" style="margin-top:6px;font-size:12px">XP comes only from forging: 10 per Rusted or Refitted part, 20 per Hardened, Classified or Voidborn, 30 per Exotic. Fights give none.</div>';
+    const p = V.power(S), c = S.cmd, need = V.CFG.XP_NEED(c.level), cap = V.atCap(S);
+    const bt = V.highestTier(S), canP = V.canPromote(S);
+    let h = '<div class="pg"><div class="shiphero"><div class="shipbg"></div>' + playerShip(bt >= 0 ? tcol(bt) : '#35d0e0') + '<div class="rankbadge">' + pic('star') + '<b>' + V.RANK_NAMES[c.rank] + '</b></div></div>' +
+      '<div class="stat3"><div>' + slotIcon('cannon') + '<b>' + V.fmt(p.dmg) + '</b></div><div>' + slotIcon('plating') + '<b>' + V.fmt(p.hull) + '</b></div><div><span class="pw2">' + pic('sword') + '</span><b style="color:var(--amber)">' + V.fmt(p.power) + '</b></div></div>' +
+      '<div class="cmdrow"><div class="lvbig">Lv.' + c.level + '</div><div class="bar xl"><i style="width:' + Math.min(100, c.xp / need * 100).toFixed(1) + '%"></i><span>' + V.fmt(c.xp) + ' / ' + V.fmt(need) + '</span></div>' + infoBtn('xp') + '</div>';
     if (c.rank < V.RANK_NAMES.length - 1) {
-      const goals = V.questGoals(S), r = V.rankReward(c.rank + 1);
-      h += '<h2 style="margin:12px 0 6px">Promotion to ' + V.RANK_NAMES[c.rank + 1] + '</h2>' + (cap ? '<div class="up" style="margin-bottom:6px">Level ' + c.level + ' reached. Promotion needed to keep levelling.</div>' : '<div class="sb dim" style="margin-bottom:6px;font-size:12px">Reach level ' + V.levelCap(c) + ', then complete this quest to go further.</div>') +
-        goals.map((g) => '<div class="tog" style="padding:6px 0"><div>' + esc(g.label) + '<small>' + V.fmt(Math.min(g.have, g.need)) + ' / ' + V.fmt(g.need) + '</small></div><b style="color:' + (g.ok ? 'var(--good)' : 'var(--mute)') + '">' + (g.ok ? '✔' : '…') + '</b></div>').join('') +
-        '<div class="sb dim" style="font-size:12px;margin:4px 0 8px">Reward: ' + r.flux + ' Flux · ' + r.cores + ' AI Cores · ' + r.shards + ' Data Shards</div><button class="btn pri" data-act="promote" style="width:100%"' + (V.canPromote(S) ? '' : ' disabled') + '>' + (V.canPromote(S) ? 'Promote' : cap ? 'Finish the quest' : 'Reach level ' + V.levelCap(c) + ' first') + '</button>';
-    } else if (maxed) h += '<div class="sb dim" style="margin-top:8px">Highest rank and level reached for this release.</div>';
-    return h + '</div>';
-  }
-  function researchHtml() {
-    let h = '<h2>Research · ' + V.fmt(S.shards) + ' Data Shards</h2><div class="sb dim" style="margin-bottom:8px;font-size:13px">Data Shards come from boss first clears, every fifth stage first clear and promotions.</div>';
+      const goals = V.questGoals(S);
+      h += '<div class="promo' + (cap || canP ? ' hot' : '') + '"><div class="pq">' + goals.map((g) => '<span class="' + (g.ok ? 'ok' : '') + '">' + (g.ok ? '✔' : '○') + ' ' + esc(g.label) + ' <b>' + V.fmt(Math.min(g.have, g.need)) + '/' + V.fmt(g.need) + '</b></span>').join('') + '</div><button class="btn pri" data-act="promote"' + (canP ? '' : ' disabled') + '>' + pic('star') + ' ' + V.RANK_NAMES[c.rank + 1] + '</button></div>';
+    }
+    h += '<div class="rhead">' + coinIcon('shards') + '<b>' + V.fmt(S.shards) + '</b>' + infoBtn('research') + '</div><div class="rgrid">';
     V.RESEARCH.forEach((n) => {
-      const l = V.rLevel(S, n.id), max = l >= n.max, cost = V.researchCost(n, l);
-      h += '<div class="panel" style="margin-bottom:8px"><div class="row" style="align-items:center;justify-content:space-between"><div><div class="nm">' + n.name + ' <span class="dim tiny">' + l + '/' + n.max + '</span></div><div class="sb">' + n.text(l) + (max ? '' : ' → <span class="up">' + n.text(l + 1) + '</span>') + '</div></div>' +
-        (max ? '<span class="dim">MAX</span>' : '<button class="btn" data-act="research" data-id="' + n.id + '" style="flex:none"' + (S.shards >= cost ? '' : ' disabled') + '>' + cost + '</button>') + '</div></div>';
+      const l = V.rLevel(S, n.id), max = l >= n.max, cost = V.researchCost(n, l), can = !max && S.shards >= cost;
+      h += '<button class="rnode' + (can ? ' can' : '') + '" data-act="research" data-id="' + n.id + '"' + (can ? '' : ' disabled') + '><span class="ri">' + RICON[n.id]() + '</span><span class="rl">' + l + '/' + n.max + '</span><span class="rc2">' + (max ? 'MAX' : coinIcon('shards') + cost) + '</span></button>';
     });
-    return h;
+    $('tab-ship').innerHTML = h + '</div></div>';
   }
 
-  /* ---------- Missions: turn-order combat ---------- */
+  /* ---------- Missions ---------- */
   let F = null; // the fight on screen (not saved)
   const VERDICTS = [[0.9, 'Easy', 'var(--good)'], [0.65, 'Favorable', 'var(--good)'], [0.4, 'Even match', 'var(--amber)'], [0.15, 'Risky', 'var(--bad)'], [-1, 'Overmatched', 'var(--bad)']];
   function arenaHtml() {
@@ -204,50 +250,64 @@
   }
   function verdictOf(wc) { return VERDICTS.find((x) => wc >= x[0]); }
   function fightModal(title, f, lines) {
-    const ex = f.events.filter((e) => e.who === 'p').length;
-    modal('<h3>' + title + '</h3><div class="panel"><div class="kv"><span>Result</span><span style="color:' + (f.win ? 'var(--good)' : 'var(--bad)') + '">' + (f.win ? 'Victory' : 'Defeat') + '</span><span>Exchanges</span><span>' + ex + '</span><span>Hull left</span><span>' + V.fmt(f.events.length ? f.events[f.events.length - 1].php : f.pmax) + ' / ' + V.fmt(f.pmax) + '</span>' + (lines || '') + '</div></div>', renderMissions);
+    const prev = modalKind, win = f.win;
+    modal('<div class="res ' + (win ? 'w' : 'l') + '">' + (win ? 'VICTORY' : 'DEFEAT') + '</div><h3 style="text-align:center">' + title + '</h3><div class="kv">' + (lines || '') + '</div>', () => { renderMissions(); if (isMS(prev)) missionSheet(prev); });
+    modalKind = null;
+  }
+  const isMS = (k) => !!k && (k === 'arena' || k === 'shop' || k === 'clan' || k.indexOf('daily:') === 0);
+  function banArt(id) {
+    const A = {
+      alloy: '<defs><linearGradient id="ba1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb36b"/><stop offset="1" stop-color="#d9603a"/></linearGradient></defs><rect width="400" height="120" fill="url(#ba1)"/><circle cx="310" cy="38" r="26" fill="#ffe9a8" opacity=".8"/><path d="M0 95l40-30 30 18 50-40 40 32 60-26 50 30 40-22 90 36v27H0z" fill="#8a3a2a"/><path d="M0 108l60-18 70 14 80-16 90 16 100-10v26H0z" fill="#4a1f1f"/><g transform="translate(250 40)"><circle cx="40" cy="40" r="26" fill="#9fb0c2" stroke="#2a3340" stroke-width="4"/><circle cx="40" cy="40" r="9" fill="#2a3340"/><path d="M40 6v10M40 64v10M6 40h10M64 40h10M16 16l7 7M57 57l7 7M64 16l-7 7M23 57l-7 7" stroke="#9fb0c2" stroke-width="9"/></g><path d="M40 82l50-22 40 8 30 18-20 10H50z" fill="#3a4350" stroke="#1a1f27" stroke-width="3"/>',
+      shards: '<defs><linearGradient id="ba2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a6a"/><stop offset="1" stop-color="#7a3ad6"/></linearGradient></defs><rect width="400" height="120" fill="url(#ba2)"/><g fill="#fff" opacity=".7"><circle cx="40" cy="20" r="1.5"/><circle cx="120" cy="12" r="1.5"/><circle cx="200" cy="30" r="1.5"/><circle cx="360" cy="16" r="1.5"/></g><g fill="#1a1245" stroke="#4a3aa0" stroke-width="2"><rect x="30" y="50" width="40" height="70"/><rect x="80" y="30" width="34" height="90"/><rect x="300" y="44" width="44" height="76"/><rect x="352" y="62" width="36" height="58"/></g><g fill="#7ee7ff" opacity=".8"><rect x="38" y="60" width="8" height="5"/><rect x="38" y="78" width="8" height="5"/><rect x="88" y="44" width="8" height="5"/><rect x="88" y="64" width="8" height="5"/><rect x="310" y="58" width="8" height="5"/></g><path d="M215 20l30 30-30 60-30-60z" fill="#d6a8ff" stroke="#fff" stroke-width="3"/><path d="M215 20l-30 30h60z" fill="#f0d8ff"/><rect y="108" width="400" height="12" fill="#0e0a2e"/>',
+      cores: '<defs><linearGradient id="ba3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c8fb0"/><stop offset="1" stop-color="#e8b06a"/></linearGradient></defs><rect width="400" height="120" fill="url(#ba3)"/><circle cx="70" cy="40" r="22" fill="#fff4c8" opacity=".85"/><path d="M0 92h400v28H0z" fill="#5a3a2a"/><path d="M0 100h400" stroke="#ffd08a" stroke-width="3" stroke-dasharray="18 12"/><g fill="#2a3340" stroke="#0e131a" stroke-width="3"><path d="M120 86l24-16h60l14 16z"/><path d="M230 86l20-12h46l12 12z"/><path d="M40 90l16-10h36l10 10z"/></g><path d="M150 70l30-12v12z" fill="#7ee7ff"/><circle cx="168" cy="88" r="5" fill="#ffb02e"/><circle cx="262" cy="88" r="5" fill="#ffb02e"/>'
+    };
+    return '<svg class="banart" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + (A[id] || '') + '</svg>';
   }
   function renderMissions() {
     const now = Date.now(), ti = V.sweepInfo(S, now); V.rollDaily(S, now);
-    let h = '<h2>Sweep tickets · ' + ti.tickets + '</h2><div class="panel"><div class="sb dim" id="tkNote" style="font-size:13px"></div><button class="btn" data-act="sweepAd" id="adBtn" style="width:100%;margin-top:8px"></button></div>';
-    h += '<h2>Daily missions</h2><div class="sb dim" style="margin-bottom:8px;font-size:13px">Each mission has its own stage ladder and ' + V.CFG.DAILY_ATTEMPTS + ' tries a day. Win to climb. Sweep spends a ticket to collect the last stage you cleared. Everything resets at midnight UTC.</div>';
+    let h = '<div class="pg"><div class="trow"><div class="tk">' + Array.from({ length: V.CFG.SWEEP_MAX }, (_, i) => '<span class="tkt' + (i < ti.tickets ? ' on' : '') + '">' + pic('ticket') + '</span>').join('') + '</div><span class="tkn" id="tkNote"></span>' +
+      '<button class="btn sm vid" id="adBtn" data-act="sweepAd">' + pic('video') + '<b>+1</b></button>' + infoBtn('sweep') + '</div><div class="bans">';
     V.DAILIES.forEach((d) => {
-      const best = S.ladders[d.id], next = best + 1, locked = V.ladderLocked(S, d.id), left = V.attemptsLeft(S, d.id, now);
-      let body;
-      if (locked) body = '<div class="sb dim">Join a clan below to run this mission.</div>';
-      else {
-        const wc = V.winChance(S, next, 40, rng, V.CFG.DAILY_SCALE), v = verdictOf(wc);
-        body = '<div class="kv"><span>Next stage</span><span>' + V.stageLabel(next) + '</span><span>Win chance</span><span style="color:' + v[2] + '">' + Math.round(wc * 100) + '% · ' + v[1] + '</span><span>Reward</span><span>' + d.text(d.reward(next)) + '</span><span>Tries left</span><span>' + left + ' / ' + V.CFG.DAILY_ATTEMPTS + '</span></div>' +
-          '<div class="row" style="margin-top:8px"><button class="btn pri" data-act="ladderGo" data-id="' + d.id + '"' + (left > 0 && best < V.CFG.MAX_STAGE ? '' : ' disabled') + '>Enter ' + V.stageLabel(next) + '</button><button class="btn" data-act="ladderSweep" data-id="' + d.id + '"' + (best >= 1 && ti.tickets >= 1 ? '' : ' disabled') + '>' + (best >= 1 ? 'Sweep ' + V.stageLabel(best) + ' · ' + d.text(d.reward(best)) : 'Sweep (clear a stage first)') + '</button></div>';
-      }
-      h += '<div class="panel" style="margin-bottom:8px"><div class="nm">' + d.glyph + ' ' + d.name + (best ? ' <span class="dim tiny">cleared to ' + V.stageLabel(best) + '</span>' : '') + '</div><div class="sb dim" style="margin:2px 0 8px">' + d.blurb + '</div>' + body + '</div>';
+      const left = V.attemptsLeft(S, d.id, now), locked = V.ladderLocked(S, d.id);
+      h += '<div class="ban">' + banArt(d.id) + '<div class="bshade"></div><div class="btitle">' + DICON[d.id]() + '<b class="outl">' + d.name + '</b></div>' +
+        '<div class="bside">' + (locked ? '<span class="lockd">' + pic('lock') + '</span>' : '<span class="keys">' + pic('ticket') + '<b class="outl">' + left + '/' + V.CFG.DAILY_ATTEMPTS + '</b></span>') +
+        '<button class="btn openb" data-act="sheet" data-k="daily:' + d.id + '"' + (locked ? ' disabled' : '') + '>Open</button></div></div>';
     });
-    // arena
-    const L = V.leagueOf(S.arena.lp), lp = S.arena.lp, lo = V.CFG.LEAGUE_LP[L], hi = V.CFG.LEAGUE_LP[L + 1], aleft = V.arenaLeft(S, now), opp = V.arenaOpponents(S, now);
-    h += '<h2>Arena · ' + V.LEAGUES[L] + '</h2><div class="panel"><div class="kv"><span>League points</span><span>' + lp + (hi ? ' / ' + hi : ' (top league)') + '</span><span>Medals</span><span style="color:var(--amber)">' + V.fmt(S.medals) + '</span><span>Fights left today</span><span>' + aleft + ' / ' + V.CFG.ARENA_ATTEMPTS + '</span></div>' +
-      (hi ? '<div class="bar" style="margin:8px 0"><i style="width:' + Math.min(100, (lp - lo) / (hi - lo) * 100) + '%"></i></div>' : '') +
-      opp.map((o, i) => '<div class="tog" style="padding:8px 0"><div><b>' + esc(o.name) + '</b><small>' + o.tag + ' · ' + Math.round(o.f * 100) + '% of your ship</small></div><button class="btn pri" data-act="arenaGo" data-i="' + i + '" style="flex:none"' + (aleft > 0 ? '' : ' disabled') + '>Fight</button></div>').join('') +
-      '<div class="sb dim" style="font-size:12px;margin-top:6px">The league is simulated: no other players, just rivals built to your level. Win +25 points and Medals, lose −12.</div></div>';
-    h += '<h2>Medal shop</h2><div class="panel">' + V.SHOP.map((it) => { const used = S.daily.shop[it.id] || 0; return '<div class="tog" style="padding:8px 0"><div>' + it.name + '<small>' + it.text + ' · ' + used + ' / ' + V.CFG.SHOP_LIMIT + ' today</small></div><button class="btn" data-act="shopBuy" data-id="' + it.id + '" style="flex:none"' + (used < V.CFG.SHOP_LIMIT && S.medals >= it.cost ? '' : ' disabled') + '>' + it.cost + '</button></div>'; }).join('') + '</div>';
-    // clan
-    const cp = V.clanProgress(S, now);
-    h += '<h2>Clan</h2>';
-    if (!cp) {
-      h += V.CLANS.map((c) => '<div class="panel" style="margin-bottom:8px"><div class="row" style="align-items:center;justify-content:space-between"><div><div class="nm">' + c.name + '</div><div class="sb dim">' + c.members + ' members · ' + c.motto + '</div></div><button class="btn pri" data-act="clanJoin" data-id="' + c.id + '" style="flex:none">Join</button></div></div>').join('') +
-        '<div class="sb dim" style="font-size:12px">Clans are simulated crews that play on their own schedule. Joining unlocks the Clan Convoy mission.</div>';
-    } else {
-      h += '<div class="panel"><div class="nm">' + cp.clan.name + '</div><div class="sb dim">' + cp.clan.members + ' members · ' + cp.clan.motto + '</div><div class="kv" style="margin-top:8px"><span>Clan goal today</span><span>' + cp.total + ' / ' + V.CFG.CLAN_TARGET + '</span><span>Crew</span><span>' + cp.members + '</span><span>You</span><span>' + cp.you + '</span></div><div class="bar" style="margin:8px 0"><i style="width:' + cp.total + '%"></i></div>' +
-        cp.steps.map((st, i) => '<div class="tog" style="padding:7px 0"><div>' + st.at + ' points<small>' + Object.keys(st.reward).map((k) => st.reward[k] + ' ' + ({ alloy: 'Alloy', flux: 'Flux', cores: 'AI Cores', shards: 'Data Shards' }[k])).join(' + ') + '</small></div><button class="btn" data-act="clanClaim" data-i="' + i + '" style="flex:none"' + (st.reached && !st.claimed ? '' : ' disabled') + '>' + (st.claimed ? 'Claimed' : st.reached ? 'Claim' : 'Locked') + '</button></div>').join('') +
-        '<div class="sb dim" style="font-size:12px;margin:6px 0">Your crew fills most of the goal as the day goes. Convoy wins and sweeps add ' + V.CFG.CLAN_WIN_POINTS + ' points each.</div><button class="btn" data-act="clanLeave" style="width:100%">Leave clan</button></div>';
-    }
-    h += '<h2>Matchup</h2><div class="panel" id="matchup"></div><h2>Chapters</h2><div class="panel" id="sectors"></div>';
+    const L = V.leagueOf(S.arena.lp), lo = V.CFG.LEAGUE_LP[L], hi = V.CFG.LEAGUE_LP[L + 1], aleft = V.arenaLeft(S, now), cp = V.clanProgress(S, now);
+    const claimable = cp && cp.steps.some((st) => st.reached && !st.claimed);
+    h += '</div><div class="mtiles">' +
+      '<button class="mt" data-act="sheet" data-k="arena">' + pic('trophy') + '<b>' + V.LEAGUES[L].replace(' League', '') + '</b><div class="bar"><i style="width:' + (hi ? Math.min(100, (S.arena.lp - lo) / (hi - lo) * 100) : 100) + '%"></i></div>' + pipsRow(aleft, V.CFG.ARENA_ATTEMPTS) + '</button>' +
+      '<button class="mt" data-act="sheet" data-k="shop">' + pic('medal') + '<b>' + V.fmt(S.medals) + '</b></button>' +
+      '<button class="mt' + (claimable ? ' hot' : '') + '" data-act="sheet" data-k="clan">' + pic('clan') + '<b>' + (cp ? cp.total + '/' + V.CFG.CLAN_TARGET : '') + '</b></button></div></div>';
     $('tab-missions').innerHTML = h;
     ticketLabel(); missionStatic();
+    if (isMS(modalKind) && !$('modal').hidden) missionSheet(modalKind);
+  }
+  function missionSheet(k) {
+    const now = Date.now();
+    if (k.indexOf('daily:') === 0) {
+      const d = V.dailyById(k.slice(6)), best = S.ladders[d.id], next = best + 1, left = V.attemptsLeft(S, d.id, now), ti = V.sweepInfo(S, now);
+      const wc = V.winChance(S, next, 40, rng, V.CFG.DAILY_SCALE), v = verdictOf(wc);
+      sheet('<div class="sban">' + banArt(d.id) + '<b class="outl">' + d.name + '</b>' + infoBtn('daily') + '</div><div class="dstage"><span>' + V.stageLabel(Math.max(1, next)) + '</span><em style="color:' + v[2] + '">' + Math.round(wc * 100) + '%</em></div>' +
+        '<div class="rwbox">' + DICON[d.id]() + '<b>' + d.text(d.reward(next)) + '</b></div><div class="sh-row" style="justify-content:center;gap:10px">' + pic('ticket') + pipsRow(left, V.CFG.DAILY_ATTEMPTS) + '</div>' +
+        '<div class="row"><button class="btn big3 sw3" data-act="ladderSweep" data-id="' + d.id + '"' + (best >= 1 && ti.tickets >= 1 ? '' : ' disabled') + '><span>Sweep last</span><small>' + (best >= 1 ? V.stageLabel(best) + ' · ' + d.text(d.reward(best)) : '') + '</small></button><button class="btn big3 pri" data-act="ladderGo" data-id="' + d.id + '"' + (left > 0 && best < V.CFG.MAX_STAGE ? '' : ' disabled') + '><span>Enter</span></button></div>', k);
+    } else if (k === 'arena') {
+      const L = V.leagueOf(S.arena.lp), lo = V.CFG.LEAGUE_LP[L], hi = V.CFG.LEAGUE_LP[L + 1], aleft = V.arenaLeft(S, now), opp = V.arenaOpponents(S, now);
+      sheet('<div class="sh-h">' + pic('trophy') + '<b>' + V.LEAGUES[L] + '</b>' + infoBtn('arena') + '</div><div class="bar xl"><i style="width:' + (hi ? Math.min(100, (S.arena.lp - lo) / (hi - lo) * 100) : 100) + '%"></i><span>' + S.arena.lp + (hi ? ' / ' + hi : '') + '</span></div><div class="sh-row">' + pipsRow(aleft, V.CFG.ARENA_ATTEMPTS) + '<span class="mcount">' + coinIcon('medals') + V.fmt(S.medals) + '</span></div>' +
+        opp.map((o, i) => '<div class="opp"><div class="oav">' + foeShip(['drone', 'gunship', 'raider'][i % 3], false) + '</div><div class="oi"><b>' + esc(o.name) + '</b><span>' + Math.round(o.f * 100) + '%</span></div><button class="btn pri go" data-act="arenaGo" data-i="' + i + '"' + (aleft > 0 ? '' : ' disabled') + '>' + pic('sword') + '</button></div>').join(''), 'arena');
+    } else if (k === 'shop') {
+      sheet('<div class="sh-h">' + pic('medal') + '<b>' + V.fmt(S.medals) + '</b>' + infoBtn('shop') + '</div>' + V.SHOP.map((it) => { const used = S.daily.shop[it.id] || 0; const kk = Object.keys(it.give)[0]; return '<div class="opp"><div class="oav sq">' + coinIcon(kk) + '</div><div class="oi"><b>' + it.text + '</b>' + pipsRow(V.CFG.SHOP_LIMIT - used, V.CFG.SHOP_LIMIT) + '</div><button class="btn" data-act="shopBuy" data-id="' + it.id + '"' + (used < V.CFG.SHOP_LIMIT && S.medals >= it.cost ? '' : ' disabled') + '>' + coinIcon('medals') + it.cost + '</button></div>'; }).join(''), 'shop');
+    } else {
+      const cp = V.clanProgress(S, now);
+      if (!cp) sheet('<div class="sh-h">' + pic('clan') + infoBtn('clan') + '</div>' + V.CLANS.map((c) => '<div class="opp"><div class="oav sq">' + pic('clan') + '</div><div class="oi"><b>' + c.name + '</b><span>' + c.members + '</span></div><button class="btn pri" data-act="clanJoin" data-id="' + c.id + '">+</button></div>').join(''), 'clan');
+      else sheet('<div class="sh-h">' + pic('clan') + '<b>' + cp.clan.name + '</b>' + infoBtn('clan') + '</div><div class="bar xl"><i style="width:' + cp.total + '%"></i><span>' + cp.total + ' / ' + V.CFG.CLAN_TARGET + '</span></div><div class="chests">' +
+        cp.steps.map((st, i) => '<button class="chb' + (st.claimed ? ' done' : st.reached ? ' hot' : '') + '" data-act="clanClaim" data-i="' + i + '"' + (st.reached && !st.claimed ? '' : ' disabled') + '>' + pic('chest') + '<b>' + st.at + '</b></button>').join('') + '</div><button class="btn sm" data-act="clanLeave" style="width:100%;margin-top:10px">Leave</button>', 'clan');
+    }
   }
   function ticketLabel() {
     const i = V.sweepInfo(S, Date.now()), n = $('tkNote'); if (!n) return;
-    n.textContent = (i.tickets < V.CFG.SWEEP_MAX ? 'Next ticket in ' + V.fmtTime(i.nextIn) : 'Tickets full') + ' · 1 every 2 hours, up to ' + V.CFG.SWEEP_MAX + ' stored';
-    const ad = $('adBtn'); if (ad) { ad.disabled = i.adsLeft <= 0; ad.textContent = i.adsLeft > 0 ? 'Watch ad · +1 ticket (' + i.adsLeft + ' left today)' : 'No ad tickets left today'; }
+    n.textContent = i.tickets < V.CFG.SWEEP_MAX ? V.fmtTime(i.nextIn) : 'FULL';
+    const ad = $('adBtn'); if (ad) ad.disabled = i.adsLeft <= 0;
   }
   function missionStatic() {
     const c = S.combat, e = V.enemyFor(c.stage), sec = V.SECTORS[Math.min(V.SECTORS.length - 1, V.sectorOf(c.stage))];
@@ -334,63 +394,50 @@
 
   /* ---------- Wing: companions ---------- */
   let lastSummon = [];
-  function companionCard(key, extra) {
+  /* ---------- Wing ---------- */
+  function wtile(key, extra, act) {
     const i = V.companionInfo(key);
-    return '<div class="wcard" style="--tc:' + i.color + '"><div class="gl">' + i.sp.glyph + '</div><div style="min-width:0"><div class="nm">' + i.sp.name + ' <span class="rk" style="color:' + i.color + '">' + i.rankName + '</span></div><div class="sb">' + i.sp.role + ' · speed ' + i.speed + '</div><div class="sb" style="color:var(--fg)">' + i.text + '</div></div><div>' + (extra || '') + '</div></div>';
+    return '<button class="tile wt" ' + (act || '') + ' style="--tc:' + i.color + '">' + spic(i.sp.id) + '<span class="lv">' + i.rankName + '</span>' + (extra || '') + '</button>';
   }
   function renderWing() {
-    const lvl = V.bayLevel(S), odds = V.summonOdds(lvl), into = S.wing.summons % V.CFG.BAY_STEP;
-    let h = '<h2>Summon bay · level ' + lvl + '</h2><div class="panel"><div class="kv"><span>AI Cores</span><span style="color:var(--cyan);font-size:18px">' + V.fmt(S.cores) + '</span></div>' +
-      '<div class="chips">' + odds.map((o, r) => o > 0.0005 ? '<span class="chipx" style="--tc:' + V.RANK_COLORS[r] + '">' + V.RANKS[r] + ' ' + (o * 100 < 1 ? '<1' : (o * 100 < 10 ? (o * 100).toFixed(1) : Math.round(o * 100))) + '%</span>' : '').join('') + '</div>' +
-      (lvl < V.CFG.BAY_MAX ? '<div class="bar" style="margin:6px 0"><i style="width:' + (into / V.CFG.BAY_STEP * 100) + '%"></i></div><div class="sb dim" style="font-size:12px">' + (V.CFG.BAY_STEP - into) + ' more summons to level ' + (lvl + 1) + ' (better odds)</div>' : '<div class="sb dim" style="font-size:12px">Summon bay at maximum level</div>') +
-      '<div class="row" style="margin-top:10px"><button class="btn pri" data-act="sum1"' + (S.cores < V.CFG.SUMMON_COST ? ' disabled' : '') + '>Summon · ' + V.CFG.SUMMON_COST + '</button><button class="btn pri" data-act="sum10"' + (S.cores < V.CFG.SUMMON10_COST ? ' disabled' : '') + '>×10 · ' + V.CFG.SUMMON10_COST + '</button></div>' +
-      '<div class="sb dim" style="margin-top:8px;font-size:12px">Earn AI Cores from first clears (' + V.CFG.CORE_FIRST + '), boss first clears (' + V.CFG.CORE_BOSS + ') and a ' + Math.round(V.CFG.CORE_DROP * 100) + '% chance on every win.</div>';
-    if (lastSummon.length) h += '<div class="chips" style="margin-top:8px">' + lastSummon.map((g) => '<span class="chipx" style="--tc:' + V.RANK_COLORS[g.rank] + '">' + V.SPECIES[g.sp].name + ' · ' + V.RANKS[g.rank] + '</span>').join('') + '</div>';
-    h += '</div><h2>Active wing · ' + S.wing.active.length + ' / ' + V.CFG.WING_SLOTS + '</h2>';
-    for (let i = 0; i < V.CFG.WING_SLOTS; i++) {
-      const k = S.wing.active[i];
-      h += k ? companionCard(k, '<button class="btn" data-act="unassign" data-i="' + i + '" style="padding:8px 10px">Remove</button>') : '<div class="item empty" style="margin-bottom:6px"><div class="gl dim">✈</div><div><div class="nm dim">Empty slot</div><div class="sb">Assign a companion from the hangar below.</div></div></div>';
-    }
+    const lvl = V.bayLevel(S), into = S.wing.summons % V.CFG.BAY_STEP;
+    let h = '<div class="pg"><div class="wslots">';
+    for (let i = 0; i < V.CFG.WING_SLOTS; i++) { const k = S.wing.active[i]; h += k ? wtile(k, '', 'data-act="unassign" data-i="' + i + '"') : '<div class="tile empty wt">' + pic('plus', 'ghost') + '</div>'; }
+    h += '</div><div class="bay"><div class="baytop"><span class="cores">' + coinIcon('cores') + '<b>' + V.fmt(S.cores) + '</b></span><span class="baylv">Lv.' + lvl + '</span><div class="bar"><i style="width:' + (lvl < V.CFG.BAY_MAX ? into / V.CFG.BAY_STEP * 100 : 100) + '%"></i></div>' + infoBtn('wing') + '</div>' +
+      '<div class="row"><button class="btn pri big2" data-act="sum1"' + (S.cores < V.CFG.SUMMON_COST ? ' disabled' : '') + '>' + pic('box') + ' ' + coinIcon('cores') + V.CFG.SUMMON_COST + '</button><button class="btn pri big2" data-act="sum10"' + (S.cores < V.CFG.SUMMON10_COST ? ' disabled' : '') + '>×10 ' + coinIcon('cores') + V.CFG.SUMMON10_COST + '</button></div>';
+    if (lastSummon.length) h += '<div class="got">' + lastSummon.slice(0, 10).map((g) => '<span style="--tc:' + V.RANK_COLORS[g.rank] + '">' + SVGH(48, 48, SPIC[V.SPECIES[g.sp].id] || SPIC.hornet, 'ico') + '</span>').join('') + '</div>';
     const keys = Object.keys(S.wing.owned).sort((a, b) => { const pa = V.parseKey(a), pb = V.parseKey(b); return pb.rank - pa.rank || pa.sp - pb.sp; });
     const fusable = keys.some((k) => V.canFuse(S, k));
-    h += '<h2>Hangar</h2>';
-    if (fusable) h += '<button class="btn" data-act="fuseAll" style="width:100%;margin-bottom:8px">Fuse everything possible</button>';
-    if (!keys.length) h += '<div class="item empty"><div class="gl dim">✈</div><div><div class="nm dim">No companions yet</div><div class="sb">Win fights to earn AI Cores, then summon.</div></div></div>';
-    keys.forEach((k) => {
-      const n = S.wing.owned[k], used = V.usedInWing(S, k), free = n - used;
-      h += companionCard(k, '<div style="text-align:right"><div class="nm">×' + n + '</div><div class="row" style="margin-top:4px;gap:6px">' +
-        '<button class="btn" data-act="assign" data-key="' + k + '" style="padding:6px 8px"' + (free > 0 && S.wing.active.length < V.CFG.WING_SLOTS ? '' : ' disabled') + '>Assign</button>' +
-        (V.canFuse(S, k) ? '<button class="btn pri" data-act="fuse" data-key="' + k + '" style="padding:6px 8px">Fuse 3→1</button>' : '') + '</div></div>');
-    });
-    h += '<div class="sb dim" style="margin-top:8px;font-size:12px">Fuse three of the same companion and rank into one of the next rank. Companions act in turn order alongside your ship.</div>';
-    $('tab-wing').innerHTML = h;
+    h += '</div><div class="hanghd"><span>' + pic('box') + '</span>' + (fusable ? '<button class="btn sm" data-act="fuseAll">' + pic('merge') + ' ALL</button>' : '') + '</div><div class="scroll"><div class="hang">';
+    keys.forEach((k) => { const n = S.wing.owned[k]; h += wtile(k, '<span class="cnt">×' + n + '</span>' + (V.canFuse(S, k) ? '<span class="fz">' + pic('merge') + '</span>' : ''), 'data-act="wsheet" data-key="' + k + '"'); });
+    $('tab-wing').innerHTML = h + '</div></div></div>';
+  }
+  function wingSheet(k) {
+    const i = V.companionInfo(k), n = S.wing.owned[k], free = n - V.usedInWing(S, k);
+    sheet('<div class="sh-h"><div class="tile wt" style="--tc:' + i.color + ';width:64px">' + spic(i.sp.id) + '</div><div><b>' + i.sp.name + '</b><div class="sb" style="color:' + i.color + '">' + i.rankName + ' · ' + i.sp.role + '</div></div></div><p class="sb">' + i.text + '</p><div class="row"><button class="btn pri" data-act="assign" data-key="' + k + '"' + (free > 0 && S.wing.active.length < V.CFG.WING_SLOTS ? '' : ' disabled') + '>' + pic('plus') + '</button>' + (V.canFuse(S, k) ? '<button class="btn" data-act="fuse" data-key="' + k + '">' + pic('merge') + ' 3→1</button>' : '') + '</div>', 'wing');
   }
 
-  /* ---------- Armory: cargo hold, set bonuses, codex ---------- */
+  /* ---------- Armory ---------- */
+  let armView = 'hold';
   function renderArmory() {
-    const hu = V.holdUpgrade(S);
-    let h = '<h2>Cargo hold · ' + S.hold.length + ' / ' + S.holdCap + '</h2>';
-    if (!S.hold.length) h += '<div class="item empty"><div class="gl dim">▦</div><div><div class="nm dim">Hold empty</div><div class="sb">Stash parts from the forge bay to keep them for later.</div></div></div>';
-    S.hold.forEach((it, i) => {
-      h += '<div style="margin-bottom:8px">' + itemCard(it, true) + '<div class="row" style="margin-top:6px"><button class="btn pri" data-act="hEquip" data-i="' + i + '">Fit' + (S.gear[it.slot] ? ' (swap)' : '') + '</button><button class="btn" data-act="part" data-ref="h:' + i + '">Details</button><button class="btn" data-act="hSell" data-i="' + i + '">Sell ' + V.fmt(V.sellFor(S, it)) + '</button></div></div>';
-    });
-    h += '<div class="row" style="margin-top:6px">' + (S.hold.length ? '<button class="btn" data-act="hSellAll">Sell everything</button>' : '') +
-      (hu.maxed ? '<button class="btn" disabled>Hold at maximum</button>' : '<button class="btn" data-act="hBuy"' + (S.credits < hu.cost ? ' disabled' : '') + '>+' + V.CFG.HOLD_STEP + ' slots · ' + V.fmt(hu.cost) + ' Cr</button>') + '</div>';
-    const cur = V.power(S).set;
-    h += '<h2>Set bonuses</h2><div class="panel"><div class="setrow dim tiny"><span>TIER OR BETTER</span><span>4 PARTS</span><span>8 PARTS</span></div>';
-    for (let t = 0; t < V.LAUNCH_TIERS; t++) {
-      const isCur = cur.tier === t;
-      h += '<div class="setrow' + (isCur ? ' cur' : '') + '"><span style="color:' + tcol(t) + ';font-weight:700">' + V.TIERS[t].name + '</span><span>+' + Math.round(V.CFG.SET4[t] * 100) + '%</span><span>+' + Math.round(V.CFG.SET8[t] * 100) + '%</span></div>';
+    const hu = V.holdUpgrade(S), cur = V.power(S).set;
+    let h = '<div class="pg"><div class="seg"><button class="' + (armView === 'hold' ? 'on' : '') + '" data-act="arm" data-v="hold">' + pic('box') + '<b>' + S.hold.length + '/' + S.holdCap + '</b></button><button class="' + (armView === 'codex' ? 'on' : '') + '" data-act="arm" data-v="codex">' + pic('star') + '<b>' + V.codexCount(S) + '/' + V.LAUNCH_TIERS * 8 + '</b></button>' + infoBtn(armView) + '</div>';
+    if (armView === 'hold') {
+      h += '<div class="scroll"><div class="holdg">';
+      for (let i = 0; i < S.holdCap; i++) {
+        const it = S.hold[i];
+        h += it ? '<button class="tile" data-act="part" data-ref="h:' + i + '" style="--tc:' + tcol(it.tier) + '">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></button>' : '<div class="tile empty"></div>';
+      }
+      h += '</div></div><div class="row">' + (S.hold.length ? '<button class="btn" data-act="hSellAll">' + coinIcon('credits') + ' ALL</button>' : '') + (hu.maxed ? '' : '<button class="btn" data-act="hBuy"' + (S.credits < hu.cost ? ' disabled' : '') + '>' + pic('plus') + V.CFG.HOLD_STEP + ' ' + coinIcon('credits') + V.fmt(hu.cost) + '</button>') + '</div>';
+    } else {
+      h += '<div class="codex">';
+      V.TIERS.forEach((t, i) => {
+        if (!t.launch) return;
+        h += '<div class="crow' + (cur.tier === i ? ' cur' : '') + '" style="--tc:' + t.color + '"><div class="cmini">' + V.SLOTS.map((s2) => '<span class="' + (S.codex[i + ':' + s2.id] ? 'got' : '') + '">' + slotIcon(s2.id) + '</span>').join('') + '</div><div class="cset"><b>4</b>+' + Math.round(V.CFG.SET4[i] * 100) + '<b>8</b>+' + Math.round(V.CFG.SET8[i] * 100) + '</div></div>';
+      });
+      h += '</div>';
     }
-    h += '<div class="sb dim" style="font-size:12px;margin-top:6px">Only your best set counts. They do not add together.</div></div>';
-    h += '<h2>Codex · ' + V.codexCount(S) + ' / ' + V.LAUNCH_TIERS * 8 + ' parts</h2><div class="sb dim" style="margin-bottom:8px;font-size:13px">Every new part you forge adds +' + (V.CFG.CODEX_PART * 100) + '% to all stats. Finishing a whole tier adds +' + Math.round(V.CFG.CODEX_TIER * 100) + '% more. Current: +' + (V.codexBonus(S) * 100).toFixed(2).replace(/\.?0+$/, '') + '%</div>';
-    V.TIERS.forEach((t, i) => {
-      if (!t.launch) { h += '<div class="tierbox"><div class="odds" style="padding:6px 0"><span class="n lock">' + t.name + '</span><span class="lock">locked · arrives in a later update</span><span></span></div></div>'; return; }
-      const n = V.codexTierCount(S, i);
-      h += '<details class="tierbox" style="--tc:' + t.color + '"><summary><span class="n">' + t.name + '</span><div class="bar"><i style="width:' + (n / 8 * 100) + '%"></i></div><span class="dim" style="text-align:right">' + n + '/8</span></summary><ul>' +
-        V.SLOTS.map((s2) => { const got = S.codex[i + ':' + s2.id]; return '<li class="' + (got ? 'ok' : 'no') + '">' + (got ? esc(t.names[s2.id]) : '? ' + s2.name) + '</li>'; }).join('') + '</ul></details>';
-    });
-    $('tab-armory').innerHTML = h;
+    $('tab-armory').innerHTML = h + '</div>';
   }
 
   /* ---------- Records ---------- */
@@ -422,37 +469,38 @@
       '<p class="dim tiny" style="text-align:center;margin-top:18px">' + V.CFG.NAME + ' · v8 · depot build</p>';
   }
 
-  /* ---------- Depot: gift, deals, rewarded ads ---------- */
-  // Stand-in for a rewarded video: a placeholder screen with a countdown. With the remove-ads pack the reward is claimed at once.
+  /* ---------- Depot ---------- */
   function adStandIn(title, rewardText, grant) {
-    if (S.noAds) { if (grant()) toast('<b>' + esc(rewardText) + '</b><br>claimed without video'); return; }
-    let n = 5; $('modal').hidden = false;
-    const draw = () => { $('mbox').innerHTML = '<div class="adbox"><h3>' + esc(title) + '</h3><div class="sb dim">Optional · ' + esc(rewardText) + '</div><div class="adscreen"><span class="dim tiny">AD STAND-IN</span><b>' + n + '</b>A real ad plays here later</div><div class="row"><button class="btn" id="adSkip">Cancel</button><button class="btn pri" id="adGo"' + (n > 0 ? ' disabled' : '') + '>' + (n > 0 ? 'Reward in ' + n + 's' : 'Claim reward') + '</button></div></div>'; };
+    if (S.noAds) { if (grant()) toast('<b>' + esc(rewardText) + '</b>'); return; }
+    let n = 5; $('modal').hidden = false; modalKind = 'ad';
+    const draw = () => { $('mbox').innerHTML = '<div class="adbox"><div class="adscreen"><span class="dim tiny">AD</span><b>' + n + '</b></div><div class="row"><button class="btn" id="adSkip">✕</button><button class="btn pri" id="adGo"' + (n > 0 ? ' disabled' : '') + '>' + (n > 0 ? n : '✔') + '</button></div></div>'; };
     draw(); let t = setInterval(() => { if (n > 0) n--; if ($('adGo')) draw(); else clearInterval(t); if (n === 0) clearInterval(t); }, 1000);
     document.addEventListener('click', function h(e) {
-      const id = e.target.id; if (id !== 'adGo' && id !== 'adSkip') return;
-      document.removeEventListener('click', h); clearInterval(t); $('modal').hidden = true;
-      if (id === 'adGo' && n === 0) { if (grant()) { buzz(25); toast('<b>' + esc(rewardText) + '</b>'); } save(); head(); live(); refreshDepotish(); }
+      const id = e.target.closest('#adGo,#adSkip'); if (!id) return; const idn = id.id;
+      document.removeEventListener('click', h); clearInterval(t); $('modal').hidden = true; modalKind = null;
+      if (idn === 'adGo' && n === 0) { if (grant()) { buzz(25); toast('<b>' + esc(rewardText) + '</b>'); } save(); head(); live(); refreshDepotish(); }
     });
   }
   function refreshDepotish() { if (tab === 'depot') renderDepot(); else if (tab === 'missions') renderMissions(); else if (tab === 'foundry') renderFoundry(); }
+  const ADIC = { alloy: () => coinIcon('alloy'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), flux: () => coinIcon('flux') };
+  const DEALIC = { alloy200: 'alloy', alloy600: 'alloy', cores10: 'cores', shards4: 'shards', credits: 'credits', tickets2: null };
   function renderDepot() {
     const now = Date.now(); V.rollDaily(S, now);
-    let h = '<h2>Daily gift</h2><div class="panel"><div class="row" style="align-items:center;justify-content:space-between"><div><div class="nm">Supply drop</div><div class="sb dim">100 Alloy, free every day</div></div><button class="btn pri" data-act="gift" style="flex:none"' + (S.daily.gift ? ' disabled' : '') + '>' + (S.daily.gift ? 'Claimed' : 'Claim') + '</button></div></div>';
-    h += '<h2>Daily deals</h2><div class="sb dim" style="margin-bottom:8px;font-size:13px">Paid in Flux. The shelf changes every day at midnight UTC.</div>';
-    V.dealsToday(now).forEach((d) => {
-      const bought = !!S.daily.deals[d.id];
-      h += '<div class="panel" style="margin-bottom:8px"><div class="row" style="align-items:center;justify-content:space-between"><div><div class="nm">' + d.name + '</div><div class="sb dim">' + d.text + '</div></div><button class="btn" data-act="deal" data-id="' + d.id + '" style="flex:none"' + (bought || S.flux < d.cost ? ' disabled' : '') + '>' + (bought ? 'Bought' : d.cost + ' Flux') + '</button></div></div>';
-    });
-    h += '<h2>Optional ads</h2><div class="sb dim" style="margin-bottom:8px;font-size:13px">Never forced. Each one has a daily limit and a cooldown, and each is a small help rather than a shortcut.</div>';
     const ti = V.sweepInfo(S, now);
-    h += '<div class="panel" style="margin-bottom:8px"><div class="row" style="align-items:center;justify-content:space-between"><div><div class="nm">Sweep ticket</div><div class="sb dim">+1 ticket · ' + ti.adsLeft + ' left today</div></div><button class="btn" data-act="sweepAd" style="flex:none"' + (ti.adsLeft > 0 ? '' : ' disabled') + '>Watch</button></div></div>';
+    let h = '<div class="pg"><div class="dep-top"><button class="gift' + (S.daily.gift ? ' done' : '') + '" data-act="gift"' + (S.daily.gift ? ' disabled' : '') + '>' + pic('box') + '<b>+100</b>' + coinIcon('alloy') + '</button>' +
+      '<button class="gift noads' + (S.noAds ? ' done' : '') + '" data-act="noAds"' + (S.noAds ? ' disabled' : '') + '>' + pic('crown') + '<b>' + (S.noAds ? '✔' : 'NO ADS') + '</b></button>' + infoBtn('depot') + '</div>' +
+      '<div class="dgrid2">';
+    V.dealsToday(now).forEach((d) => {
+      const bought = !!S.daily.deals[d.id], ic = DEALIC[d.id];
+      h += '<button class="deal' + (bought ? ' done' : '') + '" data-act="deal" data-id="' + d.id + '"' + (bought || S.flux < d.cost ? ' disabled' : '') + '><span class="dic2">' + (ic ? coinIcon(ic) : pic('ticket')) + '</span><b>' + d.text.replace('about ', '~') + '</b><span class="price">' + (bought ? '✔' : coinIcon('flux') + d.cost) + '</span></button>';
+    });
+    h += '</div><div class="adrow">';
+    h += '<button class="adt" data-act="sweepAd"' + (ti.adsLeft > 0 ? '' : ' disabled') + '>' + pic('ticket') + pic('video', 'vi') + pipsRow(ti.adsLeft, V.CFG.SWEEP_ADS) + '</button>';
     V.AD_OFFERS.forEach((o) => {
       const st = V.adStatus(S, o.id, now);
-      h += '<div class="panel" style="margin-bottom:8px"><div class="row" style="align-items:center;justify-content:space-between"><div><div class="nm">' + o.name + '</div><div class="sb dim">' + (o.id === 'credits' ? 'about ' + V.fmt(adCreditsPreview()) + ' Credits' : o.text) + ' · ' + st.left + ' left today' + (st.cdLeft > 0 && st.left > 0 ? ' · ready in ' + V.fmtTime(st.cdLeft) : '') + (st.needs ? ' · needs a Foundry upgrade running' : '') + '</div></div><button class="btn" data-act="ad" data-id="' + o.id + '" style="flex:none"' + (st.ready ? '' : ' disabled') + '>Watch</button></div></div>';
+      h += '<button class="adt" data-act="ad" data-id="' + o.id + '"' + (st.ready ? '' : ' disabled') + '>' + ADIC[o.id]() + pic('video', 'vi') + pipsRow(st.left, o.cap) + (st.cdLeft > 0 && st.left > 0 ? '<small>' + V.fmtTime(st.cdLeft) + '</small>' : '') + '</button>';
     });
-    h += '<h2>Remove ads</h2><div class="panel"><div class="sb dim" style="margin-bottom:8px;font-size:13px">One-time pack. Every optional ad reward is then claimed instantly with no video. The reward limits stay the same.</div>' + (S.noAds ? '<div class="nm" style="color:var(--good)">Active</div>' : '<button class="btn" data-act="noAds" style="width:100%">Get the pack (stand-in, no real payment)</button>') + '</div>';
-    $('tab-depot').innerHTML = h;
+    $('tab-depot').innerHTML = h + '</div></div>';
   }
   function adCreditsPreview() { return Math.round(V.creditsWin(Math.max(1, S.combat.best), S) * 40); }
   function badges() {
@@ -464,12 +512,26 @@
     set('ship', V.canPromote(S) || V.RESEARCH.some((n) => V.rLevel(S, n.id) < n.max && S.shards >= V.researchCost(n, V.rLevel(S, n.id))));
   }
   function renderMore() {
-    $('tab-more').innerHTML = statsHtml() + settingsHtml();
-    $('nameIn').onchange = (e) => { S.name = e.target.value.trim() || 'Commander'; save(); head(); };
-    $('vibIn').onchange = (e) => { S.settings.vibrate = e.target.checked; save(); };
-    $('autoIn').onchange = (e) => { S.settings.auto = e.target.checked; save(); };
-    document.querySelectorAll('.flt').forEach((c) => { c.onchange = () => { const k = c.dataset.k, f = S.settings.filter; if (c.checked && !f.includes(k)) f.push(k); if (!c.checked) S.settings.filter = f.filter((x) => x !== k); save(); }; });
-    $('fltMin').onchange = (e) => { S.settings.filterMin = +e.target.value; save(); };
+    const tiles = [['stats', 'chart', 'Stats'], ['name', 'user', 'Callsign'], ['opts', 'gear', 'Options'], ['keep', 'filter', 'Keep list'], ['backup', 'save', 'Backup'], ['wipe', 'trash', 'Erase']];
+    $('tab-more').innerHTML = '<div class="pg"><div class="moregrid">' + tiles.map((t) => '<button class="mbtn' + (t[0] === 'wipe' ? ' bad' : '') + '" data-act="more" data-k="' + t[0] + '">' + pic(t[1]) + '<b>' + t[2] + '</b></button>').join('') + '</div><p class="dim tiny" style="text-align:center">' + V.CFG.NAME + ' · v21</p></div>';
+  }
+  function moreSheet(k) {
+    if (k === 'stats') return sheet(statsHtml().replace(/<h2>Coming[\s\S]*$/, ''), 'more');
+    if (k === 'name') { sheet('<input type="text" id="nameIn" maxlength="20" value="' + esc(S.name) + '" aria-label="Callsign">', 'more'); $('nameIn').onchange = (e) => { S.name = e.target.value.trim() || 'Commander'; save(); head(); }; return; }
+    if (k === 'opts') {
+      const au = V.autoUnlocked(S);
+      sheet('<div class="tog"><div>Vibration</div><label class="sw"><input type="checkbox" id="vibIn"' + (S.settings.vibrate ? ' checked' : '') + '><i></i></label></div><div class="tog"><div>Auto-Salvage<small>' + (au ? '' : 'Foundry ' + V.CFG.AUTO_UNLOCK_LEVEL) + '</small></div><label class="sw"><input type="checkbox" id="autoIn"' + (S.settings.auto && au ? ' checked' : '') + (au ? '' : ' disabled') + '><i></i></label></div>', 'more');
+      $('vibIn').onchange = (e) => { S.settings.vibrate = e.target.checked; save(); }; $('autoIn').onchange = (e) => { S.settings.auto = e.target.checked; save(); };
+      return;
+    }
+    if (k === 'keep') {
+      sheet('<div class="sh-h"><b>Keep list</b>' + infoBtn('keep') + '</div><div class="fgrid">' + V.SUB_KEYS.map((x) => '<label><input type="checkbox" class="flt" data-k="' + x + '"' + (S.settings.filter.includes(x) ? ' checked' : '') + '>' + V.SUBS[x].name + '</label>').join('') + '</div><div class="tog" style="border:0"><div>Lines needed</div><select id="fltMin"><option value="1"' + (S.settings.filterMin === 2 ? '' : ' selected') + '>1+</option><option value="2"' + (S.settings.filterMin === 2 ? ' selected' : '') + '>2+</option></select></div>', 'more');
+      document.querySelectorAll('.flt').forEach((c) => { c.onchange = () => { const kk = c.dataset.k, f = S.settings.filter; if (c.checked && !f.includes(kk)) f.push(kk); if (!c.checked) S.settings.filter = f.filter((y) => y !== kk); save(); }; });
+      $('fltMin').onchange = (e) => { S.settings.filterMin = +e.target.value; save(); };
+      return;
+    }
+    if (k === 'backup') return sheet('<textarea id="codeBox" aria-label="Save code" placeholder="Save code"></textarea><div class="row" style="margin-top:8px"><button class="btn" data-act="export">Make</button><button class="btn" data-act="copy">Copy</button><button class="btn" data-act="import">Load</button></div>', 'more');
+    if (k === 'wipe') return sheet('<button class="btn bad" id="wipeBtn" data-act="wipe" style="width:100%">Erase everything</button>', 'more');
   }
   function encode() { return btoa(unescape(encodeURIComponent(JSON.stringify(S)))); }
   function decode(t) { return JSON.parse(decodeURIComponent(escape(atob(t.trim())))); }
@@ -484,7 +546,7 @@
     $('credits').textContent = V.fmt(S.credits);
     $('flux').textContent = V.fmt(S.flux);
     $('rate').textContent = '+' + (V.alloyRate(S) * 60).toFixed(2).replace(/0$/, '') + '/min';
-    if ($('lvl')) { $('lvl').textContent = 'Lv.' + S.cmd.level; $('xpfill').style.width = Math.min(100, S.cmd.xp / V.CFG.XP_NEED(S.cmd.level) * 100).toFixed(1) + '%'; }
+    if ($('lvl')) { $('lvl').textContent = 'Lv.' + S.cmd.level; $('xpfill').style.width = Math.min(100, S.cmd.xp / V.CFG.XP_NEED(S.cmd.level) * 100).toFixed(1) + '%'; $('xpt').textContent = V.fmt(S.cmd.xp) + ' / ' + V.fmt(V.CFG.XP_NEED(S.cmd.level)); }
     $('shards').textContent = V.fmt(S.shards);
     if (tab === 'missions') ticketLabel();
     badges();
@@ -502,10 +564,10 @@
         const ut = $('utime'), ub = $('ubar');
         if (ut) ut.textContent = V.fmtTime(left / 1000);
         if (ub) ub.style.width = Math.min(100, (1 - left / total) * 100).toFixed(1) + '%';
-        const rb = $('rushBtn'); if (rb) { const c = V.rushCost(S, Date.now()); rb.textContent = 'Rush · ' + c + ' Flux'; rb.disabled = S.flux < c; }
+        const rb = $('rushBtn'); if (rb) { const c = V.rushCost(S, Date.now()); rb.innerHTML = pic('bolt') + ' ' + coinIcon('flux') + c; rb.disabled = S.flux < c; }
       } else {
         const ub = $('ubtn'), u = V.upgradeInfo(S);
-        if (ub && !u.maxed) { ub.disabled = S.credits < u.credits; ub.textContent = S.credits < u.credits ? 'Need ' + V.fmt(u.credits - S.credits) + ' more Credits' : 'Start upgrade'; }
+        if (ub && !u.maxed) ub.disabled = S.credits < u.credits;
       }
     }
   }
@@ -524,6 +586,12 @@
     save(); refresh();
   }
   function act(a, el) {
+    if (['assign', 'unassign', 'fuse', 'hEquip', 'hSell'].includes(a)) { $('modal').hidden = true; modalKind = null; }
+    if (a === 'info') return infoSheet(el.dataset.k);
+    if (a === 'sheet') return missionSheet(el.dataset.k);
+    if (a === 'wsheet') return wingSheet(el.dataset.key);
+    if (a === 'arm') { armView = el.dataset.v; return renderArmory(); }
+    if (a === 'more') return moreSheet(el.dataset.k);
     if (a === 'forge') return doForge();
     if (a === 'foundry') return foundryModal();
     if (a === 'goto') { tab = el.dataset.tab; showTab(); return; }
@@ -609,13 +677,9 @@
   function partSheet(ref) {
     const it = partOf(ref); if (!it) return;
     const free = V.holdFree(S) > 0, fitted = ref[0] === 'g';
-    let lines = '';
-    if (it.subs.length) {
-      lines = '<h2 style="margin:12px 0 6px">Bonus lines</h2>' + it.subs.map((x) => '<div class="tog" style="padding:7px 0"><div><b style="color:var(--cyan)">' + V.SUBS[x.k].name + ' +' + x.v + '%</b><small>' + V.SUBS[x.k].note + '</small></div></div>').join('');
-    } else lines = '<div class="sb dim" style="margin-top:10px">Rusted parts have no bonus lines. Refitted and better parts roll them.</div>';
-    $('mbox').innerHTML = '<h3>' + esc(V.itemName(it)) + '</h3>' + itemCard(it, false) + '<div class="panel" style="margin-top:10px"><div class="kv"><span>Tier</span><span style="color:' + tcol(it.tier) + '">' + V.TIERS[it.tier].name + '</span><span>Made at Foundry</span><span>Level ' + it.level + '</span><span>Sell value</span><span>' + V.fmt(V.sellFor(S, it)) + ' Credits</span></div></div>' + lines +
-      '<div class="row" style="margin-top:14px">' + (fitted ? '<button class="btn" data-act="unfit" data-slot="' + it.slot + '"' + (free ? '' : ' disabled') + '>' + (free ? 'Move to hold' : 'Hold full') + '</button>' : '') + '<button class="btn pri" data-act="close">Close</button></div>';
-    $('modal').hidden = false;
+    sheet('<div class="sh-h"><div class="tile big" style="--tc:' + tcol(it.tier) + '">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></div><div><b style="color:' + tcol(it.tier) + '">' + esc(V.itemName(it)) + '</b><div class="pst">+' + V.fmt(V.itemStat(it)) + ' ' + statLabel(it.slot) + '</div></div></div>' +
+      (it.subs.length ? '<div class="chips">' + it.subs.map((x) => '<span class="chipx" style="--tc:var(--cyan)">' + V.SUBS[x.k].name + ' +' + x.v + '%</span>').join('') + '</div>' : '') +
+      '<div class="row" style="margin-top:10px">' + (fitted ? '<button class="btn" data-act="unfit" data-slot="' + it.slot + '"' + (free ? '' : ' disabled') + '>' + pic('box') + '</button>' : '<button class="btn pri" data-act="hEquip" data-i="' + ref.split(':')[1] + '">' + pic('plus') + '</button><button class="btn" data-act="hSell" data-i="' + ref.split(':')[1] + '">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button>') + '</div>', 'part');
   }
 
   /* ---------- time ---------- */

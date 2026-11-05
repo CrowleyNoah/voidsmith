@@ -14,7 +14,11 @@
     ALLOY_COST: 1,              // one Alloy buys one forge. There is no cap on how much Alloy or Credits you can hold.
     ALLOY_PER_SEC: 1 / 60,      // base production: one Alloy a minute (research raises it)
     START_ALLOY: 60,
-    UPGRADE_CREDITS: (L) => L <= 10 ? Math.round(50 * Math.pow(3.65, L - 1)) : Math.round(50 * Math.pow(3.65, 9) * Math.pow(3.0, L - 10)), // Credits to go from L to L+1
+    UPGRADE_CREDITS: (L) => {
+      const raw = L <= 10 ? 50 * Math.pow(3.65, L - 1) : 50 * Math.pow(3.65, 9) * Math.pow(3.0, L - 10);
+      const m = L === 1 ? 3 : L === 2 ? 6 : L <= 9 ? 12 : L === 10 ? 2.5 : 1.1; // early levels need real saving, late ones were already gated by income
+      return Math.round(raw * m);
+    }, // Credits to go from L to L+1
     // wait time from L to L+1: seconds early, hours mid, days late. Levels in between are blended smoothly.
     UPGRADE_SECONDS: (L) => { const A = CFG.UPGRADE_ANCHORS; let i = 0; while (i < A.length - 2 && L > A[i + 1][0]) i++; const a = A[i], b = A[i + 1]; return Math.round(a[1] * Math.pow(b[1] / a[1], (L - a[0]) / (b[0] - a[0]))); },
     UPGRADE_ANCHORS: [[1, 30], [2, 300], [3, 3600], [4, 28800], [5, 129600], [6, 259200], [7, 432000], [8, 518400], [9, 604800], [10, 691200], [11, 864000], [12, 1036800], [13, 1209600]],
