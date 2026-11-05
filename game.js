@@ -41,53 +41,111 @@
     return '<' + el + ' class="item" ' + (opts.btn ? 'data-act="part" data-ref="' + (opts.ref || ('g:' + it.slot)) + '" ' : '') + 'style="--tc:' + tcol(it.tier) + (opts.gap ? ';margin-bottom:6px' : '') + '"><div class="gl">' + sl.glyph + '</div><div style="min-width:0"><div class="nm">' + esc(V.itemName(it)) + tag + '</div><div class="sb">' + V.TIERS[it.tier].name + ' · Lv ' + it.level + ' · ' + sl.name + '</div>' + subsLine(it) + '</div><div class="stat">+' + V.fmt(v) + '<div class="sb">' + statLabel(it.slot) + '</div>' + delta + '</div></' + el + '>';
   }
 
+  /* ---------- art ---------- */
+  const SVGH = (w, h, body, cls) => '<svg class="' + (cls || '') + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">' + body + '</svg>';
+  const ICON = {
+    cannon: '<rect x="6" y="20" width="30" height="9" rx="2" fill="#fff"/><rect x="34" y="22" width="9" height="5" fill="#cfd8e3"/><rect x="10" y="29" width="14" height="9" rx="2" fill="#aab6c4"/><circle cx="17" cy="24.5" r="2.5" fill="#222"/>',
+    pod: '<g fill="#fff"><path d="M8 14h24l6 4-6 4H8z"/><path d="M8 24h24l6 4-6 4H8z"/></g><g fill="#ff6b5e"><path d="M32 14l6 4-6 4z"/><path d="M32 24l6 4-6 4z"/></g><rect x="8" y="36" width="30" height="3" fill="#aab6c4"/>',
+    array: '<circle cx="24" cy="24" r="14" fill="none" stroke="#fff" stroke-width="3"/><circle cx="24" cy="24" r="6" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 4v12M24 32v12M4 24h12M32 24h12" stroke="#fff" stroke-width="3"/>',
+    coil: '<path d="M27 3L10 27h11l-4 18 21-26H26z" fill="#ffe066" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>',
+    plating: '<path d="M8 8h32v22L24 44 8 30z" fill="#fff"/><path d="M13 13h22v15L24 38 13 28z" fill="#aab6c4"/><circle cx="12" cy="12" r="2" fill="#333"/><circle cx="36" cy="12" r="2" fill="#333"/>',
+    bulkhead: '<rect x="6" y="8" width="36" height="9" rx="2" fill="#fff"/><rect x="6" y="20" width="36" height="9" rx="2" fill="#cfd8e3"/><rect x="6" y="32" width="36" height="9" rx="2" fill="#aab6c4"/>',
+    emitter: '<path d="M24 4l17 10v20L24 44 7 34V14z" fill="none" stroke="#fff" stroke-width="3"/><circle cx="24" cy="24" r="7" fill="#7ee7ff"/><circle cx="24" cy="24" r="3" fill="#fff"/>',
+    spar: '<rect x="8" y="6" width="32" height="7" fill="#fff"/><rect x="8" y="35" width="32" height="7" fill="#fff"/><rect x="20" y="13" width="8" height="22" fill="#cfd8e3"/>'
+  };
+  const slotIcon = (id) => SVGH(48, 48, ICON[id], 'ico');
+  const COIN = {
+    alloy: '<path d="M8 2l5 3v6l-5 3-5-3V5z" fill="#9fb0c2" stroke="#e5edf5" stroke-width="1"/>',
+    credits: '<circle cx="8" cy="8" r="6.5" fill="#ffc83d" stroke="#b07a00" stroke-width="1.2"/><path d="M8 4.5v7M5.5 6.5h4a1.5 1.5 0 010 3h-4" stroke="#8a5d00" stroke-width="1.2" fill="none"/>',
+    flux: '<path d="M8 1l5 7-5 7-5-7z" fill="#4db8ff" stroke="#bfe6ff" stroke-width="1"/>',
+    shards: '<path d="M8 1l4 5-2 9H6L4 6z" fill="#b57bff" stroke="#e3ccff" stroke-width="1"/>'
+  };
+  const coinIcon = (k) => SVGH(16, 16, COIN[k], 'coin');
+  function playerShip(c) {
+    return SVGH(200, 110, '<defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46586b"/><stop offset="1" stop-color="#1c2631"/></linearGradient></defs>' +
+      '<path class="flame" d="M24 55L2 42v26z" fill="#ff9a1f"/><path d="M22 55L8 48v14z" fill="#ffe08a"/>' +
+      '<path d="M26 38L60 14h40l8 12-18 12z" fill="#2a3644" stroke="' + c + '" stroke-width="2"/><path d="M26 72L60 96h40l8-12-18-12z" fill="#2a3644" stroke="' + c + '" stroke-width="2"/>' +
+      '<path d="M22 55l14-20h96l44 16 8 4-8 4-44 16H36z" fill="url(#pg)" stroke="' + c + '" stroke-width="2.5" stroke-linejoin="round"/>' +
+      '<path d="M120 42l26 10-26 8z" fill="#7ee7ff" opacity=".9"/><rect x="60" y="50" width="44" height="10" rx="3" fill="' + c + '" opacity=".75"/><circle cx="178" cy="55" r="3" fill="' + c + '"/>', 'sh');
+  }
+  function foeShip(type, boss) {
+    const c = boss ? '#ff4d4d' : '#ff6b5e';
+    const art = {
+      drone: '<circle cx="100" cy="55" r="30" fill="#3a2230" stroke="' + c + '" stroke-width="3"/><circle cx="88" cy="55" r="12" fill="' + c + '"/><circle cx="85" cy="52" r="4" fill="#fff"/><path d="M130 55h30M70 30l-18-14M70 80l-18 14" stroke="' + c + '" stroke-width="5" stroke-linecap="round"/>',
+      gunship: '<path d="M30 55l30-20h80l30 20-30 20H60z" fill="#3a2230" stroke="' + c + '" stroke-width="3" stroke-linejoin="round"/><rect x="2" y="50" width="42" height="10" fill="#6b3b4a"/><path d="M110 35l20-22h30l-14 22zM110 75l20 22h30l-14-22z" fill="#2a1822" stroke="' + c + '" stroke-width="2.5"/><circle cx="78" cy="55" r="9" fill="' + c + '"/>',
+      raider: '<path d="M10 55l60-34 50 14 70-14-30 34 30 34-70-14-50 14z" fill="#3a2230" stroke="' + c + '" stroke-width="3" stroke-linejoin="round"/><path d="M40 55l50-8v16z" fill="' + c + '"/>',
+      bulwark: '<path d="M20 30h110l50 25-50 25H20z" fill="#2e2630" stroke="' + c + '" stroke-width="3.5" stroke-linejoin="round"/><path d="M32 40h86M32 70h86" stroke="#6b3b4a" stroke-width="6"/><rect x="2" y="46" width="30" height="18" fill="#5a2f3d"/><circle cx="92" cy="55" r="10" fill="' + c + '"/>'
+    };
+    const spikes = boss ? '<path d="M60 14l10 18M100 6l6 22M140 14l-8 18M60 96l10-18M100 104l6-22M140 96l-8-18" stroke="#ff4d4d" stroke-width="5" stroke-linecap="round"/>' : '';
+    return SVGH(200, 110, spikes + (art[type] || art.gunship), 'sh foeart' + (boss ? ' boss' : ''));
+  }
+  const NAVICON = {
+    foundry: '<path d="M4 10h14l-2 4h-4v3h6v3H6v-3h4v-3H6z" fill="currentColor"/><path d="M18 10l3-2" stroke="currentColor" stroke-width="2"/>',
+    missions: '<path d="M12 2l2.5 6 6.5.5-5 4.3 1.6 6.4L12 15.6 6.4 19.2 8 12.8 3 8.5 9.5 8z" fill="currentColor"/>',
+    ship: '<path d="M12 2l7 18-7-4-7 4z" fill="currentColor"/>',
+    armory: '<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="currentColor"/>',
+    wing: '<path d="M2 14l10-3 10 3-10 2zM10 11l2-8 2 8z" fill="currentColor"/>',
+    depot: '<path d="M3 6h12v9H3zM15 9h4l3 3v3h-7z" fill="currentColor"/><circle cx="7" cy="17" r="2" fill="currentColor"/><circle cx="18" cy="17" r="2" fill="currentColor"/>',
+    more: '<path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>'
+  };
+  function decorateChrome() {
+    document.querySelectorAll('nav button').forEach((b) => { const i = b.querySelector('i'); if (i) i.innerHTML = SVGH(24, 24, NAVICON[b.dataset.tab] || ''); });
+    document.querySelectorAll('.cur[data-coin]').forEach((c) => { c.insertAdjacentHTML('afterbegin', coinIcon(c.dataset.coin)); });
+  }
+
   /* ---------- Foundry ---------- */
+  let modalKind = null;
   function renderFoundry() {
-    const L = S.forge.level, u = V.upgradeInfo(S), up = S.forge.upgrade;
-    let h = homeGearHtml() + '<div class="forgewrap"><button class="forge" id="forgeBtn" data-act="forge"><span>FORGE</span><small id="fcost"></small></button>' +
-      '<div class="row" style="width:100%"><button class="btn" id="f10" data-act="f10">Forge ×10</button><button class="btn" id="fmax" data-act="fmax">Forge max</button></div></div>';
-    h += '<h2>Forge bay</h2><div id="bay">' + bayHtml() + '</div>';
-    h += '<h2>Foundry level ' + L + '</h2><div class="panel" id="upg">' + upgradeHtml(u, up) + '</div>';
-    h += '<h2>Forge odds · level ' + L + '</h2><div class="panel"><div class="odds">';
-    const odds = V.tierOdds(L);
-    V.TIERS.forEach((t, i) => {
-      if (!t.launch) { h += '<span class="n lock">' + t.name + '</span><span class="lock">locked</span><span></span>'; return; }
-      if (odds[i] === 0) { h += '<span class="n" style="--tc:#3d4957;color:#3d4957">' + t.name + '</span><span class="lock">unlocks at Foundry ' + t.unlock + '</span><span></span>'; return; }
-      h += '<span class="n" style="--tc:' + t.color + '">' + t.name + '</span><div class="bar" style="--tc:' + t.color + '"><i style="width:' + Math.max(2, odds[i] * 100).toFixed(1) + '%"></i></div><span class="p">' + (odds[i] * 100 < 1 ? '<1' : Math.round(odds[i] * 100)) + '%</span>';
-    });
-    h += '</div></div>';
+    const L = S.forge.level;
     if (!$('arenaWrap')) { $('tab-foundry').innerHTML = '<div id="arenaWrap">' + arenaHtml() + '</div><div id="foundryRest"></div>'; missionStatic(); missionLive(); }
-    $('foundryRest').innerHTML = h;
+    $('foundryRest').innerHTML = '<div id="bay">' + bayHtml() + '</div><div class="xpr"><b id="lvl"></b><div class="bar"><i id="xpfill"></i></div></div>' + homeGearHtml() +
+      '<div class="forgerow"><button class="anvil" id="forgeBtn" data-act="forge" aria-label="Forge">' + anvilSvg() + '<span class="ac">' + coinIcon('alloy') + '<b id="fcost"></b></span></button>' +
+      '<div class="fcol"><div class="ftime" id="ftime"></div><button class="fbtn" id="fbtn" data-act="foundry"><small>Foundry</small><b>Level ' + L + '</b><em class="dot" id="fdot" hidden></em></button>' +
+      '<div class="row"><button class="btn sm" id="f10" data-act="f10">×10</button><button class="btn sm" id="fmax" data-act="fmax">MAX</button></div></div></div>';
+    if (modalKind === 'foundry' && !$('modal').hidden) foundryModal();
     live();
   }
+  function anvilSvg() {
+    return SVGH(120, 64, '<path d="M6 6h86l20 8-24 6H72l6 14H42l6-14H30C16 20 8 14 6 6z" fill="url(#ag)" stroke="#e8eef5" stroke-width="2" stroke-linejoin="round"/><rect x="30" y="36" width="54" height="10" rx="2" fill="#6b7886"/><rect x="20" y="46" width="74" height="14" rx="3" fill="#4a5663"/><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6dee8"/><stop offset="1" stop-color="#7f8d9c"/></linearGradient></defs>', 'anv');
+  }
   function homeGearHtml() {
-    const p = V.power(S);
-    let h = '<div class="stat3"><div><span class="dim tiny">DAMAGE</span><b>' + V.fmt(p.dmg) + '</b></div><div><span class="dim tiny">HULL</span><b>' + V.fmt(p.hull) + '</b></div><div><span class="dim tiny">POWER</span><b style="color:var(--cyan)">' + V.fmt(p.power) + '</b></div></div><div class="gear8">';
+    let h = '<div class="gear5">';
     V.SLOTS.forEach((sl) => {
       const it = S.gear[sl.id];
-      h += it ? '<button class="tile" data-act="part" data-ref="g:' + sl.id + '" style="--tc:' + tcol(it.tier) + '"><span class="g">' + sl.glyph + '</span><span class="t">' + V.TIERS[it.tier].name + '</span><span class="l">Lv ' + it.level + '</span></button>'
-        : '<div class="tile empty"><span class="g dim">' + sl.glyph + '</span><span class="t dim">Empty</span></div>';
+      h += it ? '<button class="tile" data-act="part" data-ref="g:' + sl.id + '" style="--tc:' + tcol(it.tier) + '">' + slotIcon(sl.id) + '<span class="lv">Lv.' + it.level + '</span></button>'
+        : '<div class="tile empty">' + slotIcon(sl.id) + '</div>';
     });
-    return h + '</div>';
+    const w = S.wing.active.map((k) => '<span>' + V.companionInfo(k).sp.glyph + '</span>').join('');
+    return h + '<button class="tile wingtile" data-act="goto" data-tab="wing">' + (w || '<span class="plus">+</span>') + '<span class="lv">Wing</span></button></div>';
   }
   function bayHtml() {
-    let h = '';
-    if (S.pending) {
-      const it = S.pending, free = V.holdFree(S) > 0;
-      h += itemCard(it, true, { isNew: S.pendingNew }) + '<div class="row3"><button class="btn pri" data-act="equip">Equip</button><button class="btn" data-act="stash"' + (free ? '' : ' disabled') + '>' + (free ? 'Stash' : 'Hold full') + '</button><button class="btn" data-act="sell">Sell ' + V.fmt(V.sellFor(S, it)) + '</button></div>';
-      if (S.gear[it.slot]) h += '<div class="sb dim" style="margin-top:6px;font-size:12px">Equipping sells your ' + esc(V.itemName(S.gear[it.slot])) + '.</div>';
-    } else {
-      h += '<div class="item empty"><div class="gl dim">⚒</div><div><div class="nm dim">Bay empty</div><div class="sb">' + (S.lastMsg ? S.lastMsg : 'Press FORGE to make a part.') + '</div></div></div>';
-    }
-    return h;
+    if (!S.pending) return '';
+    const it = S.pending, free = V.holdFree(S) > 0, cur = S.gear[it.slot];
+    const p0 = V.power(S), p1 = V.powerWith(S, it), up = p1.rating > p0.rating + 1e-9, dn = p1.rating < p0.rating - 1e-9;
+    const r = p0.rating > 0 ? (p1.rating / p0.rating - 1) * 100 : 100;
+    return '<div class="pend" style="--tc:' + tcol(it.tier) + '"><div class="tile big">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></div>' +
+      '<div class="pinfo"><div class="pn">' + esc(V.itemName(it)) + (S.pendingNew ? '<span class="chip">NEW</span>' : '') + '</div><div class="pst">+' + V.fmt(V.itemStat(it)) + ' ' + statLabel(it.slot) + '</div>' +
+      '<div class="' + (up ? 'up' : dn ? 'dn' : 'dim') + ' pd">' + (up ? '▲ ' : dn ? '▼ ' : '') + (r >= 0 ? '+' : '') + r.toFixed(Math.abs(r) < 10 ? 1 : 0) + '%</div></div>' +
+      '<div class="pbtn"><button class="btn pri" data-act="equip">Equip</button><div class="row"><button class="btn sm" data-act="stash"' + (free ? '' : ' disabled') + '>Stash</button><button class="btn sm" data-act="sell">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button></div></div></div>';
+  }
+  function foundryModal() {
+    const L = S.forge.level, u = V.upgradeInfo(S), up = S.forge.upgrade;
+    let h = '<h3>Foundry level ' + L + '</h3><div class="panel" id="upg">' + upgradeHtml(u, up) + '</div><div class="odds" style="margin-top:12px">';
+    const odds = V.tierOdds(L);
+    V.TIERS.forEach((t, i) => {
+      if (!t.launch) return;
+      if (odds[i] === 0) { h += '<span class="n" style="--tc:#3d4957;color:#3d4957">' + t.name + '</span><span class="lock">Foundry ' + t.unlock + '</span><span></span>'; return; }
+      h += '<span class="n" style="--tc:' + t.color + '">' + t.name + '</span><div class="bar" style="--tc:' + t.color + '"><i style="width:' + Math.max(2, odds[i] * 100).toFixed(1) + '%"></i></div><span class="p">' + (odds[i] * 100 < 1 ? '<1' : Math.round(odds[i] * 100)) + '%</span>';
+    });
+    $('mbox').innerHTML = h + '</div><div class="row" style="margin-top:14px"><button class="btn pri" data-act="close">Close</button></div>';
+    modalKind = 'foundry'; $('modal').hidden = false; live();
   }
   function upgradeHtml(u, up) {
-    if (u.maxed) return '<div class="nm">Foundry at its limit</div><div class="sb dim">Level ' + S.forge.level + ' is the highest for this release. More tiers arrive in later updates.</div>';
-    const T = V.TIERS;
-    const unlocks = T.findIndex((t) => t.launch && t.unlock === u.to);
-    const note = unlocks > 0 ? '<div class="up" style="margin:4px 0">Unlocks ' + T[unlocks].name + ' gear</div>' : '<div class="sb dim" style="margin:4px 0">Stronger gear and better odds.</div>';
-    if (up) return '<div class="row" style="align-items:center;justify-content:space-between"><div class="nm">Upgrading to level ' + up.to + '</div><div id="utime" class="nm" style="color:var(--amber);flex:none"></div></div><div class="bar" style="margin-top:8px"><i id="ubar"></i></div>' + note + '<button class="btn" id="rushBtn" data-act="rush" style="margin-top:8px;width:100%"></button>';
-    return '<div class="nm">Level ' + u.from + ' → ' + u.to + '</div>' + note + '<div class="sb">Cost <b id="ucost">' + V.fmt(u.credits) + ' Credits</b> · takes ' + V.fmtTime(u.seconds) + '</div><button class="btn pri" id="ubtn" data-act="upgrade" style="margin-top:10px;width:100%">Start upgrade</button>';
+    if (u.maxed) return '<div class="nm">Max level for now</div>';
+    const T = V.TIERS, unlocks = T.findIndex((t) => t.launch && t.unlock === u.to);
+    const note = unlocks > 0 ? '<div class="up" style="margin:4px 0">Unlocks ' + T[unlocks].name + ' gear</div>' : '';
+    if (up) return '<div class="row" style="align-items:center;justify-content:space-between"><div class="nm">Level ' + up.to + '</div><div id="utime" class="nm" style="color:var(--amber);flex:none"></div></div><div class="bar" style="margin-top:8px"><i id="ubar"></i></div>' + note + '<button class="btn" id="rushBtn" data-act="rush" style="margin-top:8px;width:100%"></button>';
+    return '<div class="nm">Level ' + u.from + ' → ' + u.to + '</div>' + note + '<div class="sb">' + coinIcon('credits') + ' <b>' + V.fmt(u.credits) + '</b> · ' + V.fmtTime(u.seconds) + '</div><button class="btn pri" id="ubtn" data-act="upgrade" style="margin-top:10px;width:100%">Upgrade</button>';
   }
 
   /* ---------- Ship ---------- */
@@ -137,11 +195,12 @@
   let F = null; // the fight on screen (not saved)
   const VERDICTS = [[0.9, 'Easy', 'var(--good)'], [0.65, 'Favorable', 'var(--good)'], [0.4, 'Even match', 'var(--amber)'], [0.15, 'Risky', 'var(--bad)'], [-1, 'Overmatched', 'var(--bad)']];
   function arenaHtml() {
-    return '<div class="panel arena"><div class="secline"><b id="secName"></b><span class="dim" id="secSub"></span></div>' +
-      '<div class="battle"><div class="sl" id="stageLbl"></div><div class="dim" id="roundLbl" style="font-size:13px"></div><div class="dim" id="stageRw" style="font-size:12px;margin-top:2px"></div></div>' +
-      '<div class="duel"><div class="side"><div class="who">Your ship</div><div class="hp"><i id="phb"></i></div><div class="hpn" id="phn"></div></div><div class="vs">VS</div>' +
-      '<div class="side"><div id="etag"></div><div class="who" id="ename"></div><div class="hp e"><i id="ehb"></i></div><div class="hpn" id="ehn"></div></div></div>' +
-      '<div class="fx" id="fx"></div><div class="flog" id="flog"></div><div id="banner"></div></div>';
+    return '<div class="scene" id="scene"><div class="sky"></div><div class="planet"></div><div class="gnd"></div>' +
+      '<div class="stagetop"><div class="sl" id="stageLbl"></div><div class="pips" id="pips"></div></div>' +
+      '<div class="rw" id="rwLine"></div>' +
+      '<div class="unit pl" id="pship"><div class="hp"><i id="phb"></i><span id="phn"></span></div>' + playerShip('#35d0e0') + '</div>' +
+      '<div class="unit en" id="eship"><div class="hp e"><i id="ehb"></i><span id="ehn"></span></div><div class="ename" id="ename"></div><div id="eart"></div></div>' +
+      '<div class="fx" id="fx"></div><div id="banner"></div></div>';
   }
   function verdictOf(wc) { return VERDICTS.find((x) => wc >= x[0]); }
   function fightModal(title, f, lines) {
@@ -192,13 +251,14 @@
   }
   function missionStatic() {
     const c = S.combat, e = V.enemyFor(c.stage), sec = V.SECTORS[Math.min(V.SECTORS.length - 1, V.sectorOf(c.stage))];
-    if ($('secName')) {
-    $('secName').textContent = 'Chapter ' + (V.sectorOf(c.stage) + 1) + ' · ' + sec.name;
-    $('secSub').textContent = 'Best cleared: ' + (c.best ? V.stageLabel(c.best) : 'none');
-    $('stageLbl').textContent = 'Sortie ' + V.stageLabel(c.stage);
-    const rw0 = V.describeRewards(S, c.stage);
-    $('stageRw').textContent = (rw0.first ? 'First clear: ' : 'Reward: ') + V.fmt(rw0.credits) + ' Credits' + (rw0.cores ? ' · ' + rw0.cores + ' AI Cores' : '') + (rw0.flux ? ' · ' + rw0.flux + ' Flux' : '') + (rw0.shards ? ' · ' + rw0.shards + ' Data Shards' : '');
-    $('ename').textContent = e.name; $('etag').innerHTML = '<span class="foe' + (e.boss ? ' boss' : '') + '">' + (e.boss ? 'BOSS' : e.type.toUpperCase()) + '</span>';
+    if ($('stageLbl')) {
+      $('stageLbl').textContent = 'Sortie ' + V.stageLabel(c.stage);
+      const k = ((c.stage - 1) % 10) + 1; let pp = ''; for (let i = 1; i <= 10; i++) pp += '<i class="' + (i < k ? 'd' : i === k ? 'c' : '') + (i === 10 ? ' b' : '') + '"></i>'; $('pips').innerHTML = pp;
+      const rw0 = V.describeRewards(S, c.stage);
+      $('rwLine').innerHTML = coinIcon('credits') + V.fmt(rw0.credits) + (rw0.cores ? ' <span class="rc">◆' + rw0.cores + '</span>' : '');
+      $('ename').textContent = e.name; $('eart').innerHTML = foeShip(e.type, e.boss);
+      const sc = $('scene'); sc.style.setProperty('--hue', (V.sectorOf(c.stage) * 41 % 360) + 'deg');
+      const bt = V.highestTier(S); $('pship').querySelector('svg').outerHTML = playerShip(bt >= 0 ? tcol(bt) : '#35d0e0');
     }
     if (!$('matchup')) return;
     const pw = V.power(S), wc = V.winChance(S, c.stage, 80, rng), v = VERDICTS.find((x) => wc >= x[0]), rw = V.describeRewards(S, c.stage);
@@ -217,45 +277,43 @@
     if (!F) { $('phb').style.width = '100%'; $('ehb').style.width = '100%'; return; }
     const lastEv = F.events[F.i - 1];
     const php = lastEv ? lastEv.php : F.pmax, ehp = lastEv ? lastEv.ehp : F.emax;
-    const sh = lastEv ? lastEv.shield : 0;
     $('phb').style.width = (php / F.pmax * 100).toFixed(1) + '%'; $('ehb').style.width = (ehp / F.emax * 100).toFixed(1) + '%';
-    $('phn').textContent = V.fmt(php) + ' / ' + V.fmt(F.pmax) + (sh > 0 ? ' · shield ' + V.fmt(sh) : ''); $('ehn').textContent = V.fmt(ehp) + ' / ' + V.fmt(F.emax);
+    $('phn').textContent = V.fmt(php); $('ehn').textContent = V.fmt(ehp);
   }
   function floatNum(side, text, cls) {
     const fx = $('fx'); if (!fx) return;
     const n = document.createElement('span'); n.className = 'fnum ' + side + ' ' + (cls || ''); n.textContent = text; fx.appendChild(n); setTimeout(() => n.remove(), 950);
   }
+  function beam(from, cls) {
+    const fx = $('fx'); if (!fx) return;
+    const b = document.createElement('i'); b.className = 'beam ' + from + ' ' + (cls || ''); fx.appendChild(b); setTimeout(() => b.remove(), 260);
+    const tgt = $(from === 'p' ? 'eship' : 'pship'); if (tgt) { tgt.classList.remove('hit'); void tgt.offsetWidth; tgt.classList.add('hit'); }
+  }
+  const hasGear = () => V.SLOTS.some((sl) => S.gear[sl.id]);
   function startFight() {
     const stage = S.combat.stage, e = V.enemyFor(stage), p = V.fighter(S), r = V.simulateFight(p, e, rng);
-    F = { stage, enemy: e, events: r.events, win: r.win, pmax: r.pmax, emax: r.emax, i: 0, round: 0, nextAt: Date.now() + 500, done: false, log: [] };
-    if ($('banner')) { $('banner').innerHTML = ''; $('flog').innerHTML = ''; $('roundLbl').textContent = 'Exchange 0'; }
+    F = { stage, enemy: e, events: r.events, win: r.win, pmax: r.pmax, emax: r.emax, i: 0, round: 0, nextAt: Date.now() + 500, done: false };
+    if ($('banner')) $('banner').innerHTML = '';
     missionLive();
   }
   function fightStep() {
     const now = Date.now();
+    if (tab !== 'foundry' && tab !== 'missions') return;
+    if (!hasGear()) { if ($('banner')) $('banner').innerHTML = '<div class="banner idle">Forge gear to launch</div>'; F = null; return; }
     if (!F) { startFight(); return; }
     if (now < F.nextAt) return;
-    const sp = 1;
     if (F.i < F.events.length) {
       const ev = F.events[F.i++];
-      if (ev.who === 'p') { F.round++; if ($('roundLbl')) $('roundLbl').textContent = 'Exchange ' + F.round; }
       if ($('fx')) {
-        let line;
         if (ev.who === 'p') {
-          floatNum('e', '-' + V.fmt(ev.dmg), ev.label ? 'big' : ev.crit ? 'crit' : '');
+          beam('p', ev.label ? 'big' : ''); floatNum('e', '-' + V.fmt(ev.dmg), ev.label ? 'big' : ev.crit ? 'crit' : '');
           if (ev.heal) floatNum('p', '+' + V.fmt(ev.heal), 'heal');
-          line = 'You hit for ' + V.fmt(ev.dmg) + (ev.label === 'overcharge' ? ' <b>OVERCHARGE</b>' : '') + (ev.crit ? ' <b>critical</b>' : '');
         } else if (ev.who === 'c') {
-          if (ev.dmg) { floatNum('e', '-' + V.fmt(ev.dmg), ''); line = ev.name + ' hits for ' + V.fmt(ev.dmg); }
-          else if (ev.heal !== undefined) { floatNum('p', '+' + V.fmt(ev.heal), 'heal'); line = ev.name + ' repairs ' + V.fmt(ev.heal); }
-          else if (ev.shieldGain) { floatNum('p', '+' + V.fmt(ev.shieldGain), 'shield'); line = ev.name + ' raises a shield'; }
-          else if (ev.slow) line = ev.name + ' jams the enemy';
-          else line = ev.name + ' amps your next shot';
-        } else {
-          if (ev.dodged) { floatNum('p', 'DODGE', 'dodge'); line = 'You dodge ' + F.enemy.name; }
-          else { floatNum('p', '-' + V.fmt(ev.dmg), ev.crit || ev.label ? 'crit' : ''); line = F.enemy.name + ' hits for ' + V.fmt(ev.dmg) + (ev.label === 'salvo' ? ' <b>HEAVY SALVO</b>' : '') + (ev.crit ? ' <b>critical</b>' : '') + (ev.absorbed ? ' (shield took ' + V.fmt(ev.absorbed) + ')' : ''); }
-        }
-        F.log.push(line); $('flog').innerHTML = F.log.slice(-3).join('<br>');
+          if (ev.dmg) { beam('p', 'c'); floatNum('e', '-' + V.fmt(ev.dmg), ''); }
+          else if (ev.heal !== undefined) floatNum('p', '+' + V.fmt(ev.heal), 'heal');
+          else if (ev.shieldGain) floatNum('p', '+' + V.fmt(ev.shieldGain), 'shield');
+        } else if (ev.dodged) floatNum('p', 'DODGE', 'dodge');
+        else { beam('e', ev.label ? 'big' : ''); floatNum('p', '-' + V.fmt(ev.dmg), ev.crit || ev.label ? 'crit' : ''); }
         missionLive();
       }
       F.nextAt = now + 550; return;
@@ -263,14 +321,15 @@
     if (!F.done) {
       F.done = true;
       const rep = V.resolveFight(S, F.stage, F.win, rng);
-      if ($('banner')) {
-        $('banner').innerHTML = rep.win ? '<div class="banner win">Victory · +' + V.fmt(rep.credits) + ' Credits' + (rep.cores ? ' · +' + rep.cores + ' Cores' : '') + (rep.flux ? ' · +' + rep.flux + ' Flux' : '') + '</div>' : '<div class="banner loss">Defeated · falling back</div>';
-      }
+      const dead = $(F.win ? 'eship' : 'pship'); if (dead) dead.classList.add('dead');
+      if ($('banner')) $('banner').innerHTML = rep.win ? '<div class="banner win">VICTORY<small>+' + V.fmt(rep.credits) + (rep.cores ? ' · +' + rep.cores + ' Cores' : '') + (rep.flux ? ' · +' + rep.flux + ' Flux' : '') + '</small></div>' : '<div class="banner loss">DEFEAT</div>';
       if (rep.win && rep.first) toast(F.enemy.boss ? '<b>Boss defeated: ' + esc(F.enemy.name) + '</b>' + (rep.flux ? '<br>+' + rep.flux + ' Flux' : '') + (rep.cores ? '<br>+' + rep.cores + ' AI Cores' : '') + (rep.shards ? '<br>+' + rep.shards + ' Data Shards' : '') : 'Stage ' + V.stageLabel(F.stage) + ' cleared · +' + rep.cores + ' AI Cores' + (rep.shards ? ' · +' + rep.shards + ' Data Shards' : ''));
       save(); head(); live(); if (tab === 'wing') renderWing();
       F.nextAt = now + 1200; return;
     }
-    F = null; missionStatic(); startFight();
+    F = null; missionStatic();
+    ['eship', 'pship'].forEach((id) => { const el = $(id); if (el) el.classList.remove('dead', 'hit'); });
+    startFight();
   }
 
   /* ---------- Wing: companions ---------- */
@@ -421,20 +480,22 @@
     $('power').textContent = V.fmt(V.power(S).power);
   }
   function live() {
-    $('alloy').textContent = V.fmt(S.alloy);
+    
     $('credits').textContent = V.fmt(S.credits);
     $('flux').textContent = V.fmt(S.flux);
     $('rate').textContent = '+' + (V.alloyRate(S) * 60).toFixed(2).replace(/0$/, '') + '/min';
-    $('lvl').textContent = 'LV ' + S.cmd.level + ' · ' + V.RANK_NAMES[S.cmd.rank];
-    $('xpfill').style.width = Math.min(100, S.cmd.xp / V.CFG.XP_NEED(S.cmd.level) * 100).toFixed(1) + '%';
+    if ($('lvl')) { $('lvl').textContent = 'Lv.' + S.cmd.level; $('xpfill').style.width = Math.min(100, S.cmd.xp / V.CFG.XP_NEED(S.cmd.level) * 100).toFixed(1) + '%'; }
     $('shards').textContent = V.fmt(S.shards);
     if (tab === 'missions') ticketLabel();
     badges();
     const fb = $('forgeBtn');
     if (fb) {
       const c = V.forgeCost(S), can = S.alloy >= c;
-      fb.disabled = !can; $('fcost').textContent = c + ' Alloy';
-      const m = V.maxForges(S); $('f10').disabled = m < 2; $('fmax').disabled = m < 2; $('fmax').textContent = 'Forge max' + (m >= 2 ? ' (' + V.fmt(m) + ')' : '');
+      fb.disabled = !can; $('fcost').textContent = V.fmt(S.alloy);
+      const fu = S.forge.upgrade, uu = V.upgradeInfo(S);
+      $('ftime').textContent = fu ? V.fmtTime(Math.max(0, fu.endAt - Date.now()) / 1000) : '';
+      $('fdot').hidden = !!fu || uu.maxed || S.credits < uu.credits;
+      const m = V.maxForges(S); $('f10').disabled = m < 2; $('fmax').disabled = m < 2; $('fmax').textContent = 'MAX' + (m >= 2 ? ' ' + V.fmt(m) : '');
       const up = S.forge.upgrade;
       if (up) {
         const total = up.endAt - up.startAt, left = Math.max(0, up.endAt - Date.now());
@@ -464,6 +525,8 @@
   }
   function act(a, el) {
     if (a === 'forge') return doForge();
+    if (a === 'foundry') return foundryModal();
+    if (a === 'goto') { tab = el.dataset.tab; showTab(); return; }
     if (a === 'f10' || a === 'fmax') {
       const n = a === 'f10' ? 10 : V.maxForges(S);
       const r = V.forgeBatch(S, n, rng); if (!r.forged) return;
@@ -512,7 +575,7 @@
     if (a === 'hBuy') { if (V.buyHold(S)) { save(); refresh(); } return; }
     if (a === 'part') { partSheet(el.dataset.ref); return; }
     if (a === 'unfit') { $('modal').hidden = true; if (V.unfit(S, el.dataset.slot)) { save(); refresh(); } return; }
-    if (a === 'close') { $('modal').hidden = true; return; }
+    if (a === 'close') { $('modal').hidden = true; modalKind = null; return; }
     if (a === 'upgrade') { const r = V.startUpgrade(S, Date.now()); if (r.ok) { buzz(30); save(); refresh(); } return; }
     if (a === 'export') { $('codeBox').value = encode(); return; }
     if (a === 'copy') {
@@ -536,6 +599,7 @@
   function showTab() {
     if (tab !== 'missions' && F && false) F = null;
     document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.id === 'tab-' + tab));
+    $('app').classList.toggle('onfoundry', tab === 'foundry');
     document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
     if (tab === 'foundry') renderFoundry(); else if (tab === 'ship') renderShip(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'wing') renderWing(); else if (tab === 'depot') renderDepot(); else renderMore();
   }
@@ -577,7 +641,7 @@
   load();
   const rep = V.offline(S, Date.now());
   S.last = Date.now(); save();
-  showTab(); head(); live();
+  decorateChrome(); showTab(); head(); live();
   welcome(rep);
   setInterval(tick, 250);
   setInterval(() => { if (!document.hidden) fightStep(); }, 120);

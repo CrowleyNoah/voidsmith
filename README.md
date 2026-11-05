@@ -67,3 +67,6 @@ Bump `VERSION` in `sw.js` after any change.
 
 ### Step 8b: tier jumps
 Tier multipliers are now [1, 2.2, 4.8, 10, 20, 38] and the enemy curve was re-fit. Rating jumps at the tier-unlock Foundry levels are about x3 (F8, F11, F14).
+
+### Step 9: visual pass (vs-v17)
+Main screen rebuilt to look like a game, not a text page: full-width fight scene with drawn ships, hit beams and floating numbers, icon gear tiles with levels, anvil with Alloy count, and a Foundry button that opens the upgrade + odds popup. Header is now avatar, power and icon-only currency pills; nav uses icons.
