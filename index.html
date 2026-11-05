@@ -45,7 +45,8 @@
 </div>
 <script src="core.js"></script>
 <script src="persist.js"></script>
+<script src="cloud.js"></script>
 <script src="game.js"></script>
-<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {}); var had = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', function () { if (had) location.reload(); });</script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) { var chk = function () { try { reg.update(); } catch (e) {} }; document.addEventListener('visibilitychange', function () { if (!document.hidden) chk(); }); setInterval(chk, 300000); }).catch(function () {}); var had = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', function () { if (had) location.reload(); });</script>
 </body>
 </html>

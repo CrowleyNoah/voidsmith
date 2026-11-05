@@ -13,7 +13,7 @@
     let parsed = null; try { parsed = raw ? JSON.parse(raw) : null; } catch (e) { parsed = null; }
     S = V.migrate(parsed, Date.now());
   }
-  function save() { S.last = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* full or blocked */ } }
+  function save() { if (window.vsNoSave) return; S.last = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* full or blocked */ } }
 
   /* ---------- helpers ---------- */
   let tab = 'foundry', toastT = 0;
@@ -538,10 +538,11 @@
     set('armory', V.techReady(S));
   }
   function renderMore() {
-    const tiles = [['stats', 'chart', 'Stats'], ['name', 'user', 'Callsign'], ['opts', 'gear', 'Options'], ['backup', 'save', 'Backup'], ['wipe', 'trash', 'Erase']];
+    const tiles = [['stats', 'chart', 'Stats'], ['name', 'user', 'Callsign'], ['opts', 'gear', 'Options'], ['cloud', 'user', 'Cloud'], ['backup', 'save', 'Backup'], ['wipe', 'trash', 'Erase']];
     $('tab-more').innerHTML = '<div class="pg"><div class="moregrid">' + tiles.map((t) => '<button class="mbtn' + (t[0] === 'wipe' ? ' bad' : '') + '" data-act="more" data-k="' + t[0] + '">' + pic(t[1]) + '<b>' + t[2] + '</b></button>').join('') + '</div><p class="dim tiny" style="text-align:center">' + V.CFG.NAME + ' · v21</p></div>';
   }
   function moreSheet(k) {
+    if (k === 'cloud') { if (window.Cloud) Cloud.open(); return; }
     if (k === 'stats') return sheet(statsHtml().replace(/<h2>Coming[\s\S]*$/, ''), 'more');
     if (k === 'name') { sheet('<input type="text" id="nameIn" maxlength="20" value="' + esc(S.name) + '" aria-label="Callsign">', 'more'); $('nameIn').onchange = (e) => { S.name = e.target.value.trim() || 'Commander'; save(); head(); }; return; }
     if (k === 'opts') {
@@ -721,6 +722,13 @@
 
   /* ---------- start ---------- */
   load();
+  if (window.Cloud) Cloud.init({
+    app: 'voidsmith',
+    read: () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } },
+    write: (s) => { window.vsNoSave = true; try { localStorage.setItem(KEY, s); } catch (e) { /* ignore */ } },
+    score: (s) => { try { const o = JSON.parse(s), t = o.stats || {}; return (t.seconds || 0) + (t.forged || 0); } catch (e) { return 0; } },
+    describe: (s) => { try { const o = JSON.parse(s); return 'Foundry ' + ((o.forge && o.forge.level) || 1) + ', stage ' + V.stageLabel(Math.max(1, (o.combat && o.combat.best) || 1)) + ', commander ' + ((o.cmd && o.cmd.level) || 1); } catch (e) { return 'empty'; } }
+  });
   const rep = V.offline(S, Date.now());
   S.last = Date.now(); save();
   decorateChrome(); showTab(); head(); live();
