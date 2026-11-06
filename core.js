@@ -21,7 +21,7 @@
     UPGRADE_CREDITS: (L) => Math.max(1, Math.round(fmStep(FM_COST, L) * CFG.COST_SCALE * avgSell(L) / CFG.SELL_BASE)),   // Credits to go from L to L+1: the original's price, counted in what your parts sell for at that level
     INSTALL: (L) => { const p = 1 + (L - 1) * 34 / 24; return p < 8 ? 1 : Math.min(10, 1 + Math.floor((p - 6) * 9 / 28)); },   // how many payments a Foundry upgrade takes (Forge Master: 1 early, 8-10 late)
     PAY_X: 0.27,                 // size of one payment against the old single price
-    UPGRADE_SECONDS: (L) => Math.max(1, Math.round(fmStep(FM_TIME, L) * CFG.TIME_SLOW)),   // wait to go from L to L+1
+    UPGRADE_SECONDS: (L) => Math.max(1, Math.round(FM_TIME[Math.round(fmPos(L + 1)) - 2] * (L < 16 ? CFG.TIME_SLOW : 1.2))),   // wait to go from L to L+1: the original's wait for the level it maps to, 1.5x slower up to Foundry 16, 1.2x after
     LEVEL_GROWTH: 1.12,         // each forge level makes new gear 12% stronger
     SELL_BASE: 3, SELL_GROWTH: 1.15,
     SET4: [0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.21, 0.27, 0.34, 0.42],                      // bonus for 4 fitted parts of tier X or better
@@ -92,6 +92,30 @@
       names: { cannon: 'Apex Railgun', pod: 'Zenith Pod', array: 'Sovereign Array', coil: 'Crown Coil', plating: 'Apex Plate', bulkhead: 'Sovereign Bulkhead', emitter: 'Zenith Emitter', spar: 'Summit Spar' } }
   ];
   const LAUNCH_TIERS = TIERS.filter((t) => t.launch).length;
+
+  /* ----- the 10 starship hulls. The hull on screen follows the tier of the fitted Hull Plating; its size grows with tier (CSS scale). ----- */
+  const SHIPS = [
+    { tier: 0, name: 'Rusted',      archetype: 'Scrap Barge / Cutter',          scale: 0.85, theme: 'Low-profile, flat open deck, heavy orange rust, welded scrap plates, single tiny cockpit.',
+      kw: 'small scrap barge, single tiny cockpit canopy, flat deck, rusted scrap metal, crude patch welds' },
+    { tier: 1, name: 'Refitted',    archetype: 'Gunboat / Patrol Craft',        scale: 0.89, theme: 'Angular gray steel plating, chipped orange primer underlayers, double-barreled mounts, industrial wedge bow.',
+      kw: 'patrol gunboat, industrial wedge nose, gray steel armor plates, scattered orange primer rust patches, bolted repair plates' },
+    { tier: 2, name: 'Hardened',    archetype: 'Corvette / Heavy Frigate',      scale: 0.93, theme: 'Slate-blue corporate hull, high-visibility yellow hazard chevrons, heavy I-beam framing, twin engine pods.',
+      kw: 'heavy corvette frigate, slate-blue armor, yellow hazard warning stripes, structural I-beams, industrial corporate plating' },
+    { tier: 3, name: 'Classified',  archetype: 'Stealth Destroyer',             scale: 0.97, theme: 'Sharp angular stealth facets, matte black radar-absorbent hull, glowing purple energy conduits, forward-swept stabilizer fins.',
+      kw: 'stealth destroyer, faceted angular hull, matte black radar-absorbent coating, purple energy glow lines, forward-swept fins' },
+    { tier: 4, name: 'Voidborn',    archetype: 'Cruiser / Battlecruiser',       scale: 1.01, theme: 'Deep metallic red/pink armor plates, exposed glowing plasma reactor core, multi-deck command bridge, heavy dorsal armor.',
+      kw: 'heavy battlecruiser, deep metallic red plating, exposed glowing plasma reactor core, raised multi-deck bridge, reinforced hull flanks' },
+    { tier: 5, name: 'Exotic',      archetype: 'Battleship / Dreadnought',      scale: 1.05, theme: 'Gold-trimmed armored prow, heavy broadside gun batteries, layered orbital plating, massive rear thruster bank.',
+      kw: 'grand battleship, gold and dark metal trim, massive armored prow, broadside gun ports, layered heavy shield plating' },
+    { tier: 6, name: 'Ancient',     archetype: 'Carrier / Hive Ship',           scale: 1.10, theme: 'Bronze monolithic alien geometry, cavernous drone launch bays, glowing rune energy channels, sweeping organic-mechanical curves.',
+      kw: 'ancient alien carrier, monolithic bronze hull, cavernous drone bay openings, glowing engraved energy runes, alien megastructure' },
+    { tier: 7, name: 'Dark Matter', archetype: 'Siege Platform / Leviathan',    scale: 1.15, theme: 'Deep violet and obsidian black armor, gravity-defying detached floating plates, central void engine core, imposing wide silhouette.',
+      kw: 'dark matter siege platform, obsidian black armor, floating magnetic hull segments, central purple void singularity core' },
+    { tier: 8, name: 'Origin',      archetype: 'Titan / Mothership',            scale: 1.20, theme: 'Utopian white and cyan metal, hyper-clean curved hull geometries, orbiting protective energy rings, massive multi-section flagship.',
+      kw: 'utopian titan mothership, pristine white ceramic armor, glowing cyan accents, orbiting energy rings, massive high-tech flagship' },
+    { tier: 9, name: 'Apex',        archetype: 'Super-Dreadnought / Star Fortress', scale: 1.25, theme: 'Overwhelming military-grade geometry, crimson and gold energy shields, triple-engine main thruster clusters, colossal fortress prow.',
+      kw: 'apex super-dreadnought, dark crimson and gold armor, colossal star fortress prow, multi-layered energy shielding, massive main engines' }
+  ];
 
   // Bonus lines on parts. Values are percent. Weapons lean offensive, hull parts lean defensive.
   const SUBS = {
@@ -446,6 +470,9 @@
   function power(state) { return calcPower(state.gear, codexBonus(state), statBonus(state)); }
   // what your Power would be with this part fitted instead of what is in its slot
   function powerWith(state, it) { const g = Object.assign({}, state.gear); g[it.slot] = it; return calcPower(g, codexBonus(state), statBonus(state)); }
+  // The hull on screen: tier of the fitted Hull Plating (Rusted when none is fitted).
+  function hullTier(state) { const it = state.gear && state.gear.plating; return it ? Math.max(0, Math.min(SHIPS.length - 1, it.tier)) : 0; }
+  function shipOf(state) { return SHIPS[hullTier(state)]; }
   function highestTier(state) { let h = -1; SLOTS.forEach((s) => { const it = state.gear[s.id]; if (it && it.tier > h) h = it.tier; }); return h; }
   const autoUnlocked = (state) => state.forge.level >= CFG.AUTO_UNLOCK_LEVEL;
 
@@ -543,9 +570,9 @@
 
   function enemyFor(stage, scale) {
     const pe = CFG.ENEMY_POWER(stage) * (scale || 1), sec = SECTORS[Math.min(SECTORS.length - 1, sectorOf(stage))];
-    if (isBoss(stage)) return { stage, boss: true, type: 'boss', name: sec.boss, pe, dmg: Math.max(1, Math.round(pe * ATK_SHARE)), hull: Math.max(5, Math.round(pe * HULL_SHARE * BOSS_HM)), speed: 100, armor: 0, crit: 0 };
-    const key = PATTERN[(stage % 10) - 1], f = FOES[key];
-    return { stage, boss: false, type: key, name: sec.name + ' ' + f.name, pe, dmg: Math.max(1, Math.round(pe * ATK_SHARE * f.dm)), hull: Math.max(5, Math.round(pe * HULL_SHARE * f.hm)), speed: f.speed, armor: f.armor, crit: f.crit };
+    if (isBoss(stage)) return { stage, boss: true, type: 'boss', name: sec.boss, pe, dmg: Math.max(1, Math.round(pe * ATK_SHARE)), hull: Math.max(5, Math.round(pe * HULL_SHARE)), speed: 100, armor: 0, crit: 0 };   // a boss is simply the next step up the curve
+    const key = PATTERN[(stage % 10) - 1], f = FOES[key], nf = Math.sqrt(f.dm * f.hm / (1 - f.armor));   // nf: the type only reshapes the enemy (glass cannon vs tank); its total strength follows the curve, so every stage is harder than the one before
+    return { stage, boss: false, type: key, name: sec.name + ' ' + f.name, pe, dmg: Math.max(1, Math.round(pe * ATK_SHARE * f.dm / nf)), hull: Math.max(5, Math.round(pe * HULL_SHARE * f.hm / nf)), speed: f.speed, armor: f.armor, crit: f.crit };
   }
   /* ===================== WING (companions) ===================== */
   const wingKey = (sp, rank) => sp + ':' + rank;
@@ -975,6 +1002,6 @@
     return s + 's';
   }
 
-  const api = { batchSize, SUBS, SUB_KEYS, SLOT_SUBS, RANKS, RANK_COLORS, SPECIES, gearCombat, buildFactor, rollSubs, wingKey, parseKey, bayLevel, summonOdds, summon, assign, unassign, canFuse, fuse, fuseAll, companionInfo, usedInWing, CFG, SLOTS, TIERS, LAUNCH_TIERS, slotById, itemStat, itemName, sellValue, sellFor, tierOdds, rollItem, newState, migrate, power, powerWith, calcPower, setBonus, codexKey, codexHas, codexTierCount, codexCount, codexBonus, discover, highestTier, SECTORS, FOES, sectorOf, isBoss, enemyFor, fighter, simulateFight, creditsWin, describeRewards, resolveFight, setStage, winChance, rushCost, rushUpgrade, autoUnlocked, isUpgrade, equip, forgeCost, forgeOnce, forgeBatch, maxForges, equipPending, sellPending, upgradeInfo, startUpgrade, checkUpgrade, earn, offline, fmt, fmtTime, stageLabel, shardsFor, AD_OFFERS, adStatus, claimAd, claimGift, DEAL_POOL, dealsToday, buyDeal, buyNoAds, useTicket, sweepInfo, sweepAd, DAILIES, dailyById, rollDaily, attemptsLeft, ladderEnemy, ladderLocked, ladderFight, ladderSweep, LEAGUES, leagueOf, arenaOpponents, arenaLeft, arenaFight, SHOP, shopBuy, CLANS, CLAN_REWARDS, joinClan, leaveClan, addClanPoints, clanProgress, claimClan, utcDay, RANK_NAMES, TECH_NODES, TECH_BRANCHES, TECH_TIERS, TECH_TIER_GATE, BATCH_STEPS, techNode, techBonus, techInfo, startTech, checkTech, techRushCost, rushTech, techReady, rLevel, dailyBonus, typicalSell, QUESTS, questProgress, visibleQuests, claimQuest, FM_ODDS, alloyRate, offlineCapS, creditMult, statBonus, addXp, levelCap, atCap, rankReward, canPromote, promote, renameCost, renameCommander, setAvatar };
+  const api = { SHIPS, hullTier, shipOf, batchSize, SUBS, SUB_KEYS, SLOT_SUBS, RANKS, RANK_COLORS, SPECIES, gearCombat, buildFactor, rollSubs, wingKey, parseKey, bayLevel, summonOdds, summon, assign, unassign, canFuse, fuse, fuseAll, companionInfo, usedInWing, CFG, SLOTS, TIERS, LAUNCH_TIERS, slotById, itemStat, itemName, sellValue, sellFor, tierOdds, rollItem, newState, migrate, power, powerWith, calcPower, setBonus, codexKey, codexHas, codexTierCount, codexCount, codexBonus, discover, highestTier, SECTORS, FOES, sectorOf, isBoss, enemyFor, fighter, simulateFight, creditsWin, describeRewards, resolveFight, setStage, winChance, rushCost, rushUpgrade, autoUnlocked, isUpgrade, equip, forgeCost, forgeOnce, forgeBatch, maxForges, equipPending, sellPending, upgradeInfo, startUpgrade, checkUpgrade, earn, offline, fmt, fmtTime, stageLabel, shardsFor, AD_OFFERS, adStatus, claimAd, claimGift, DEAL_POOL, dealsToday, buyDeal, buyNoAds, useTicket, sweepInfo, sweepAd, DAILIES, dailyById, rollDaily, attemptsLeft, ladderEnemy, ladderLocked, ladderFight, ladderSweep, LEAGUES, leagueOf, arenaOpponents, arenaLeft, arenaFight, SHOP, shopBuy, CLANS, CLAN_REWARDS, joinClan, leaveClan, addClanPoints, clanProgress, claimClan, utcDay, RANK_NAMES, TECH_NODES, TECH_BRANCHES, TECH_TIERS, TECH_TIER_GATE, BATCH_STEPS, techNode, techBonus, techInfo, startTech, checkTech, techRushCost, rushTech, techReady, rLevel, dailyBonus, typicalSell, QUESTS, questProgress, visibleQuests, claimQuest, FM_ODDS, alloyRate, offlineCapS, creditMult, statBonus, addXp, levelCap, atCap, rankReward, canPromote, promote, renameCost, renameCommander, setAvatar };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.VS = api;
 })(typeof self !== 'undefined' ? self : this);

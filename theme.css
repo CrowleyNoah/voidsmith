@@ -288,3 +288,34 @@ nav button.on i svg{filter:drop-shadow(0 0 3px #ffd25e) drop-shadow(0 0 8px #ffb
 #ubtn b{display:flex;align-items:center;gap:6px}
 @media (prefers-reduced-motion:reduce){.pips2 i.next{animation:none}}
 #ubtn span{color:#fff!important;opacity:1!important;font-weight:700;font-size:13px}
+#foundryRest{overflow:visible!important}#foundryRest>#bay{z-index:20}#arenaWrap{position:relative;z-index:1}#foundryRest{z-index:2}
+
+/* ---- paper-doll ship rig (ship.js) ---- */
+.shipbob{width:100%}
+.rig{position:relative;width:100%;transform:scale(var(--hs,1));transform-origin:20% 100%;transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+.rig .lay{position:absolute;display:block;max-width:none;pointer-events:none;user-select:none;-webkit-user-drag:none;filter:drop-shadow(0 2px 0 #0006)}
+.rig .lay-hull{filter:drop-shadow(0 6px 6px #000a)}
+.rig.fb{aspect-ratio:200/110}.rig .sh{width:100%;height:auto;display:block;animation:none!important}
+.unit.pl .shipbob{animation:bob 2.4s ease-in-out infinite}
+.unit.hit.pl .shipbob{animation:shake .22s}
+.pship .rig{transform:scale(calc(var(--hs,1)*.85));transform-origin:0 100%}
+.pship .hn{position:absolute;left:0;bottom:-18px;font:700 10px/1 'Chakra Petch',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#cfe6ff;text-shadow:0 1px 2px #000;opacity:.85}
+/* gear icons: 3/4 views from assets/icons */
+.tile img.gi{position:absolute;inset:8% 8% 26%;width:84%;height:66%;object-fit:contain;filter:drop-shadow(0 2px 0 #0007);pointer-events:none}
+.tile.big img.gi{inset:8% 8% 24%}
+.ptile img.gi{width:74%;height:74%;object-fit:contain;filter:drop-shadow(0 2px 0 #0007);pointer-events:none}
+.item .gl img.gi{width:38px;height:38px;object-fit:contain;display:block}
+
+.unit.pl:has(.rig:not(.fb)){width:46%}
+.rig.fb{transform:scale(calc(var(--hs,1)*.78))}.pship .rig.fb{transform:scale(calc(var(--hs,1)*.7))}
+
+/* ---- painted art: hangar scene behind the ship on Profile, companion drones ---- */
+/* darken the top so the name and rank stay readable over the painted room */
+.pbg{background:linear-gradient(#000b,#0000 38%,#0000 60%,#0009),url(assets/bg/bg_profile.jpg) center 70%/cover no-repeat,#10151d}
+.pbg::after{display:none}
+img.cimg{object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 0 #0007)}
+.tile img.cimg{width:76%;height:60%}
+.ptile img.cimg{width:74%;height:74%}
+.pdrone img.cimg{width:100%;height:100%}
+.sh-h .tile img.cimg{width:76%;height:60%}
+.pdrone{width:62px;height:62px;top:-58px;left:34%}

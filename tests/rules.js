@@ -174,3 +174,18 @@ console.log('rules ok');
 
 // installments: late upgrades take several payments before the timer starts
 { const s = V.newState(0); assert.strictEqual(V.CFG.INSTALL(1), 1); assert.ok(V.CFG.INSTALL(24) >= 8 && V.CFG.INSTALL(24) <= 10); s.forge.level = 20; const n = V.CFG.INSTALL(20); s.credits = 1e15; for (let i = 0; i < n - 1; i++) { const r = V.startUpgrade(s, 0); assert.ok(r.ok && r.partial && !s.forge.upgrade); } assert.ok(V.startUpgrade(s, 0).ok && s.forge.upgrade && s.forge.paid === 0); s.research.alloy = 10; assert.ok(V.alloyRate(s) > V.CFG.ALLOY_PER_SEC); console.log('installments ok'); }
+
+// starship hulls: 10 archetypes, scale grows with tier, hull follows the fitted Hull Plating
+assert.strictEqual(V.SHIPS.length, 10);
+V.SHIPS.forEach((sh, i) => { assert.strictEqual(sh.tier, i); assert.strictEqual(sh.name, V.TIERS[i].name); assert.ok(sh.archetype && sh.theme && sh.kw); if (i) assert.ok(sh.scale > V.SHIPS[i - 1].scale); });
+assert.strictEqual(V.SHIPS[0].scale, 0.85); assert.strictEqual(V.SHIPS[9].scale, 1.25);
+s = S(); assert.strictEqual(V.hullTier(s), 0); s.gear.cannon = part('cannon', 7); assert.strictEqual(V.hullTier(s), 0);
+s.gear.plating = part('plating', 4); assert.strictEqual(V.hullTier(s), 4); assert.strictEqual(V.shipOf(s).name, 'Voidborn');
+// ship rig: placement and asset paths
+const R = require('../ship.js');
+assert.strictEqual(R.iconSrc('cannon', 0, 0), 'assets/icons/gear_cannon_t01_a.png'); assert.strictEqual(R.layerSrc('cannon', 1, 1), 'assets/ship/cannon_t02_b.png');
+assert.ok(R.hasHull(0) && R.hasHull(1) && !R.hasHull(2));
+const pl = R.place('cannon', 0, { slot: 'cannon', tier: 1, v: 0 }); assert.ok(pl && pl.width > 5 && pl.width < 60 && pl.ty === -100);
+const html = R.rig({ gear: { cannon: part('cannon', 0) } }, V.SHIPS[0], 0, '<svg></svg>'); assert.ok(html.includes('hull_t01.png') && html.includes('cannon_t01_a.png') && html.includes('--hs:0.85'));
+assert.ok(R.rig({ gear: {} }, V.SHIPS[5], 5, '<svg id="fb"></svg>').includes('id="fb"'));   // no hull art yet: code-drawn fallback
+console.log('ships ok');

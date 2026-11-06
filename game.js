@@ -39,7 +39,7 @@
     }
     const tag = opts.isNew ? '<span class="chip">NEW</span>' : '';
     const el = opts.btn ? 'button' : 'div';
-    return '<' + el + ' class="item" ' + (opts.btn ? 'data-act="part" data-ref="' + (opts.ref || ('g:' + it.slot)) + '" ' : '') + 'style="--tc:' + tcol(it.tier) + (opts.gap ? ';margin-bottom:6px' : '') + '"><div class="gl">' + sl.glyph + '</div><div style="min-width:0"><div class="nm">' + esc(V.itemName(it)) + tag + '</div><div class="sb">' + V.TIERS[it.tier].name + ' · Lv ' + it.level + ' · ' + sl.name + '</div>' + subsLine(it) + '</div><div class="stat">+' + V.fmt(v) + '<div class="sb">' + statLabel(it.slot) + '</div>' + delta + '</div></' + el + '>';
+    return '<' + el + ' class="item" ' + (opts.btn ? 'data-act="part" data-ref="' + (opts.ref || ('g:' + it.slot)) + '" ' : '') + 'style="--tc:' + tcol(it.tier) + (opts.gap ? ';margin-bottom:6px' : '') + '"><div class="gl">' + ((USE_RIG && window.VSShip.icon(it, 'gl')) || sl.glyph) + '</div><div style="min-width:0"><div class="nm">' + esc(V.itemName(it)) + tag + '</div><div class="sb">' + V.TIERS[it.tier].name + ' · Lv ' + it.level + ' · ' + sl.name + '</div>' + subsLine(it) + '</div><div class="stat">+' + V.fmt(v) + '<div class="sb">' + statLabel(it.slot) + '</div>' + delta + '</div></' + el + '>';
   }
 
   /* ---------- art ---------- */
@@ -69,6 +69,14 @@
       '<path d="M22 55l14-20h96l44 16 8 4-8 4-44 16H36z" fill="url(#pg)" stroke="' + c + '" stroke-width="2.5" stroke-linejoin="round"/>' +
       '<path d="M120 42l26 10-26 8z" fill="#7ee7ff" opacity=".9"/><rect x="60" y="50" width="44" height="10" rx="3" fill="' + c + '" opacity=".75"/><circle cx="178" cy="55" r="3" fill="' + c + '"/>', 'sh');
   }
+  // Paper-doll ship: hull chassis by Hull Plating tier, equipment layers over it, scaled by hull tier (see ship.js and V.SHIPS).
+  const USE_RIG = false;   // paper-doll ship + 3/4 gear icons (ship.js) are built but switched off until the art set is complete
+  function shipHtml() {
+    if (!USE_RIG) { const bt = V.highestTier(S); return playerShip(bt >= 0 ? tcol(bt) : '#35d0e0'); }
+    const ht = V.hullTier(S), sh = V.SHIPS[ht];
+    return window.VSShip.rig(S, sh, ht, playerShip(S.gear.plating ? tcol(ht) : '#35d0e0'));
+  }
+  const gearIcon = (it) => (USE_RIG && window.VSShip.icon(it)) || slotIcon(it.slot);
   function foeShip(type, boss) {
     const c = boss ? '#ff4d4d' : '#ff6b5e';
     const art = {
@@ -132,7 +140,8 @@
     static: '<path d="M4 24q6-14 10 0t10 0 10 0 10 0" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M4 33q6-10 10 0t10 0 10 0 10 0" stroke="#b27cff" stroke-width="4" fill="none" stroke-linecap="round"/>',
     surge: '<path d="M28 3L10 27h11l-4 18 21-26H26z" fill="#ffe066" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>'
   };
-  const spic = (id) => SVGH(48, 48, SPIC[id] || SPIC.hornet, 'ico');
+  const COMP_ART = { hornet: 1, longbow: 1, mender: 1, aegis: 1, static: 1, surge: 1 };   // assets/comp/comp_<species>.png, painted, facing right like the ship
+  const spic = (id) => COMP_ART[id] ? '<img class="ico cimg" src="assets/comp/comp_' + id + '.png" alt="" draggable="false">' : SVGH(48, 48, SPIC[id] || SPIC.hornet, 'ico');
   const TECH_ICON = { ftimer: () => pic('bolt'), fcost: () => coinIcon('credits'), sell: () => pic('chest'), batch: () => pic('merge'), free: () => pic('star'), offline: () => pic('clock'), salv: () => coinIcon('alloy'), alloy: () => coinIcon('alloy'), patrol: () => pic('sword'),
     dmgc: () => slotIcon('cannon'), dmgp: () => slotIcon('pod'), dmga: () => slotIcon('array'), dmgr: () => slotIcon('coil'), hulp: () => slotIcon('plating'), hulb: () => slotIcon('bulkhead'), hule: () => slotIcon('emitter'), huls: () => slotIcon('spar'),
     techspd: () => pic('fast'), techcst: () => coinIcon('shards'), odmg: () => pic('sword'), ohull: () => pic('crown'), woff: () => pic('clan'), wsup: () => pic('user'), summon: () => pic('box'), wtwin: () => pic('plus'), heist: () => coinIcon('shards'), convoy: () => coinIcon('cores') };
@@ -185,7 +194,7 @@
     let h = '<div class="gear5">';
     V.SLOTS.forEach((sl) => {
       const it = S.gear[sl.id];
-      h += it ? '<button class="tile" data-act="part" data-ref="g:' + sl.id + '" style="--tc:' + tcol(it.tier) + '">' + slotIcon(sl.id) + '<span class="lv">Lv.' + it.level + '</span></button>'
+      h += it ? '<button class="tile" data-act="part" data-ref="g:' + sl.id + '" style="--tc:' + tcol(it.tier) + '">' + gearIcon(it) + '<span class="lv">Lv.' + it.level + '</span></button>'
         : '<div class="tile empty">' + slotIcon(sl.id) + '</div>';
     });
     return h + '</div>';
@@ -199,7 +208,7 @@
     const it = S.pending;
     const p0 = V.power(S), p1 = V.powerWith(S, it), up = p1.rating > p0.rating + 1e-9, dn = p1.rating < p0.rating - 1e-9;
     const r = p0.rating > 0 ? (p1.rating / p0.rating - 1) * 100 : 100;
-    return '<div class="pend" style="--tc:' + tcol(it.tier) + '"><div class="tile big">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></div>' +
+    return '<div class="pend" style="--tc:' + tcol(it.tier) + '"><div class="tile big">' + gearIcon(it) + '<span class="lv">Lv.' + it.level + '</span></div>' +
       '<div class="pinfo"><div class="pn">' + esc(V.itemName(it)) + (S.pendingNew ? '<span class="chip">NEW</span>' : '') + '</div><div class="pst">+' + V.fmt(V.itemStat(it)) + ' ' + statLabel(it.slot) + '</div>' +
       '<div class="' + (up ? 'up' : dn ? 'dn' : 'dim') + ' pd">' + (up ? '▲ ' : dn ? '▼ ' : '') + (r >= 0 ? '+' : '') + r.toFixed(Math.abs(r) < 10 ? 1 : 0) + '%</div></div>' +
       '<div class="pbtn"><button class="btn pri" data-act="equip">Equip</button><button class="btn sm" data-act="sell">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button></div></div>';
@@ -248,7 +257,7 @@
     return '<div class="scene" id="scene"><div class="sky"></div><div class="planet"></div><div class="gnd"></div>' +
       '<div class="stagetop"><div class="sl" id="stageLbl"></div><div class="pips" id="pips"></div></div>' +
       '<div class="rw" id="rwLine"></div>' +
-      '<div class="unit pl" id="pship"><div class="hp"><i id="phb"></i><span id="phn"></span></div>' + playerShip('#35d0e0') + '</div>' +
+      '<div class="unit pl" id="pship"><div class="hp"><i id="phb"></i><span id="phn"></span></div><div id="pshipart">' + shipHtml() + '</div></div>' +
       '<div class="unit en" id="eship"><div class="hp e"><i id="ehb"></i><span id="ehn"></span></div><div class="ename" id="ename"></div><div id="eart"></div></div>' +
       '<div class="fx" id="fx"></div><div id="banner"></div></div>';
   }
@@ -329,7 +338,7 @@
       $('rwLine').innerHTML = coinIcon('credits') + V.fmt(rw0.credits) + (rw0.cores ? ' <span class="rc">◆' + rw0.cores + '</span>' : '');
       $('ename').textContent = e.name; $('eart').innerHTML = foeShip(e.type, e.boss);
       const sc = $('scene'); sc.style.setProperty('--hue', (V.sectorOf(c.stage) * 41 % 360) + 'deg');
-      const bt = V.highestTier(S); $('pship').querySelector('svg').outerHTML = playerShip(bt >= 0 ? tcol(bt) : '#35d0e0');
+      $('pshipart').innerHTML = shipHtml();
     }
     if (!$('matchup')) return;
     const pw = V.power(S), wc = V.winChance(S, c.stage, 80, rng), v = VERDICTS.find((x) => wc >= x[0]), rw = V.describeRewards(S, c.stage);
@@ -581,16 +590,16 @@
         '<div class="ovb"><h4>Gear bonuses</h4><div class="ov2">' + (keys.length ? keys.map((k) => row(V.SUBS[k].name, '+' + Math.round(tot[k] * 10) / 10 + '%')).join('') : '<span class="dim">–</span>') + '</div></div>' +
         '<div class="ovb"><h4>Record</h4><div class="ov2">' + row('Best stage', S.combat.best ? V.stageLabel(S.combat.best) : '–') + row('Forge', S.forge.level) + row('Forged', V.fmt(st.forged)) + row('Codex', V.codexCount(S) + '/' + V.LAUNCH_TIERS * 8) + row('Arena', V.LEAGUES[V.leagueOf(S.arena.lp)]) + row('Medals', V.fmt(S.medals)) + row('Wins', V.fmt(st.wins)) + row('Bosses', V.fmt(st.bosses)) + row('Research', st.researched || 0) + row('Playtime', V.fmtTime(st.seconds)) + '</div></div><div class="row" style="margin-top:8px">' + back + '</div>', 'prof');
     }
-    const p = V.power(S), c = S.cmd, need = V.CFG.XP_NEED(c.level), bt = V.highestTier(S);
+    const p = V.power(S), c = S.cmd, need = V.CFG.XP_NEED(c.level);
     const tot = subTotals(), keys = Object.keys(tot).slice(0, 3);
     const lg = V.LEAGUES[V.leagueOf(S.arena.lp)];
     const comp = S.wing.active[0] ? '<div class="pdrone">' + spic(V.companionInfo(S.wing.active[0]).sp.id) + '</div>' : '';
-    const gear = V.SLOTS.map((sl) => { const it = S.gear[sl.id]; return it ? '<div class="ptile" style="--tc:' + tcol(it.tier) + '">' + slotIcon(sl.id) + '<span class="lv">Lv.' + it.level + '</span></div>' : '<div class="ptile empty">' + slotIcon(sl.id) + '</div>'; }).join('');
+    const gear = V.SLOTS.map((sl) => { const it = S.gear[sl.id]; return it ? '<div class="ptile" style="--tc:' + tcol(it.tier) + '">' + gearIcon(it) + '<span class="lv">Lv.' + it.level + '</span></div>' : '<div class="ptile empty">' + slotIcon(sl.id) + '</div>'; }).join('');
     const wg = []; for (let i = 0; i < V.CFG.WING_SLOTS; i++) { const k = S.wing.active[i]; if (k) { const ci = V.companionInfo(k); wg.push('<div class="ptile" style="--tc:' + ci.color + '">' + spic(ci.sp.id) + '<span class="lv">' + ci.rankName.slice(0, 3) + '</span></div>'); } else wg.push('<div class="ptile empty"><span class="plus">+</span></div>'); }
     sheet('<div class="prof"><h3 class="ptitle">Profile</h3><div class="pscene"><div class="pbg"></div>' +
       '<div class="phd"><button class="avs" data-act="profile" data-v="avatar" aria-label="Picture">' + avatarSvg(S.avatar) + '</button><div><button class="nm" data-act="profile" data-v="name">' + esc(S.name) + ' <small>Lv.' + c.level + '</small> <em>✎</em></button><div class="rk">' + pic('star') + V.RANK_NAMES[c.rank] + '</div></div></div>' +
       '<button class="pbanner' + (V.canPromote(S) ? ' hot' : '') + '" data-act="rank" aria-label="Rank">' + pic('star') + '<b>' + (c.rank + 1) + '</b></button>' +
-      '<div class="pship">' + comp + playerShip(bt >= 0 ? tcol(bt) : '#35d0e0') + '</div>' +
+      '<div class="pship">' + comp + shipHtml() + '</div>' +
       '<div class="ppow"><span class="wl">' + lg + '</span><b>' + pic('sword') + V.fmt(p.power) + '</b></div>' +
       '<div class="pstats"><h4>Stats</h4><div><span>Damage</span><b>' + V.fmt(p.dmg) + '</b></div><div><span>Hull</span><b>' + V.fmt(p.hull) + '</b></div>' + keys.map((k) => '<div class="s2"><span>' + V.SUBS[k].name + '</span><b>' + Math.round(tot[k] * 10) / 10 + '%</b></div>').join('') + '<button class="more" data-act="profile" data-v="more">More</button></div></div>' +
       '<div class="pgear">' + gear + wg.join('') + '</div>' +
@@ -759,7 +768,7 @@
   // details of a fitted part (read only)
   function partSheet(ref) {
     const it = S.gear[ref.split(':')[1]]; if (!it) return;
-    sheet('<div class="sh-h"><div class="tile big" style="--tc:' + tcol(it.tier) + '">' + slotIcon(it.slot) + '<span class="lv">Lv.' + it.level + '</span></div><div><b style="color:' + tcol(it.tier) + '">' + esc(V.itemName(it)) + '</b><div class="pst">+' + V.fmt(V.itemStat(it)) + ' ' + statLabel(it.slot) + '</div></div></div>' +
+    sheet('<div class="sh-h"><div class="tile big" style="--tc:' + tcol(it.tier) + '">' + gearIcon(it) + '<span class="lv">Lv.' + it.level + '</span></div><div><b style="color:' + tcol(it.tier) + '">' + esc(V.itemName(it)) + '</b><div class="pst">+' + V.fmt(V.itemStat(it)) + ' ' + statLabel(it.slot) + '</div></div></div>' +
       (it.subs.length ? '<div class="chips">' + it.subs.map((x) => '<span class="chipx" style="--tc:var(--cyan)">' + V.SUBS[x.k].name + ' +' + x.v + '%</span>').join('') + '</div>' : ''), 'part');
   }
 

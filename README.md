@@ -90,3 +90,15 @@ Main screen rebuilt to look like a game, not a text page: full-width fight scene
 ## v37 look
 - theme.css: gunmetal plates, amber actions, outlined numerals; header floats over the battle scene; 5-tab bar (Forge, Battle, Lab, Wing, Shop).
 - Profile is one scene (ship, companion, rank banner, power plate, stats panel) with a gear box below. Rank adds +1.5% Damage/Hull per rank. "Rank" screen shows before/after and Promote.
+
+## Ship art (assets/)
+- `assets/icons/gear_<slot>_t<NN>_<a|b|c>.png` – inventory and Forge-grid icons, 3/4 view.
+- `assets/ship/hull_t<NN>.png` and `assets/ship/<slot>_t<NN>_<a|b|c>.png` – battle layers, strict side profile, facing right.
+- `ship.js` lists which art exists (`ICONS`, `HULLS`, `LAYERS`) and where layers attach. Missing art is skipped and the code-drawn ship is the fallback.
+- Hull on screen = tier of the fitted Hull Plating; size = `V.SHIPS[tier].scale` (0.85 to 1.25) as a CSS scale.
+- To add art: drop the PNG in, add its entry in `ship.js`, add the file to `sw.js` FILES, bump `VERSION`.
+
+## Hangar scene and drones (vs-v49)
+- `assets/bg/bg_profile.jpg` – painted hangar behind the ship on Profile (1024x1024, shown with `background-size: cover`, so it crops to the scene box).
+- `assets/comp/comp_<species>.png` – painted companion drones, 256x256, facing right like the ship. Hornet only for now; add a species to `COMP_ART` in game.js when its art exists.
+- The paper-doll ship rig and 3/4 gear icons are in the code but switched off (`USE_RIG = false` in game.js).
