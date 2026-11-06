@@ -78,7 +78,7 @@ s.shards = 0; assert.ok(!V.startTech(s, 'sell', 0));
 // flux finishes it early, cheaper the less is left
 s = S(); s.shards = 1e6; s.flux = 1e6; V.startTech(s, 'ftimer', 0); const rc0 = V.techRushCost(s, 0), rc1 = V.techRushCost(s, s.tech.endAt / 2); assert.ok(rc0 >= rc1 && rc1 >= 1); assert.ok(V.rushTech(s, 0)); assert.strictEqual(V.checkTech(s, 0), 'ftimer');
 // five tiers of five levels: tier II opens at a higher commander level
-s = S(); s.shards = 1e9; s.cmd.level = 5; for (let i = 0; i < 5; i++) { assert.ok(V.startTech(s, 'ftimer', 0)); V.checkTech(s, s.tech.endAt); } assert.strictEqual(V.techInfo(s, 'ftimer').tier, 2); assert.ok(V.techInfo(s, 'ftimer').locked); s.cmd.level = 16; assert.ok(!V.techInfo(s, 'ftimer').locked);
+s = S(); s.shards = 1e9; s.cmd.level = 5; s.cmd.rank = 14; for (let i = 0; i < 5; i++) { assert.ok(V.startTech(s, 'ftimer', 0)); V.checkTech(s, s.tech.endAt); } assert.strictEqual(V.techInfo(s, 'ftimer').tier, 2); assert.ok(V.techInfo(s, 'ftimer').locked); s.cmd.level = 48; assert.ok(!V.techInfo(s, 'ftimer').locked);
 // cost and time follow the tables (time x1.5) and grow with each level
 { const i0 = V.techInfo(S(), 'ftimer'); assert.strictEqual(i0.secs, Math.round(250 * 1.5)); assert.strictEqual(i0.cost, Math.max(1, Math.round(27 * V.CFG.SHARD_SCALE))); }
 // research effects
@@ -91,15 +91,21 @@ s = S(); s.research.salv = 25; s.clan = null; const d0 = V.dailyBonus(s, 'alloy'
 const ol = V.migrate({ v: 1, shards: 1, research: { alloy: 2, 'dmg:1': 3, ftimer: 4 } }, 0); assert.ok(ol.shards > 1 && !('alloy' in ol.research) && ol.research.ftimer === 4); assert.strictEqual(V.migrate(Object.assign(V.newState(0), { rv: 26, research: { alloy: 3 } }), 0).research.alloy, 3);
 // XP: 10 for the first two tiers, 20 for the next three, 30 for the sixth
 assert.deepStrictEqual(V.CFG.XP_TIER.slice(0, 6), [10, 10, 20, 20, 20, 30]);
-s = S(); const x0 = s.cmd.xp; V.addXp(s, 0); assert.strictEqual(s.cmd.xp - x0, 10); V.addXp(s, 3); assert.strictEqual(s.cmd.xp - x0, 30); V.addXp(s, 5); assert.strictEqual(s.cmd.xp - x0, 60);
+s = S(); s.cmd.rank = 5; s.cmd.level = 50; const x0 = s.cmd.xp; V.addXp(s, 0); assert.strictEqual(s.cmd.xp - x0, 10); V.addXp(s, 3); assert.strictEqual(s.cmd.xp - x0, 30); V.addXp(s, 5); assert.strictEqual(s.cmd.xp - x0, 60);
 // level curve is steep and comes only from forging
-assert.ok(V.CFG.XP_NEED(50) > 100 * V.CFG.XP_NEED(1)); s = S(); V.resolveFight(s, 1, true, () => 0.9); assert.strictEqual(s.cmd.level, 1); assert.strictEqual(s.cmd.xp, 0);
-// rank gate: stuck at level 9 until the promotion quest is done
-s = S(); s.cmd.xp = 1e9; V.addXp(s, 0); assert.strictEqual(s.cmd.level, 9); assert.ok(V.atCap(s)); assert.ok(!V.canPromote(s)); assert.strictEqual(V.promote(s), null);
-s.combat.best = 3; s.forge.level = 2; V.SLOTS.slice(0, 4).forEach((x) => { s.gear[x.id] = part(x.id, 0); }); assert.ok(V.canPromote(s));
-const pr = V.promote(s); assert.ok(pr && pr.rank === 1 && s.cmd.rank === 1 && s.cmd.level > 9 && s.shards === 5 && s.flux === 25 && s.cores === 10);
+assert.ok(V.CFG.XP_NEED(50) > 10 * V.CFG.XP_NEED(1)); s = S(); V.resolveFight(s, 1, true, () => 0.9); assert.strictEqual(s.cmd.level, 1); assert.strictEqual(s.cmd.xp, 0);
+// rank gate: every 20 levels; at level 20 the bar fills for level 21, then you are promoted
+s = S(); s.cmd.xp = 1e9; V.addXp(s, 0); assert.strictEqual(s.cmd.level, 20); assert.ok(V.atCap(s)); assert.ok(V.canPromote(s)); assert.strictEqual(s.cmd.xp, V.CFG.XP_NEED(20));
+s.cmd.xp = V.CFG.XP_NEED(20) - 1; assert.ok(!V.canPromote(s)); assert.strictEqual(V.promote(s), null); s.cmd.xp = V.CFG.XP_NEED(20);
+const pr = V.promote(s); assert.ok(pr && pr.rank === 1 && s.cmd.rank === 1 && s.cmd.level === 21 && s.cmd.xp === 0 && s.shards === 2 && s.flux === 10 && s.cores === 10);
+assert.strictEqual(V.RANK_NAMES.length, 15); assert.strictEqual(V.CFG.LEVEL_MAX, 300); assert.strictEqual(V.levelCap({ rank: 14 }), 300);
+s = S(); s.cmd.rank = 14; s.cmd.level = 300; s.cmd.xp = 1e9; V.addXp(s, 0); assert.ok(!V.atCap(s) && !V.canPromote(s) && s.cmd.level === 300);
+// profile: free first rename, then Flux
+s = S(); assert.strictEqual(V.renameCost(s), 0); assert.ok(V.renameCommander(s, 'Noah').ok && s.name === 'Noah' && s.flux === 0); assert.strictEqual(V.renameCost(s), V.CFG.RENAME_FLUX);
+assert.ok(!V.renameCommander(s, 'Ace').ok); s.flux = 60; assert.ok(V.renameCommander(s, 'Ace').ok && s.flux === 10 && s.name === 'Ace'); assert.ok(!V.renameCommander(s, 'x').ok);
+assert.ok(V.setAvatar(s, 5) && s.avatar === 5 && !V.setAvatar(s, 99));
 // commander level and research raise Damage/Hull
-s = S(); s.gear.cannon = part('cannon', 0, 1); const p0 = V.power(s).dmg; s.cmd.level = 51; assert.ok(V.power(s).dmg > p0 * 1.5); s.research.odmg = 5; const pq = V.power(s).dmg; assert.ok(pq > V.calcPower(s.gear, 0).dmg);
+s = S(); s.gear.cannon = part('cannon', 3, 40); const p0 = V.power(s).dmg; s.cmd.level = 51; assert.ok(V.power(s).dmg > p0 * 1.14); s.research.odmg = 5; const pq = V.power(s).dmg; assert.ok(pq > V.calcPower(s.gear, 0).dmg);
 // shards: boss first clears and every fifth stage
 s = S(); s.combat.best = 4; s.combat.stage = 5; V.resolveFight(s, 5, true, () => 0.9); assert.strictEqual(s.shards, V.CFG.SHARD_FIFTH);
 s.combat.best = 9; s.combat.stage = 10; const sh0 = s.shards; V.resolveFight(s, 10, true, () => 0.9); assert.strictEqual(s.shards - sh0, V.CFG.SHARD_BOSS(1));
@@ -158,9 +164,9 @@ s = S(); assert.ok(V.claimAd(s, 'flux', D0) && s.flux === 2); assert.ok(V.claimA
 assert.ok(V.buyNoAds(s) && s.noAds);
 console.log('rules ok');
 { const V2 = require('../core.js'), st = V2.newState(0); const assert2 = require('assert');
-  assert2.strictEqual(V2.batchSize(st), 1); st.shards = 1e9; st.cmd.level = 5; assert2.ok(V2.techInfo(st, 'batch').locked); // locked by commander level
-  st.cmd.level = 6; assert2.ok(V2.startTech(st, 'batch', 0)); V2.checkTech(st, st.tech.endAt); assert2.strictEqual(V2.batchSize(st), 3); assert2.ok(V2.techInfo(st, 'batch').locked);
-  st.cmd.level = 100; for (let i = 0; i < 12; i++) { if (V2.startTech(st, 'batch', 0)) V2.checkTech(st, st.tech.endAt); } assert2.strictEqual(V2.batchSize(st), 10);
+  assert2.strictEqual(V2.batchSize(st), 1); st.shards = 1e9; st.cmd.level = 17; assert2.ok(V2.techInfo(st, 'batch').locked); // locked by commander level
+  st.cmd.level = 18; assert2.ok(V2.startTech(st, 'batch', 0)); V2.checkTech(st, st.tech.endAt); assert2.strictEqual(V2.batchSize(st), 3); assert2.ok(V2.techInfo(st, 'batch').locked);
+  st.cmd.level = 300; for (let i = 0; i < 12; i++) { if (V2.startTech(st, 'batch', 0)) V2.checkTech(st, st.tech.endAt); } assert2.strictEqual(V2.batchSize(st), 10);
   // campaign orders: claim once, only when done and unlocked
   const q = V2.newState(0); assert2.ok(!V2.claimQuest(q, 'c0a')); q.combat.best = 10; assert2.ok(V2.claimQuest(q, 'c0a')); assert2.ok(!V2.claimQuest(q, 'c0a')); assert2.ok(q.alloy > V2.CFG.START_ALLOY);
   assert2.ok(!V2.claimQuest(q, 'c1a')); V2.QUESTS.forEach((x) => { assert2.ok((x.reward.alloy || 0) <= 200 && (x.reward.flux || 0) <= 2); });

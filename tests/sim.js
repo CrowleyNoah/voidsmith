@@ -42,7 +42,7 @@ function play(days, perDay, minutes) {
         if (k % 12 === 11) { const st = s.combat.stage, e = V.enemyFor(st); const r = V.simulateFight(V.fighter(s), e, rng); V.resolveFight(s, st, r.win, rng); manageWing(s, rng); }
       }
       dailies(s, rng, t * 1000); V.forgeBatch(s, 9999, rng); V.promote(s); bank(s, t * 1000);
-      trace.push({ day: t / dayS, rating: V.power(s).rating, best: s.combat.best, L: s.forge.level });
+      trace.push({ xp: s.stats.xpTotal || 0, day: t / dayS, rating: V.power(s).rating, best: s.combat.best, L: s.forge.level });
       s.last = t * 1000; nextCheck = t + gap - minutes * 60;
       const L = s.forge.level;
       [3, 5, 8, 11, 14, 17, 20, 25].forEach((m) => { if (L >= m) mark('F' + m); });

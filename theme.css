@@ -1,0 +1,290 @@
+/* ===== Voidsmith theme: gunmetal plates, amber actions, outlined numerals ===== */
+:root{
+  --edge:#080b11;--steel0:#121823;--steel1:#1c2433;--steel2:#2a3547;--steel3:#3b4960;--hi:#5d6f8c;
+  --amber:#ffb42e;--amber2:#c27a00;--cyan:#46e2ff;--red:#ff5448;--ink:#eef3fa;
+  --hh:calc(var(--sat) + 52px);
+}
+#app{background:var(--steel0)}
+/* outlined numerals: the studio-game look, readable over any art */
+.cur b,.lvbig,.tile .lv,.srow b,.xpr,.fbtn,.fbtn b,.ac b,.stagetop .sl,nav button span,.ptile .lv,.ppow b,.hp span,.btn,.labtile b,.nm,.ptitle,h3{
+  -webkit-text-stroke:2.5px var(--edge);paint-order:stroke fill;text-shadow:none}
+/* header floats over the scene */
+header{position:absolute;left:0;right:0;top:0;height:var(--hh);padding:calc(var(--sat) + 6px) 8px 0;background:linear-gradient(#05080dcc,#05080d00);border:0;align-items:flex-start}
+main{padding-top:0}
+#tab-foundry{margin-top:0}
+.tab:not(#tab-foundry){padding-top:var(--hh)}
+#tab-foundry .stagetop{top:calc(var(--hh) + 4px)}#tab-foundry .rw{top:calc(var(--hh) + 6px)}
+.avatar{border:3px solid var(--edge);box-shadow:0 0 0 2px var(--amber);background:var(--steel1)}
+.cs{font-size:13px}
+.cur{background:linear-gradient(#0a0e15e6,#141b27e6);border:2px solid var(--edge);box-shadow:inset 0 1px 0 #ffffff22;border-radius:14px}
+/* nav: one riveted steel bar, active tab is pressed in */
+nav{background:linear-gradient(var(--steel2),var(--steel1));border-top:3px solid var(--edge);box-shadow:inset 0 2px 0 var(--hi)}
+nav button{color:#aebbd1;font-size:10px;font-weight:800;padding:8px 0 6px;background:none}
+nav button i svg,nav button i{font-size:24px}
+nav button.on{color:var(--amber);background:linear-gradient(#0a0e1599,#0a0e1533);box-shadow:inset 0 3px 6px #000a}
+/* lower deck of the main screen = one steel plate */
+#foundryRest{background:linear-gradient(var(--steel2),var(--steel1) 40%,var(--steel0));border-top:4px solid var(--edge);box-shadow:inset 0 3px 0 var(--hi);position:relative}
+.xpr .bar,.bar{background:var(--edge);border:2px solid var(--edge);box-shadow:inset 0 2px 3px #000}
+.xpr .bar i,.bar i{background:linear-gradient(#7af0ff,#1fa8d8)}
+.bar span{-webkit-text-stroke:2px var(--edge);paint-order:stroke fill;font-weight:800;color:#fff}
+.rankbtn{border-color:var(--edge);background:linear-gradient(var(--steel3),var(--steel2))}
+.rankbtn.hot{background:linear-gradient(#ffd45a,#f09000)}
+/* stats: one strip, no pills */
+.srow{background:#0a0e15aa;margin:6px 8px 0;border-radius:10px;padding:3px 6px;border:2px solid var(--edge)}
+.srow span{background:none;border-radius:0;border-right:2px solid #ffffff14}.srow span:last-of-type{border:0}
+.srow b{font-size:15px;color:#fff}
+.info{background:var(--steel3);border:2px solid var(--edge);color:#fff}
+/* gear cells: dark cell, rarity glow */
+.tile{border:3px solid color-mix(in srgb,var(--tc,#4b5a74) 80%,#000);border-radius:10px;background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--tc,#4b5a74) 70%,#fff 0%),color-mix(in srgb,var(--tc,#4b5a74) 38%,#0a0e15) 75%);box-shadow:inset 0 0 0 2px #ffffff30,inset 0 -10px 14px #0006,0 3px 0 var(--edge)}
+.tile.empty{background:radial-gradient(circle,#1e2736,#121823);border:3px solid var(--edge);box-shadow:inset 0 3px 6px #000}
+.tile.empty .ico{opacity:.22}
+.tile.wingtile{--tc:#35b57a}
+/* buttons */
+.btn{background:linear-gradient(var(--steel3),var(--steel2));border:3px solid var(--edge);border-bottom-width:5px;color:#fff;box-shadow:inset 0 2px 0 #ffffff33}
+.btn.pri,.fbtn{background:linear-gradient(#ffd45a,#f09000);color:#3a1d00;box-shadow:inset 0 2px 0 #fff8}
+.fbtn{border:3px solid var(--edge);border-bottom-width:5px;color:#3a1d00;-webkit-text-stroke:0}.fbtn b,.fbtn small{-webkit-text-stroke:0;color:#3a1d00}
+.btn.sm{background:linear-gradient(var(--steel3),var(--steel2));border:3px solid var(--edge);border-bottom-width:4px;color:#fff}
+.btn.pri{-webkit-text-stroke:0}
+.btn.bad{background:linear-gradient(#ff7a6e,#c4302a)}
+.anvil .ac{background:var(--edge);border:2px solid var(--steel3)}
+/* modals: a plate with a title tab */
+.modal{background:#05080dcc;backdrop-filter:blur(2px)}
+.mbox{background:linear-gradient(var(--steel2),var(--steel1));border:4px solid var(--edge);box-shadow:inset 0 3px 0 var(--hi),0 10px 30px #000a;border-radius:16px}
+.mbox h3{color:#fff;text-transform:none;letter-spacing:.02em}
+.ovb,.pgear,.pstats{background:#0a0e1599!important;border:2px solid var(--edge);border-radius:12px}
+.pstats{border:0}
+/* profile scene recolor */
+.pscene{border:4px solid var(--edge);background:var(--steel0)}
+.pbg{background:radial-gradient(ellipse at 28% 20%,#8fa6d055,transparent 55%),linear-gradient(#303c52 0 60%,#1a212d 60% 63%,#0f141d 63%)}
+.pbanner,.rbi{background:linear-gradient(#ff6a5c,#a8231c)}
+.pstats .more{background:linear-gradient(#e6ecf7,#9aa8c4);border-color:var(--edge);-webkit-text-stroke:0}
+.ptile{background:radial-gradient(circle at 50% 35%,color-mix(in srgb,var(--tc,#3b4960) 60%,#0a0e15),#10151d);border:2px solid color-mix(in srgb,var(--tc,#3b4960) 85%,#000)}
+.pbtns button{background:linear-gradient(var(--steel3),var(--steel2));border:3px solid var(--edge);border-bottom-width:5px}
+.pbtns button.bad{background:linear-gradient(#ff7a6e,#c4302a)}
+.avpick.on{border-color:var(--amber)}
+/* lab + missions tiles */
+.labtile{border:3px solid var(--edge);border-bottom-width:7px;background:linear-gradient(var(--steel3),var(--steel1))}
+.labtile.t-forge{background:linear-gradient(#e0a02a,#8a5a00)}.labtile.t-power{background:linear-gradient(#e0553a,#8a2214)}.labtile.t-fleet{background:linear-gradient(#2fb7c9,#126a7a)}.labtile.codex{background:linear-gradient(#8a7be0,#4a3a9a)}
+.mt,.seg button,.chipb,.deal,.adt,.gift,.rnode{border-color:var(--edge)!important;background:linear-gradient(var(--steel3),var(--steel1))}
+.seg button.on,.chipb.on{background:linear-gradient(#ffd45a,#f09000)!important;color:#3a1d00}
+.pstats div{white-space:nowrap}.pstats .s2 span{overflow:hidden;text-overflow:ellipsis;max-width:70%}
+.pbg::after{content:"";position:absolute;left:8%;top:0;width:55%;height:70%;background:linear-gradient(#fff3,#fff0);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);opacity:.5}
+nav{grid-template-columns:repeat(5,1fr)!important}
+.techbar,.techbar.idle{background:#0a0e15aa!important;border:2px solid var(--edge)!important}
+.openb,.btn.openb{background:linear-gradient(#ffd45a,#f09000)!important;color:#3a1d00!important;-webkit-text-stroke:0}
+.gift.noads{background:linear-gradient(#ffd45a,#f09000)!important;color:#3a1d00}.gift.noads b{-webkit-text-stroke:0}
+.mt.hot,.labtile.can{box-shadow:0 0 0 3px var(--amber)}
+/* ===== v38 scale pass: big, evenly spaced controls like the reference games ===== */
+:root{--hh:calc(var(--sat) + 62px)}
+header{padding:calc(var(--sat) + 8px) 10px 0;gap:8px;align-items:center}
+.avatar{width:50px;height:50px}.who{gap:8px}
+.cs{font-size:16px;font-weight:900}#power{font-size:16px}
+.wallet{gap:6px;padding:0}
+.cur{padding:5px 10px;gap:6px}.cur b{font-size:16px}.coin{width:20px;height:20px}
+nav{height:calc(78px + var(--sab));padding-bottom:var(--sab);grid-template-columns:repeat(5,1fr)!important;align-items:stretch}
+nav button{width:100%;justify-content:center;gap:3px;font-size:13px;font-weight:900;padding:0;letter-spacing:.02em}
+nav button i svg{width:40px;height:40px}
+nav button.on i svg{filter:drop-shadow(0 0 6px var(--amber))}
+nav .dot{top:8px;right:calc(50% - 30px);width:14px;height:14px}
+.xpr{padding:8px 10px 0;gap:10px}.xpr .bar.xl,.xpr .bar{height:26px;border-radius:13px}.bar span{font-size:14px}
+.xpr b{font-size:17px;font-weight:900}
+.rankbtn{width:56px;height:38px;border-radius:12px}.rankbtn svg{width:26px;height:26px}
+.srow{padding:6px 8px;margin:8px 10px 0}.srow b{font-size:18px}.srow svg{width:24px;height:24px}.info{width:30px;height:30px;font-size:16px}
+.gear5{gap:8px;padding:10px 10px 4px}
+.tile .lv{font-size:14px}
+.fbtn small{font-size:14px}.fbtn b{font-size:26px}.fbtn{padding:10px 6px}
+.anvil svg{max-width:150px}.anvil .ac{font-size:19px;padding:4px 14px}
+.btn{font-size:16px;font-weight:900;min-height:44px}.btn.sm{font-size:15px;min-height:40px}
+.stagetop .sl{font-size:26px}
+.pbtns button{font-size:13px;padding:12px 2px}.pbtns svg{width:26px;height:26px}
+.who{flex:none!important}.wm{max-width:92px}.cs{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wallet{flex:1;min-width:0;display:grid!important;grid-template-columns:1.25fr 1fr 1fr!important;gap:5px}
+.cur{min-width:0!important;padding:5px 7px;gap:4px;justify-content:center}.cur b{font-size:14px}.coin{width:17px;height:17px}
+/* ===== v39: give the battle scene 55-60% of the screen (reference proportions) ===== */
+.xpr{padding:6px 10px 0;gap:8px}.xpr .bar.xl,.xpr .bar{height:22px;border-radius:11px}.xpr b{font-size:15px}.bar span{font-size:12px}
+.rankbtn{width:50px;height:32px}.rankbtn svg{width:22px;height:22px}
+.srow{padding:2px 6px;margin:6px 10px 0;border-radius:10px}.srow span{padding:3px 4px}.srow b{font-size:16px}.srow svg{width:20px;height:20px}.info{width:26px;height:26px;font-size:14px}
+.gear5{grid-template-columns:repeat(6,1fr);gap:5px;padding:7px 10px 2px}
+.tile.wingtile{grid-column:span 4;aspect-ratio:auto}
+.tile{border-width:2px;border-radius:9px}.tile .lv{font-size:11px;bottom:2px}
+.forgerow{display:flex;align-items:center;gap:6px;padding:0 10px 8px}
+.anvil{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
+.anvil svg{max-width:112px;width:100%}
+.anvil .ac{display:flex;align-items:center;justify-content:center;gap:5px;width:auto;min-width:96px;max-width:100%;margin:-12px auto 0;padding:2px 10px;font-size:15px;position:relative;z-index:1;white-space:nowrap}
+.anvil .ac b{font-size:15px}.anvil .ac svg{width:16px;height:16px;flex:none}
+.fcol{width:60%;display:grid;grid-template-columns:1fr 52px;gap:6px;align-items:stretch}
+.fcol .ftime{grid-column:1/-1;position:static;height:auto;min-height:0;font-size:12px;order:-1}
+.fbtn{padding:6px 4px}.fbtn small{font-size:12px}.fbtn b{font-size:21px}
+#f10{min-height:0;height:100%;padding:0;font-size:18px;border-radius:12px}
+nav{height:calc(62px + var(--sab))}nav button i svg{width:32px;height:32px}nav button{font-size:11px}
+/* ===== v40: measured against the reference screens (proportions, not guesses) ===== */
+:root{--hh:calc(var(--sat) + 54px)}
+.avatar{width:42px;height:42px}.cs{font-size:14px}#power{font-size:14px}
+.cur{padding:3px 7px}.cur b{font-size:13px}.coin{width:16px;height:16px}
+/* level row */
+.xpr{padding:5px 12px 0;gap:8px}.xpr b{font-size:14px}
+.xpr .bar.xl,.xpr .bar{height:17px;border-radius:9px}.bar span{font-size:11px}
+.rankbtn{width:42px;height:24px;border-radius:8px}.rankbtn svg{width:16px;height:16px}
+/* stats: three separate dark pills, no outer strip */
+.srow{background:none;border:0;padding:0;margin:5px 12px 0;gap:6px}
+.srow span{flex:1;border:0!important;border-radius:11px;background:#0a0e15b3;height:25px;padding:0 6px;gap:5px}
+.srow b{font-size:14px}.srow svg{width:17px;height:17px}.info{width:22px;height:22px;font-size:12px}
+/* gear: 6 columns of small square tiles, centered */
+.gear5{padding:6px 22px 0;gap:5px}
+.tile .lv{font-size:10px}
+/* forge row: anvil centered, count sits ON the anvil base; compact buttons right */
+.forgerow{padding:0 12px 6px;gap:8px;align-items:flex-end}
+.anvil{flex:1}.anvil svg{max-width:104px}
+.anvil .ac{margin:-17px auto 0;min-width:84px;padding:1px 8px;border-width:2px}.anvil .ac b{font-size:13px}.anvil .ac svg{width:14px;height:14px}
+.fcol{width:auto;flex:none;display:flex;flex-direction:row;gap:6px;align-items:stretch;padding-bottom:6px}
+.fcol .ftime{position:absolute;top:-15px;left:0;right:0;font-size:11px}
+.fbtn{width:88px;height:42px;padding:2px 4px;border-bottom-width:4px;border-radius:10px}.fbtn small{font-size:10px;line-height:1}.fbtn b{font-size:16px;line-height:1.1}
+#f10{width:44px;min-height:0;height:42px;padding:0;font-size:14px;border-radius:10px;border-bottom-width:4px}
+.fbtn .dot{top:-5px;right:-5px}
+nav button{font-size:12px}nav button i svg{width:34px;height:34px}
+.forgerow{padding-top:8px}.anvil svg{max-width:96px}
+/* ===== v41: strict mobile-first system =====
+   space #0A0E17→#131B2E · slots #1A233A, 2px border, top bevel, 12px radius · 12px rhythm · Chakra Petch */
+html,body{font-family:'Chakra Petch',system-ui,sans-serif}
+:root{--slot:#1A233A;--space0:#0A0E17;--space1:#131B2E;--rhythm:12px}
+#app{background:linear-gradient(var(--space0),var(--space1))}
+.cur b,.lvbig,.tile .lv,.srow b,.xpr,.fbtn b,.ac b,.stagetop .sl,nav button span,.ptile .lv,.ppow b,.hp span,.labtile b,.nm,.ptitle,h3{-webkit-text-stroke:1.2px var(--edge)}
+.btn{-webkit-text-stroke:0}
+/* battle viewport: deep space + nebula (tinted per sector through --hue) */
+.sky{filter:none!important;background:linear-gradient(#0A0E17,#131B2E)!important}
+.sky::before{content:"";position:absolute;inset:0;filter:hue-rotate(var(--hue));background:radial-gradient(ellipse at 18% 30%,#6a44e088,transparent 55%),radial-gradient(ellipse at 80% 62%,#1fb0e070,transparent 52%),radial-gradient(ellipse at 52% 90%,#d04aa855,transparent 50%)}
+.planet{filter:hue-rotate(var(--hue));background:radial-gradient(circle at 35% 30%,#7d93c9,#233056 70%)!important;opacity:.8}
+.gnd{filter:none!important;background:linear-gradient(#18203a,#080b14)!important}
+/* top HUD: one pill for currencies */
+.wallet{background:#0a0e17b3;border:2px solid #ffffff26;border-radius:999px;padding:4px 12px;display:flex!important;justify-content:space-between;align-items:center;gap:6px;box-shadow:inset 0 1px 0 #ffffff1f}
+.cur,.cur[data-coin]{background:none!important;border:0!important;box-shadow:none!important;padding:0;min-width:0;flex:none}
+.cur b{font-size:14px;font-weight:600;color:#fff}
+.cur+.cur{padding-left:8px;border-left:1px solid #ffffff22!important;border-radius:0!important}
+/* divider panel between viewport and dashboard */
+#foundryRest{background:#0d1424;border-top:3px solid #05070c;box-shadow:0 -10px 18px #000a,inset 0 2px 0 #26334f;padding:var(--rhythm) 12px 8px;display:flex;flex-direction:column;gap:var(--rhythm)}
+#foundryRest>#bay:empty{display:none}
+.xpr,.srow,.gear5,.forgerow{margin:0!important;padding:0!important}
+.xpr b{font-weight:700}
+.srow span{font-weight:500}
+/* slots: uniform 4x2 grid + tall companion slot */
+.gear5{display:grid!important;grid-template-columns:repeat(4,58px) 1fr!important;grid-template-rows:repeat(2,58px);gap:8px!important;justify-content:stretch}
+.tile.wingtile{grid-column:5!important;grid-row:1/3!important;aspect-ratio:auto!important}
+.tile,.ptile{background:radial-gradient(circle at 50% 110%,color-mix(in srgb,var(--tc,#4b5a74) 38%,transparent),transparent 70%),var(--slot)!important;border:2px solid color-mix(in srgb,var(--tc,#33405e) 85%,#000)!important;border-radius:12px!important;box-shadow:inset 0 2px 0 #ffffff24,inset 0 -8px 12px #0005!important}
+.tile.empty,.ptile.empty{background:var(--slot)!important;border:2px solid #0b1020!important;box-shadow:inset 0 2px 0 #ffffff12!important}
+.tile .lv{font-weight:700;font-size:11px}
+.pgear{padding:12px!important}
+.forgerow{gap:10px;align-items:flex-end}
+.phd{max-width:54%}.phd .nm{font-size:13px;display:block;white-space:nowrap}.phd .nm small{display:block;font-size:12px}.phd .nm em{display:none}
+.pgear{grid-template-columns:repeat(4,1fr)!important;gap:8px!important}
+.pstats{width:38%}
+.pgear{grid-template-columns:repeat(4,50px)!important;justify-content:space-between;padding:10px 14px!important;gap:6px!important}
+.pscene{height:270px}.pbtns button{padding:8px 2px}
+/* ===== v42: global framework =====
+   65/35 viewport rule · 16px cards, dual-layer stroke · 24px titles · 28px nav icons · one CTA/secondary hierarchy · one HUD */
+:root{--stroke:#34425f;--card-in:inset 0 2px 0 #ffffff1c,inset 0 -6px 10px #00000055;--cta:linear-gradient(#ffb43a,#ee5f0c);--hudh:52px}
+html,body,#app{height:100dvh}
+/* --- 65 / 35 --- */
+main{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;padding-top:0}
+.tab{min-height:0}
+#tab-foundry.on{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
+#arenaWrap{flex:0 0 65dvh!important;height:65dvh;min-height:0;overflow:hidden}
+#arenaWrap .scene{height:100%;min-height:0}
+#foundryRest{flex:1 1 0!important;min-height:0;max-height:none;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:space-evenly;padding:6px 12px!important;gap:0!important}
+#foundryRest>#bay{position:absolute;left:10px;right:10px;bottom:calc(100% + 8px);z-index:6;padding:0}
+#foundryRest>#bay:empty{display:none}
+.xpr,.srow{flex:none}
+.xpr{height:22px}.xpr .bar.xl,.xpr .bar{height:16px}.rankbtn{width:40px;height:22px}
+.srow{height:24px}.srow span{height:24px}
+.deck{flex:none;display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch}
+.gear5{display:grid!important;grid-template-columns:repeat(4,46px)!important;grid-template-rows:repeat(2,46px)!important;gap:6px!important;padding:0!important;margin:0!important;justify-content:start}
+.tile.wingtile{grid-column:auto!important;grid-row:auto!important;aspect-ratio:auto!important;width:38px;height:42px;flex:none;padding:0;border-radius:10px!important}
+.tile.wingtile .plus{font-size:18px}
+.tile .lv{font-size:9px;bottom:1px}
+.fside{display:flex;flex-direction:column;justify-content:space-between;align-items:center;min-width:0;gap:2px}
+.fside .anvil{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.fside .anvil svg{width:auto;height:38px;max-width:90px}
+.fside .anvil .ac{margin:-9px auto 0;min-width:78px;padding:0 8px;height:20px}.fside .anvil .ac b{font-size:12px}.fside .anvil .ac svg{width:13px;height:13px}
+.frow{display:flex;gap:5px;align-items:stretch;justify-content:center;position:relative}
+.frow .ftime{position:absolute;top:-14px;left:0;right:0;font-size:10px;text-align:center}
+.fbtn{width:82px!important;height:40px!important;border-radius:11px!important}.fbtn small{font-size:9px}.fbtn b{font-size:14px}
+#f10{width:38px!important;height:40px!important;border-radius:11px!important;font-size:13px}
+/* --- bottom nav: fixed 28px icons, glow + underline --- */
+nav{flex:none;height:calc(56px + var(--sab))!important;grid-template-columns:repeat(5,1fr)!important;border-top:3px solid #05070c;box-shadow:inset 0 2px 0 #26334f;background:#0d1424}
+nav button{position:relative;justify-content:center;gap:2px;font-size:10px;font-weight:700;color:#8696b3;background:none!important;box-shadow:none!important;letter-spacing:.03em}
+nav button i svg{width:28px!important;height:28px!important}
+nav button.on{color:#ffb43a}
+nav button.on::after{content:"";position:absolute;left:22%;right:22%;bottom:3px;height:3px;border-radius:2px;background:#ffb43a;box-shadow:0 0 8px #ffb43a}
+nav button.on i svg{filter:drop-shadow(0 0 5px #ffb43a)}
+nav .dot{width:11px;height:11px;top:5px;right:calc(50% - 22px)}
+/* --- one HUD: same pill, same coordinates on every screen --- */
+header{height:var(--hudh);padding:calc(var(--sat) + 6px) 10px 0}
+.wallet{border:1px solid #ffffff38;height:34px;padding:0 12px;gap:0;background:#0a0e17b8}
+.cur{gap:5px}.coin{width:16px;height:16px}
+/* --- titles --- */
+.stitle{margin:0;flex:none;font:700 26px/1 'Chakra Petch',sans-serif;color:#fff;text-shadow:0 2px 4px #00000080;text-align:center;-webkit-text-stroke:0;letter-spacing:.02em}
+.tab:not(#tab-foundry){padding-top:calc(var(--sat) + var(--hudh))}
+/* --- cards: 16px, 2px slate stroke + inset --- */
+.ban,.mt,.deal,.adt,.gift,.labtile,.rnode,.techbar,.opp,.panel,.crow,.wcard,.item,.bay,.dstage,.rwbox,.chb,.seg button,.chipb,.dep-top .gift,.mbox,.trow{border-radius:16px!important;border:2px solid var(--stroke)!important;box-shadow:var(--card-in)!important}
+.ban{overflow:hidden}
+.mbox{box-shadow:var(--card-in),0 12px 30px #000a!important}
+.ban .btitle{position:absolute;left:12px;top:10px;display:flex;align-items:center;gap:8px}
+.ban .bside{position:absolute;right:12px;bottom:10px;display:flex;align-items:center;gap:10px}
+/* --- CTA hierarchy --- */
+.btn.pri,.openb,.btn.openb,.fbtn,.gift.noads,.rankbtn.hot,.promoBtn,.seg button.on,.chipb.on{background:var(--cta)!important;color:#fff!important;border:2px solid #7a2c00!important;border-bottom-width:4px!important;border-radius:11px!important;text-shadow:0 1px 2px #0008;-webkit-text-stroke:0!important}
+.fbtn small,.fbtn b,.btn.pri b,.openb,.gift.noads b{color:#fff!important;-webkit-text-stroke:0!important}
+.btn:not(.pri):not(.bad){background:linear-gradient(#46536e,#323d55);color:#e6ecf7}
+button:disabled,.btn:disabled,.openb:disabled{background:linear-gradient(#3a4254,#2e3544)!important;color:#8e99ad!important;opacity:.6;filter:saturate(.2);border-color:#232a38!important;box-shadow:none!important}
+.gear5{grid-template-columns:repeat(4,48px)!important;grid-template-rows:repeat(2,48px)!important}
+.fbtn{width:74px!important}#f10,.tile.wingtile{width:32px!important}
+.fside .anvil svg{height:42px}
+/* ===== v43: modals, forge odds grid, store density, nav glow ===== */
+.modal{background:rgba(5,8,15,.85)!important;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.xbtn{width:48px!important;height:48px!important;min-width:44px;min-height:44px;left:50%!important;transform:translateX(-50%)!important;bottom:-26px!important;display:flex;align-items:center;justify-content:center;padding:0;border:3px solid #05070c!important;box-shadow:0 3px 0 #05070c,0 0 0 2px #ffffff22!important}
+.mbox .row .btn,.mbox>.row>button{min-height:44px;min-width:44px}
+/* forge odds: fixed columns so nothing can collide */
+.prow{display:grid!important;grid-template-columns:30px 94px minmax(0,1fr) 56px 58px;align-items:center;column-gap:6px;padding:3px 8px!important;background:var(--tc)!important;font-weight:700;font-size:15px}
+.prow .ti{grid-column:1;width:28px!important;height:28px!important}
+.prow b{grid-column:2;flex:none;white-space:nowrap;text-align:left;font-weight:700}
+.prow .chip{grid-column:3;justify-self:start;margin:0;font-size:10px}
+.prow .p1{grid-column:4;width:auto;text-align:right;white-space:nowrap}
+.prow .p2{grid-column:5;width:auto;text-align:right;white-space:nowrap;display:flex;align-items:center;justify-content:flex-end;gap:2px;background:#0000002e;border-radius:8px;padding:1px 6px;margin-right:-2px}
+.prow .p2 .pic{width:15px;height:15px}
+.phead{padding-right:8px;gap:12px}.phead .pl{min-width:58px;text-align:right}
+/* store / depot: every card the same rhythm, price badge pinned to the bottom */
+.dgrid2{gap:10px!important;grid-auto-rows:1fr!important;grid-template-rows:none!important;flex:none}
+.deal{padding:14px 10px 12px!important;gap:6px;justify-content:flex-start!important;min-height:136px}
+.deal .dic2{height:46px;display:flex;align-items:center;justify-content:center}
+.deal>b{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;font-size:14px}
+.deal .price{margin-top:auto;min-width:64px;height:28px;justify-content:center}
+.adrow{gap:8px}.adt{padding:8px 6px}
+/* nav: crisp, high-intensity active indicator */
+nav button.on{background:linear-gradient(#ffb43a30,#ffb43a00 70%)!important}
+nav button.on::after{left:18%;right:18%;bottom:2px;height:4px;border-radius:3px;background:#ffd25e;box-shadow:0 0 4px #ffd25e,0 0 10px #ffb43a,0 0 18px #ff9a1f}
+nav button.on i svg{filter:drop-shadow(0 0 3px #ffd25e) drop-shadow(0 0 8px #ffb43a)}
+/* ===== v44: forge odds hierarchy ===== */
+.prow{grid-template-columns:32px minmax(104px,1fr) 52px 54px 58px!important}
+.prow .ti{width:30px!important;height:30px!important;filter:drop-shadow(0 1px 0 #0006)}
+.prow b{grid-column:2;font-size:18px;font-weight:700;letter-spacing:.01em}
+.prow .chip{grid-column:3;position:static;font-size:9px;padding:1px 5px}
+.prow .p1,.prow .p2{font-size:14px;font-weight:600}
+.prow .p1{grid-column:4}.prow .p2{grid-column:5}
+.prow{grid-template-columns:30px minmax(96px,1fr) 34px 46px 54px!important;column-gap:6px}
+.prow b{font-size:17px}.prow .p1,.prow .p2{font-size:13px}.prow .chip{font-size:8px;padding:1px 3px}
+/* ===== v45: forge odds = icon · name bar · two percentages ===== */
+.prow{grid-template-columns:30px minmax(0,1fr) 58px 62px!important}
+.prow.lk{filter:none}
+.prow .p1{grid-column:3}.prow .p2{grid-column:4;display:block;text-align:right;padding:1px 8px;margin-right:-2px}
+.prow .z{color:#10143a88;font-weight:500}
+/* ===== v46: installment pips ===== */
+.pips2{display:flex;gap:6px;margin-top:6px}
+.pips2 i{flex:1;height:16px;border-radius:8px;background:#05070c;border:2px solid #2a3550;box-shadow:inset 0 2px 3px #000}
+.pips2 i.on{background:linear-gradient(#ffe27a,#f0a000);border-color:#7a4a00;box-shadow:0 0 8px #ffb43acc,inset 0 2px 0 #fff8}
+.pips2 i.next{border-color:#ffb43a;animation:pipp 1.2s ease-in-out infinite}
+@keyframes pipp{50%{box-shadow:0 0 8px #ffb43a99}}
+.segbar.thin{height:10px;margin-top:4px;border-width:2px}.segbar.thin::after{display:none}.segbar.thin i{background:linear-gradient(#7af0ff,#1fa8d8)}
+.utimer.tt{font-size:15px;color:#cfd8ea;gap:6px;margin-top:2px}.utimer.tt .pic{width:16px;height:16px}
+.utimer.tt b{font-weight:600}
+#ubtn{background:var(--cta)!important;border:2px solid #7a2c00!important;border-bottom-width:4px!important}
+#ubtn b{display:flex;align-items:center;gap:6px}
+@media (prefers-reduced-motion:reduce){.pips2 i.next{animation:none}}
+#ubtn span{color:#fff!important;opacity:1!important;font-weight:700;font-size:13px}

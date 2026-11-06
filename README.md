@@ -9,7 +9,7 @@ A private idle forge game. Everything is saved on your device and works offline.
 - The Forge: spend Alloy, get a random part (8 slots, 6 tiers). Fit it or sell it.
 - Foundry upgrades: Credits plus a real-time wait for better odds and stronger gear. 25 levels before Ascension. The odds, waits and costs follow Forge Master's table (35 levels) squeezed into 25 and made 1.5x slower. First step about 17 minutes, last steps about 18 days. All 10 tiers (Rusted, Refitted, Hardened, Classified, Voidborn, Exotic, Ancient, Dark Matter, Origin, Apex) unlock at Foundry 1, 2, 4, 6, 8, 10, 12, 14, 17 and 21.
 - One Alloy per forge, about one Alloy a minute. Alloy and Credits have no cap. The only limit is offline time: production counts for 4 hours while the app is closed (Research raises it).
-- Ship screen with Damage, Hull and Power. Records. Save backup and restore codes. Auto-Salvage unlocks at Foundry 3.
+- Profile (tap your picture/name, top left): change picture (12 choices) and name (first change free, then 50 Flux), rank, level bar, Damage/Hull/Power, equipped gear, substat totals, records, Cloud, Options, Backup, Erase. There is no Ship or More tab any more. Save backup and restore codes. Auto-Salvage unlocks at Foundry 3.
 
 ## Added in step 2
 - (Cargo Hold, Stash and Keep list were removed in v23: equip or sell, like the games this follows. Old held parts are sold into Credits.)
@@ -24,7 +24,6 @@ A private idle forge game. Everything is saved on your device and works offline.
 - Win to earn Credits (first clears pay 5x; rewards grow by a flat step per stage). Lose and you fall back one stage. Auto-advance can be switched off to farm a stage.
 - Boss first clears pay Flux, which can finish a Foundry upgrade early (1 Flux = 5 minutes).
 - The app patrols your best stage while closed (half pay, up to your offline time).
-- Records moved into the More tab.
 
 ## Added in step 4
 - Bonus lines on parts (Refitted and up): Crit chance, Crit damage, Armor pierce, Overcharge, Haste, Plating, Evasion, Hull leech. Weapons lean offensive, hull parts defensive. Higher tiers roll more and bigger lines.
@@ -39,7 +38,8 @@ Bump `VERSION` in `sw.js` after any change.
 
 ## Commander, ranks and research (step 5)
 - Commander level comes only from forging: 10 XP for Rusted and Refitted, 20 for Hardened, Classified and Voidborn, 30 for Exotic. The XP needed per level climbs about 10% each level. Each level adds 1.2% Damage and Hull.
-- Every 10 levels you need a promotion (stage, Foundry level and fitted-parts goals) before you can keep levelling. Promotions pay Flux, AI Cores and Data Shards.
+- 300 levels, 15 ranks. Every 20 levels the XP bar must fill once more, then tap the rank button (profile) to be promoted and go on. Promotions pay Flux, AI Cores and Data Shards. Each level adds +0.3% Damage and Hull.
+- Foundry upgrades are paid in installments (like Forge Master); research is on a Lab screen with Forge / Power / Fleet / Codex tiles.
 - Research (Data Shards): Alloy production, offline time, Credits, Foundry speed, forging XP, Damage, Hull. Shards come from boss first clears, every fifth stage first clear and promotions.
 - Pace check: `node tests/sim.js 420 3 10` plays a casual free player (3 short check-ins a day). `node tests/fit.js` re-fits the enemy curve to the pace you want.
 
@@ -86,3 +86,7 @@ Main screen rebuilt to look like a game, not a text page: full-width fight scene
 - v26 installments: Foundry upgrades take several payments before the timer starts: 1 until about Foundry 8, then 2, 3 ... up to 9-10 near the end (CFG.INSTALL). One payment is PAY_X (0.2) of the old single price, so late levels are credit-limited, not just timer-limited.
 - Dropped (no equivalent here): Forging XP, crit/haste, eggs, mounts, level-ups.
 - One research at a time; Flux finishes it early. Old research is refunded 3 Shards per level.
+
+## v37 look
+- theme.css: gunmetal plates, amber actions, outlined numerals; header floats over the battle scene; 5-tab bar (Forge, Battle, Lab, Wing, Shop).
+- Profile is one scene (ship, companion, rank banner, power plate, stats panel) with a gear box below. Rank adds +1.5% Damage/Hull per rank. "Rank" screen shows before/after and Promote.

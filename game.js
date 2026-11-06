@@ -156,7 +156,7 @@
     arena: () => '<h3>Arena</h3><p class="sb">Simulated rivals built to your level. Win +25 league points and Medals, lose −12. ' + V.CFG.ARENA_ATTEMPTS + ' fights a day.</p>',
     shop: () => '<h3>Medal shop</h3><p class="sb">Spend Medals from the Arena. Each item can be bought ' + V.CFG.SHOP_LIMIT + ' times a day.</p>',
     clan: () => '<h3>Clans</h3><p class="sb">Simulated crews that play on their own schedule. Your crew fills most of the daily goal. Convoy wins and sweeps add ' + V.CFG.CLAN_WIN_POINTS + ' points each. Joining unlocks the Clan Convoy mission.</p>',
-    xp: () => '<h3>Commander XP</h3><p class="sb">XP comes only from forging: better tiers give more XP per part (10 up to 70). Fights give none. Each level adds +' + (V.CFG.LEVEL_BONUS * 100).toFixed(1).replace('.0', '') + '% Damage and Hull. At each rank cap you need a promotion.</p>',
+    xp: () => '<h3>Commander XP</h3><p class="sb">XP comes only from forging: better tiers give more XP per part. Fights give none. Each level adds +' + (V.CFG.LEVEL_BONUS * 100).toFixed(1).replace('.0', '') + '% Damage and Hull. Max level ' + V.CFG.LEVEL_MAX + '. Every ' + V.CFG.RANK_LEVELS + ' levels you must fill the bar once more and tap the rank button to be promoted.</p>',
     research: () => '<h3>Research</h3><p class="sb">Data Shards come from boss first clears, every fifth stage first clear, Data Heist and promotions. Tap a node to upgrade it.</p>',
     research: () => '<h3>Research</h3><p class="sb">Three branches: Forge, Power and Fleet. Every upgrade has 5 tiers of 5 levels. Each level costs Data Shards and takes real time, and later tiers cost more and take longer. One research at a time. Flux finishes it early. A higher tier needs a higher commander level. Multi-Forge adds parts per forge, up to 10.</p>',
     codex: () => '<h3>Codex</h3><p class="sb">Every new part you forge adds +' + (V.CFG.CODEX_PART * 100) + '% to all stats. Finishing a whole tier adds +' + Math.round(V.CFG.CODEX_TIER * 100) + '% more. Now: +' + (V.codexBonus(S) * 100).toFixed(2).replace(/\.?0+$/, '') + '%. The numbers on the right are set bonuses for 4 and 8 parts of that tier or better. Only your best set counts.</p>',
@@ -166,18 +166,18 @@
   };
   function infoSheet(k) { sheet(INFO[k](), 'info'); }
 
-  /* ---------- Foundry ---------- */
+  /* ---------- Forge ---------- */
   let modalKind = null;
-  function renderFoundry() {
+  function renderForge() {
     const L = S.forge.level;
     if (!$('arenaWrap')) { $('tab-foundry').innerHTML = '<div id="arenaWrap">' + arenaHtml() + '</div><div id="foundryRest"></div>'; missionStatic(); missionLive(); }
-    $('foundryRest').innerHTML = '<div id="bay">' + bayHtml() + '</div><div class="xpr"><b id="lvl"></b><div class="bar xl"><i id="xpfill"></i><span id="xpt"></span></div>' + infoBtn('home') + '</div>' + homeGearHtml() +
-      '<div class="forgerow"><button class="anvil" id="forgeBtn" data-act="forge" aria-label="Forge">' + anvilSvg() + '<span class="ac">' + coinIcon('alloy') + '<b id="fcost"></b></span></button>' +
-      '<div class="fcol"><div class="ftime" id="ftime"></div><button class="fbtn" id="fbtn" data-act="foundry"><small>Foundry</small><b>Level ' + L + '</b><em class="dot" id="fdot" hidden></em></button>' +
-      '<button class="btn sm" id="f10" data-act="f10"></button></div></div>';
+    $('foundryRest').innerHTML = '<div id="bay">' + bayHtml() + '</div><div class="xpr"><b id="lvl"></b><div class="bar xl"><i id="xpfill"></i><span id="xpt"></span></div><button class="rankbtn" id="rankbtn" data-act="rank" aria-label="Rank">' + pic('star') + '</button></div><div class="srow">' + statRow() + infoBtn('home') + '</div>' +
+      '<div class="deck">' + homeGearHtml() + '<div class="fside"><button class="anvil" id="forgeBtn" data-act="forge" aria-label="Forge">' + anvilSvg() + '<span class="ac">' + coinIcon('alloy') + '<b id="fcost"></b></span></button>' +
+      '<div class="frow"><div class="ftime" id="ftime"></div><button class="fbtn" id="fbtn" data-act="foundry"><small>Forge</small><b>Level ' + L + '</b><em class="dot" id="fdot" hidden></em></button><button class="btn sm" id="f10" data-act="f10"></button>' + wingBtn() + '</div></div></div>';
     if (modalKind === 'foundry' && !$('modal').hidden) foundryModal();
     live();
   }
+  function statRow() { const p = V.power(S); return '<span>' + slotIcon('cannon') + '<b id="sDmg">' + V.fmt(p.dmg) + '</b></span><span>' + slotIcon('plating') + '<b id="sHull">' + V.fmt(p.hull) + '</b></span><span>' + pic('sword') + '<b id="sPow">' + V.fmt(p.power) + '</b></span>'; }
   function anvilSvg() {
     return SVGH(120, 64, '<path d="M6 6h86l20 8-24 6H72l6 14H42l6-14H30C16 20 8 14 6 6z" fill="url(#ag)" stroke="#e8eef5" stroke-width="2" stroke-linejoin="round"/><rect x="30" y="36" width="54" height="10" rx="2" fill="#6b7886"/><rect x="20" y="46" width="74" height="14" rx="3" fill="#4a5663"/><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6dee8"/><stop offset="1" stop-color="#7f8d9c"/></linearGradient></defs>', 'anv');
   }
@@ -188,8 +188,11 @@
       h += it ? '<button class="tile" data-act="part" data-ref="g:' + sl.id + '" style="--tc:' + tcol(it.tier) + '">' + slotIcon(sl.id) + '<span class="lv">Lv.' + it.level + '</span></button>'
         : '<div class="tile empty">' + slotIcon(sl.id) + '</div>';
     });
+    return h + '</div>';
+  }
+  function wingBtn() {
     const w = S.wing.active.map((k) => '<span>' + V.companionInfo(k).sp.glyph + '</span>').join('');
-    return h + '<button class="tile wingtile" data-act="goto" data-tab="wing">' + (w || '<span class="plus">+</span>') + '<span class="lv">Wing</span></button></div>';
+    return '<button class="tile wingtile" data-act="goto" data-tab="wing">' + (w || '<span class="plus">+</span>') + '</button>';
   }
   function bayHtml() {
     if (!S.pending) return '';
@@ -201,9 +204,21 @@
       '<div class="' + (up ? 'up' : dn ? 'dn' : 'dim') + ' pd">' + (up ? '▲ ' : dn ? '▼ ' : '') + (r >= 0 ? '+' : '') + r.toFixed(Math.abs(r) < 10 ? 1 : 0) + '%</div></div>' +
       '<div class="pbtn"><button class="btn pri" data-act="equip">Equip</button><button class="btn sm" data-act="sell">' + coinIcon('credits') + V.fmt(V.sellFor(S, it)) + '</button></div></div>';
   }
+  const TGLYPH = [
+    '<circle cx="12" cy="12" r="4.5"/>',
+    '<path d="M12 6l5 3v6l-5 3-5-3V9z M12 9.5l2 1.2v2.6l-2 1.2-2-1.2v-2.6z" fill-rule="evenodd"/>',
+    '<path d="M12 5l7 13H5z"/>',
+    '<path d="M12 4l7 8-7 8-7-8z"/>',
+    '<path d="M12 4l7 4v8l-7 4-7-4V8z M12 9l3 1.7v2.6L12 15l-3-1.7v-2.6z" fill-rule="evenodd"/>',
+    '<path d="M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z"/>',
+    '<path d="M5 12l7-7 7 7-2.5 2.5L12 10l-4.5 4.5z M5 18l7-7 7 7-2.5 2.5L12 16l-4.5 4.5z"/>',
+    '<path d="M12 3l8 3v6c0 4.5-3.2 7.6-8 9-4.8-1.4-8-4.5-8-9V6z"/>',
+    '<path d="M12 3l3 6 6 .8-4.4 4.2 1 6L12 17l-5.600 3 1-6L3 9.800 9 9z"/>',
+    '<path d="M12 2l2 5.500 5.500-2-2 5.500L23 12l-5.500 1.500 2 5.500-5.500-2L12 22l-2-5.500-5.500 2 2-5.500L1 12l5.500-1.500-2-5.500 5.500 2z"/>'
+  ];
   function tierIcon(i) {
-    const c = V.TIERS[i].color, d = '<text x="24" y="31" text-anchor="middle" font-size="20" font-weight="900" fill="#fff" stroke="#0a0d40" stroke-width="1.5" paint-order="stroke" font-family="system-ui,sans-serif">' + (i + 1) + '</text>';
-    return SVGH(48, 48, '<path d="M24 3l18 10v22L24 45 6 35V13z" fill="' + c + '" stroke="#0a0d40" stroke-width="3"/><path d="M24 9l12 7v16l-12 7-12-7V16z" fill="#ffffff33"/>' + d, 'ti');
+    const c = V.TIERS[i].color;
+    return SVGH(48, 48, '<path d="M24 2l19 11v22L24 46 5 35V13z" fill="#0b1020" stroke="' + c + '" stroke-width="3"/><g transform="translate(9 9) scale(1.25)" fill="' + c + '">' + TGLYPH[i % TGLYPH.length] + '</g>', 'ti');
   }
   function foundryModal() {
     const L = S.forge.level, u = V.upgradeInfo(S), up = S.forge.upgrade, o1 = V.tierOdds(L), o2 = u.maxed ? o1 : V.tierOdds(L + 1);
@@ -212,7 +227,7 @@
     V.TIERS.forEach((t, i) => {
       if (!t.launch) return;
       const lock = o1[i] === 0 && o2[i] === 0, nw = o1[i] === 0 && o2[i] > 0;
-      h += '<div class="prow' + (lock ? ' lk' : '') + '" style="--tc:' + t.color + '">' + tierIcon(i) + '<b>' + t.name + '</b>' + (nw ? '<em class="chip">NEW</em>' : '') + '<span class="p1">' + pc(o1[i]) + '</span><span class="p2">' + (lock ? pic('lock') + t.unlock : pc(o2[i])) + '</span></div>';
+      h += '<div class="prow" style="--tc:' + t.color + '">' + tierIcon(i) + '<b>' + t.name + '</b><span class="p1' + (o1[i] === 0 ? ' z' : '') + '">' + pc(o1[i]) + '</span><span class="p2' + (o2[i] === 0 ? ' z' : '') + '">' + pc(o2[i]) + '</span></div>'
     });
     h += '<div id="upg">' + upgradeHtml(u, up) + '</div></div>';
     $('mbox').innerHTML = h + '<button class="xbtn" data-act="close" aria-label="Close">✕</button>';
@@ -221,24 +236,9 @@
   function upgradeHtml(u, up) {
     if (u.maxed) return '<div class="segbar"><i style="width:100%"></i></div>';
     const T = V.TIERS, unlocks = T.findIndex((t) => t.launch && t.unlock === u.to);
-    const seg = '<div class="segbar"><i id="ubar"' + (!up && u.parts > 1 ? ' style="width:' + (u.paid / u.parts * 100).toFixed(0) + '%"' : '') + '></i></div>';
-    if (up) return seg + '<div class="utimer">' + pic('clock') + '<b id="utime"></b></div><button class="btn big3 fl" id="rushBtn" data-act="rush"></button>';
-    return seg + '<button class="btn big3" id="ubtn" data-act="upgrade"><span>' + (u.parts > 1 ? 'Pay ' + (u.paid + 1) + '/' + u.parts : 'Level up') + '</span><b>' + coinIcon('credits') + V.fmt(u.credits) + '</b><small>' + (u.parts > 1 && u.paid + 1 < u.parts ? 'then ' : '') + V.fmtTime(u.seconds) + '</small></button>';
-  }
-
-  /* ---------- Ship (commander) ---------- */
-  function renderShip() {
-    const p = V.power(S), c = S.cmd, need = V.CFG.XP_NEED(c.level), cap = V.atCap(S);
-    const bt = V.highestTier(S), canP = V.canPromote(S);
-    let h = '<div class="pg"><div class="shiphero"><div class="shipbg"></div>' + playerShip(bt >= 0 ? tcol(bt) : '#35d0e0') + '<div class="rankbadge">' + pic('star') + '<b>' + V.RANK_NAMES[c.rank] + '</b></div></div>' +
-      '<div class="stat3"><div>' + slotIcon('cannon') + '<b>' + V.fmt(p.dmg) + '</b></div><div>' + slotIcon('plating') + '<b>' + V.fmt(p.hull) + '</b></div><div><span class="pw2">' + pic('sword') + '</span><b style="color:var(--amber)">' + V.fmt(p.power) + '</b></div></div>' +
-      '<div class="cmdrow"><div class="lvbig">Lv.' + c.level + '</div><div class="bar xl"><i style="width:' + Math.min(100, c.xp / need * 100).toFixed(1) + '%"></i><span>' + V.fmt(c.xp) + ' / ' + V.fmt(need) + '</span></div>' + infoBtn('xp') + '</div>';
-    if (c.rank < V.RANK_NAMES.length - 1) {
-      const goals = V.questGoals(S);
-      h += '<div class="promo' + (cap || canP ? ' hot' : '') + '"><div class="pq">' + goals.map((g) => '<span class="' + (g.ok ? 'ok' : '') + '">' + (g.ok ? '✔' : '○') + ' ' + esc(g.label) + ' <b>' + V.fmt(Math.min(g.have, g.need)) + '/' + V.fmt(g.need) + '</b></span>').join('') + '</div><button class="btn pri" data-act="promote"' + (canP ? '' : ' disabled') + '>' + pic('star') + ' ' + V.RANK_NAMES[c.rank + 1] + '</button></div>';
-    }
-    h += '<button class="btn big2" data-act="goto" data-tab="armory" style="margin-top:8px">' + pic('gear') + ' ' + coinIcon('shards') + V.fmt(S.shards) + '</button>';
-    $('tab-ship').innerHTML = h + '</div>';
+    const pips = '<div class="pips2" aria-label="Installments">' + Array.from({ length: u.parts }, (_, i) => '<i class="' + (up || i < u.paid ? 'on' : i === u.paid ? 'next' : '') + '"></i>').join('') + '</div>';
+    if (up) return pips + '<div class="segbar thin"><i id="ubar"></i></div><div class="utimer">' + pic('clock') + '<b id="utime"></b></div><button class="btn big3 fl" id="rushBtn" data-act="rush"></button>';
+    return pips + '<div class="utimer tt">' + pic('clock') + '<b>' + V.fmtTime(u.seconds) + '</b></div><button class="btn big3" id="ubtn" data-act="upgrade"><span>Upgrade</span><b>' + coinIcon('credits') + V.fmt(u.credits) + '</b></button>';
   }
 
   /* ---------- Missions ---------- */
@@ -269,7 +269,7 @@
   }
   function renderMissions() {
     const now = Date.now(), ti = V.sweepInfo(S, now); V.rollDaily(S, now);
-    let h = '<div class="pg"><div class="trow"><div class="tk">' + Array.from({ length: V.CFG.SWEEP_MAX }, (_, i) => '<span class="tkt' + (i < ti.tickets ? ' on' : '') + '">' + pic('ticket') + '</span>').join('') + '</div><span class="tkn" id="tkNote"></span>' +
+    let h = '<div class="pg"><h2 class="stitle">Missions</h2><div class="trow"><div class="tk">' + Array.from({ length: V.CFG.SWEEP_MAX }, (_, i) => '<span class="tkt' + (i < ti.tickets ? ' on' : '') + '">' + pic('ticket') + '</span>').join('') + '</div><span class="tkn" id="tkNote"></span>' +
       '<button class="btn sm vid" id="adBtn" data-act="sweepAd">' + pic('video') + '<b>+1</b></button>' + infoBtn('sweep') + '</div><div class="bans">';
     V.DAILIES.forEach((d) => {
       const left = V.attemptsLeft(S, d.id, now), locked = V.ladderLocked(S, d.id);
@@ -412,7 +412,7 @@
   }
   function renderWing() {
     const lvl = V.bayLevel(S), into = S.wing.summons % V.CFG.BAY_STEP;
-    let h = '<div class="pg"><div class="wslots">';
+    let h = '<div class="pg"><h2 class="stitle">Wing</h2><div class="wslots">';
     for (let i = 0; i < V.CFG.WING_SLOTS; i++) { const k = S.wing.active[i]; h += k ? wtile(k, '', 'data-act="unassign" data-i="' + i + '"') : '<div class="tile empty wt">' + pic('plus', 'ghost') + '</div>'; }
     h += '</div><div class="bay"><div class="baytop"><span class="cores">' + coinIcon('cores') + '<b>' + V.fmt(S.cores) + '</b></span><span class="baylv">Lv.' + lvl + '</span><div class="bar"><i style="width:' + (lvl < V.CFG.BAY_MAX ? into / V.CFG.BAY_STEP * 100 : 100) + '%"></i></div>' + infoBtn('wing') + '</div>' +
       '<div class="row"><button class="btn pri big2" data-act="sum1"' + (S.cores < V.CFG.SUMMON_COST ? ' disabled' : '') + '>' + pic('box') + ' ' + coinIcon('cores') + V.CFG.SUMMON_COST + '</button><button class="btn pri big2" data-act="sum10"' + (S.cores < V.CFG.SUMMON10_COST ? ' disabled' : '') + '>×10 ' + coinIcon('cores') + V.CFG.SUMMON10_COST + '</button></div>';
@@ -429,7 +429,7 @@
   }
 
   /* ---------- Armory ---------- */
-  let labView = 'research', labBranch = 'forge';
+  let labView = 'research', labBranch = null;
   function techNodeHtml(n) {
     const o = V.techInfo(S, n.id), doing = S.tech && S.tech.id === n.id;
     const st = o.maxed ? 'MAX' : doing ? pic('clock') : o.locked ? pic('lock') + 'Lv.' + o.gate : coinIcon('shards') + o.cost;
@@ -442,19 +442,27 @@
   }
   function renderArmory() {
     const cur = V.power(S).set;
-    let h = '<div class="pg"><div class="seg"><button class="' + (labView === 'research' ? 'on' : '') + '" data-act="lab" data-v="research">' + pic('gear') + '<b>' + (S.stats.researched || 0) + '</b></button><button class="' + (labView === 'codex' ? 'on' : '') + '" data-act="lab" data-v="codex">' + pic('star') + '<b>' + V.codexCount(S) + '/' + V.LAUNCH_TIERS * 8 + '</b></button>' + infoBtn(labView) + '</div>';
-    if (labView === 'research') {
-      h += techBarHtml() + '<div class="chiprow">' + V.TECH_BRANCHES.map((b) => '<button class="chipb' + (labBranch === b.id ? ' on' : '') + '" data-act="labBranch" data-v="' + b.id + '">' + BRANCH_ICON[b.id]() + '</button>').join('') + '</div>';
-      h += '<div class="scroll"><div class="rgrid">' + V.TECH_NODES.filter((n) => n.branch === labBranch).map(techNodeHtml).join('') + '</div></div>';
-    } else {
-      h += '<div class="scroll"><div class="codex">';
+    let h = '<div class="pg"><h2 class="stitle">' + (labView === 'codex' ? 'Codex' : 'Tech Tree') + '</h2>';
+    if (labView === 'codex') {
+      h += '<div class="seg"><button data-act="labHome">‹</button><button class="on">' + pic('star') + '<b>' + V.codexCount(S) + '/' + V.LAUNCH_TIERS * 8 + '</b></button>' + infoBtn('codex') + '</div><div class="scroll"><div class="codex">';
       V.TIERS.forEach((t, i) => {
         h += '<div class="crow' + (cur.tier === i ? ' cur' : '') + '" style="--tc:' + t.color + '"><div class="cmini">' + V.SLOTS.map((s2) => '<span class="' + (S.codex[i + ':' + s2.id] ? 'got' : '') + '">' + slotIcon(s2.id) + '</span>').join('') + '</div><div class="cset"><b>4</b>+' + Math.round(V.CFG.SET4[i] * 100) + '<b>8</b>+' + Math.round(V.CFG.SET8[i] * 100) + '</div></div>';
       });
       h += '</div></div>';
+    } else if (!labBranch) {
+      h += techBarHtml() + '<div class="labgrid">' + V.TECH_BRANCHES.map((b) => {
+        const ns = V.TECH_NODES.filter((n) => n.branch === b.id); let have = 0, all = 0, can = false;
+        ns.forEach((n) => { const o = V.techInfo(S, n.id); have += o.level; all += o.max; if (!o.maxed && !o.locked && !S.tech && S.shards >= o.cost) can = true; });
+        return '<button class="labtile t-' + b.id + (can ? ' can' : '') + '" data-act="labBranch" data-v="' + b.id + '">' + BRANCH_ICON[b.id]() + '<b>' + b.name + '</b><span class="bar"><i style="width:' + (have / all * 100).toFixed(0) + '%"></i></span></button>';
+      }).join('') + '<button class="labtile codex" data-act="lab" data-v="codex">' + pic('star') + '<b>Codex</b><span class="bar"><i style="width:' + (V.codexCount(S) / (V.LAUNCH_TIERS * 8) * 100).toFixed(0) + '%"></i></span></button></div><div class="row" style="justify-content:center">' + infoBtn('research') + '</div>';
+    } else {
+      const br = V.TECH_BRANCHES.find((b) => b.id === labBranch);
+      h += '<div class="seg"><button data-act="labHome">‹</button><button class="on">' + BRANCH_ICON[labBranch]() + '<b>' + br.name + '</b></button>' + infoBtn('research') + '</div>' + techBarHtml();
+      h += '<div class="scroll"><div class="rgrid">' + V.TECH_NODES.filter((n) => n.branch === labBranch).map(techNodeHtml).join('') + '</div></div>';
     }
     $('tab-armory').innerHTML = h + '</div>';
-    if (labView === 'research') liveTech();
+    if (labBranch && labView !== 'codex') liveTech();
+    else if (!labBranch && labView !== 'codex') liveTech();
     if (isTS(modalKind) && !$('modal').hidden) techSheet(modalKind.slice(5));
   }
   const isTS = (k) => !!k && k.indexOf('tech:') === 0;
@@ -482,13 +490,13 @@
     const st = S.stats, kv = [
       ['Parts forged', V.fmt(st.forged)], ['Medals', V.fmt(S.medals)], ['Arena league', V.LEAGUES[V.leagueOf(S.arena.lp)]], ['Codex', V.codexCount(S) + ' / ' + V.LAUNCH_TIERS * 8], ['Parts fitted', V.fmt(st.equipped)], ['Parts sold', V.fmt(st.sold)],
       ['Alloy produced', V.fmt(st.alloyEarned)], ['Credits earned', V.fmt(st.creditsEarned)],
-      ['Commander level', S.cmd.level + ' · ' + V.RANK_NAMES[S.cmd.rank]], ['Foundry upgrades', V.fmt(st.upgrades)], ['Foundry level', S.forge.level + ' / ' + V.CFG.MAX_FORGE_LEVEL],
+      ['Commander level', S.cmd.level + ' · ' + V.RANK_NAMES[S.cmd.rank]], ['Forge upgrades', V.fmt(st.upgrades)], ['Forge level', S.forge.level + ' / ' + V.CFG.MAX_FORGE_LEVEL],
       ['Best tier fitted', V.highestTier(S) >= 0 ? V.TIERS[V.highestTier(S)].name : 'none'],
       ['Best stage cleared', S.combat.best ? V.stageLabel(S.combat.best) : 'none'], ['Fights won / lost', V.fmt(st.wins) + ' / ' + V.fmt(st.losses)], ['Bosses defeated', V.fmt(st.bosses)], ['Companions summoned', V.fmt(S.wing.summons)], ['Fusions', V.fmt(st.fused || 0)],
       ['Time at the forge', V.fmtTime(st.seconds)], ['Service began', new Date(S.created).toLocaleDateString()]
     ];
     return '<h2>Service record</h2><div class="panel"><div class="kv">' + kv.map((r) => '<span>' + r[0] + '</span><span>' + r[1] + '</span>').join('') + '</div></div>' +
-      '<h2>Coming in later updates</h2><div class="panel dim" style="font-size:13px">Ascension (after Foundry level 25) · Balance pass</div>';
+      '<h2>Coming in later updates</h2><div class="panel dim" style="font-size:13px">Ascension (after Forge level 25) · Balance pass</div>';
   }
 
   /* ---------- Settings ---------- */
@@ -506,13 +514,13 @@
       if (idn === 'adGo' && n === 0) { if (grant()) { buzz(25); toast('<b>' + esc(rewardText) + '</b>'); } save(); head(); live(); refreshDepotish(); }
     });
   }
-  function refreshDepotish() { if (tab === 'depot') renderDepot(); else if (tab === 'missions') renderMissions(); else if (tab === 'foundry') renderFoundry(); }
+  function refreshDepotish() { if (tab === 'depot') renderDepot(); else if (tab === 'missions') renderMissions(); else if (tab === 'foundry') renderForge(); }
   const ADIC = { alloy: () => coinIcon('alloy'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), flux: () => coinIcon('flux') };
   const DEALIC = { alloy200: 'alloy', alloy600: 'alloy', cores10: 'cores', shards4: 'shards', credits: 'credits', tickets2: null };
   function renderDepot() {
     const now = Date.now(); V.rollDaily(S, now);
     const ti = V.sweepInfo(S, now);
-    let h = '<div class="pg"><div class="dep-top"><button class="gift' + (S.daily.gift ? ' done' : '') + '" data-act="gift"' + (S.daily.gift ? ' disabled' : '') + '>' + pic('box') + '<b>+100</b>' + coinIcon('alloy') + '</button>' +
+    let h = '<div class="pg"><h2 class="stitle">Store</h2><div class="dep-top"><button class="gift' + (S.daily.gift ? ' done' : '') + '" data-act="gift"' + (S.daily.gift ? ' disabled' : '') + '>' + pic('box') + '<b>+100</b>' + coinIcon('alloy') + '</button>' +
       '<button class="gift noads' + (S.noAds ? ' done' : '') + '" data-act="noAds"' + (S.noAds ? ' disabled' : '') + '>' + pic('crown') + '<b>' + (S.noAds ? '✔' : 'NO ADS') + '</b></button>' + infoBtn('depot') + '</div>' +
       '<div class="dgrid2">';
     V.dealsToday(now).forEach((d) => {
@@ -534,32 +542,81 @@
     const cp = V.clanProgress(S, now);
     set('depot', !S.daily.gift);
     set('missions', V.DAILIES.some((d) => !V.ladderLocked(S, d.id) && V.attemptsLeft(S, d.id, now) > 0 && S.ladders[d.id] < V.CFG.MAX_STAGE) || V.arenaLeft(S, now) > 0 || V.visibleQuests(S).some((q) => !S.quests[q.id] && V.questProgress(S, q) >= q.need) || !!(cp && cp.steps.some((st) => st.reached && !st.claimed)));
-    set('ship', V.canPromote(S));
+    const pb = document.querySelector('.who'); if (pb) pb.classList.toggle('hot', V.canPromote(S));
     set('armory', V.techReady(S));
   }
-  function renderMore() {
-    const tiles = [['stats', 'chart', 'Stats'], ['name', 'user', 'Callsign'], ['opts', 'gear', 'Options'], ['cloud', 'user', 'Cloud'], ['backup', 'save', 'Backup'], ['wipe', 'trash', 'Erase']];
-    $('tab-more').innerHTML = '<div class="pg"><div class="moregrid">' + tiles.map((t) => '<button class="mbtn' + (t[0] === 'wipe' ? ' bad' : '') + '" data-act="more" data-k="' + t[0] + '">' + pic(t[1]) + '<b>' + t[2] + '</b></button>').join('') + '</div><p class="dim tiny" style="text-align:center">' + V.CFG.NAME + ' · v21</p></div>';
+  /* ---------- Profile ---------- */
+  const AV = [['#2b3190','#7d8cff','#35f0ff'],['#7a1d2a','#ff6b6b','#ffd166'],['#0f5a3c','#3ddc97','#e8ffb0'],['#5b2a86','#c77dff','#fff'],['#8a4b00','#ffb347','#2b1600'],['#003f5c','#4cc9f0','#fff'],['#3a3a3a','#b8c0cc','#ff4d4d'],['#6b0f5a','#ff5cc8','#ffe3f6'],['#1d3b1d','#8bd450','#0b1d0b'],['#4a1d00','#ff7a2f','#ffe08a'],['#10314a','#7be0ff','#ff9a1f'],['#2a2a5a','#a0a8ff','#ffd24a']];
+  function avatarSvg(i) {
+    const c = AV[((i % AV.length) + AV.length) % AV.length], k = i % 3;
+    const body = k === 0 ? '<path d="M9 26c0-10 4-15 11-15s11 5 11 15z" fill="' + c[1] + '"/><rect x="11" y="19" width="18" height="7" rx="3" fill="' + c[2] + '"/><path d="M20 4l3 8h-6z" fill="#ffc83d"/>'
+      : k === 1 ? '<circle cx="20" cy="21" r="11" fill="' + c[1] + '"/><path d="M9 21h22v5a11 11 0 01-22 0z" fill="#0004"/><rect x="12" y="17" width="16" height="6" rx="3" fill="' + c[2] + '"/><rect x="18" y="5" width="4" height="7" fill="' + c[2] + '"/>'
+      : '<path d="M20 5l11 8v12l-11 9-11-9V13z" fill="' + c[1] + '"/><path d="M12 18h16l-3 8h-10z" fill="' + c[2] + '"/><circle cx="20" cy="13" r="2.5" fill="' + c[2] + '"/>';
+    return '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="' + c[0] + '"/>' + body + '</svg>';
   }
-  function moreSheet(k) {
-    if (k === 'cloud') { if (window.Cloud) Cloud.open(); return; }
-    if (k === 'stats') return sheet(statsHtml().replace(/<h2>Coming[\s\S]*$/, ''), 'more');
-    if (k === 'name') { sheet('<input type="text" id="nameIn" maxlength="20" value="' + esc(S.name) + '" aria-label="Callsign">', 'more'); $('nameIn').onchange = (e) => { S.name = e.target.value.trim() || 'Commander'; save(); head(); }; return; }
-    if (k === 'opts') {
+  function profile(v) {
+    v = v || 'main';
+    const back = '<button class="btn" data-act="profile" data-v="main">‹</button>';
+    if (v === 'avatar') {
+      sheet('<div class="avgrid">' + AV.map((_, i) => '<button class="avpick' + (S.avatar === i ? ' on' : '') + '" data-act="avatar" data-i="' + i + '">' + avatarSvg(i) + '</button>').join('') + '</div>' + '<div class="row" style="margin-top:8px">' + back + '</div>', 'prof');
+      return;
+    }
+    if (v === 'name') {
+      const cost = V.renameCost(S);
+      sheet('<input type="text" id="nameIn" maxlength="14" value="' + esc(S.name) + '" aria-label="Name" autocomplete="off"><div class="row" style="margin-top:8px">' + back + '<button class="btn pri" data-act="rename">' + (cost ? coinIcon('flux') + cost : 'Free') + '</button></div><div class="e" id="nameErr"></div>', 'prof');
+      return;
+    }
+    if (v === 'opts') {
       const au = V.autoUnlocked(S);
-      sheet('<div class="tog"><div>Vibration</div><label class="sw"><input type="checkbox" id="vibIn"' + (S.settings.vibrate ? ' checked' : '') + '><i></i></label></div><div class="tog"><div>Auto-Salvage<small>' + (au ? '' : 'Foundry ' + V.CFG.AUTO_UNLOCK_LEVEL) + '</small></div><label class="sw"><input type="checkbox" id="autoIn"' + (S.settings.auto && au ? ' checked' : '') + (au ? '' : ' disabled') + '><i></i></label></div>', 'more');
+      sheet('<div class="tog"><div>Vibration</div><label class="sw"><input type="checkbox" id="vibIn"' + (S.settings.vibrate ? ' checked' : '') + '><i></i></label></div><div class="tog"><div>Auto-Salvage<small>' + (au ? '' : 'Forge ' + V.CFG.AUTO_UNLOCK_LEVEL) + '</small></div><label class="sw"><input type="checkbox" id="autoIn"' + (S.settings.auto && au ? ' checked' : '') + (au ? '' : ' disabled') + '><i></i></label></div><div class="row" style="margin-top:8px">' + back + '</div>', 'prof');
       $('vibIn').onchange = (e) => { S.settings.vibrate = e.target.checked; save(); }; $('autoIn').onchange = (e) => { S.settings.auto = e.target.checked; save(); };
       return;
     }
-    if (k === 'backup') return sheet('<textarea id="codeBox" aria-label="Save code" placeholder="Save code"></textarea><div class="row" style="margin-top:8px"><button class="btn" data-act="export">Make</button><button class="btn" data-act="copy">Copy</button><button class="btn" data-act="import">Load</button></div>', 'more');
-    if (k === 'wipe') return sheet('<button class="btn bad" id="wipeBtn" data-act="wipe" style="width:100%">Erase everything</button>', 'more');
+    if (v === 'backup') return sheet('<textarea id="codeBox" aria-label="Save code" placeholder="Save code"></textarea><div class="row" style="margin-top:8px">' + back + '<button class="btn" data-act="export">Make</button><button class="btn" data-act="copy">Copy</button><button class="btn" data-act="import">Load</button></div>', 'prof');
+    if (v === 'wipe') return sheet('<button class="btn bad" id="wipeBtn" data-act="wipe" style="width:100%">Erase everything</button><div class="row" style="margin-top:8px">' + back + '</div>', 'prof');
+    if (v === 'more') {
+      const p = V.power(S), tot = subTotals(), keys = Object.keys(tot), st = S.stats;
+      const row = (n, x) => '<span>' + n + '</span><b>' + x + '</b>';
+      return sheet('<h3>Stats</h3><div class="ovb"><h4>Basic</h4><div class="ov2">' + row('Damage', V.fmt(p.dmg)) + row('Hull', V.fmt(p.hull)) + row('Power', V.fmt(p.power)) + row('Codex', '+' + (V.codexBonus(S) * 100).toFixed(1) + '%') + '</div></div>' +
+        '<div class="ovb"><h4>Gear bonuses</h4><div class="ov2">' + (keys.length ? keys.map((k) => row(V.SUBS[k].name, '+' + Math.round(tot[k] * 10) / 10 + '%')).join('') : '<span class="dim">–</span>') + '</div></div>' +
+        '<div class="ovb"><h4>Record</h4><div class="ov2">' + row('Best stage', S.combat.best ? V.stageLabel(S.combat.best) : '–') + row('Forge', S.forge.level) + row('Forged', V.fmt(st.forged)) + row('Codex', V.codexCount(S) + '/' + V.LAUNCH_TIERS * 8) + row('Arena', V.LEAGUES[V.leagueOf(S.arena.lp)]) + row('Medals', V.fmt(S.medals)) + row('Wins', V.fmt(st.wins)) + row('Bosses', V.fmt(st.bosses)) + row('Research', st.researched || 0) + row('Playtime', V.fmtTime(st.seconds)) + '</div></div><div class="row" style="margin-top:8px">' + back + '</div>', 'prof');
+    }
+    const p = V.power(S), c = S.cmd, need = V.CFG.XP_NEED(c.level), bt = V.highestTier(S);
+    const tot = subTotals(), keys = Object.keys(tot).slice(0, 3);
+    const lg = V.LEAGUES[V.leagueOf(S.arena.lp)];
+    const comp = S.wing.active[0] ? '<div class="pdrone">' + spic(V.companionInfo(S.wing.active[0]).sp.id) + '</div>' : '';
+    const gear = V.SLOTS.map((sl) => { const it = S.gear[sl.id]; return it ? '<div class="ptile" style="--tc:' + tcol(it.tier) + '">' + slotIcon(sl.id) + '<span class="lv">Lv.' + it.level + '</span></div>' : '<div class="ptile empty">' + slotIcon(sl.id) + '</div>'; }).join('');
+    const wg = []; for (let i = 0; i < V.CFG.WING_SLOTS; i++) { const k = S.wing.active[i]; if (k) { const ci = V.companionInfo(k); wg.push('<div class="ptile" style="--tc:' + ci.color + '">' + spic(ci.sp.id) + '<span class="lv">' + ci.rankName.slice(0, 3) + '</span></div>'); } else wg.push('<div class="ptile empty"><span class="plus">+</span></div>'); }
+    sheet('<div class="prof"><h3 class="ptitle">Profile</h3><div class="pscene"><div class="pbg"></div>' +
+      '<div class="phd"><button class="avs" data-act="profile" data-v="avatar" aria-label="Picture">' + avatarSvg(S.avatar) + '</button><div><button class="nm" data-act="profile" data-v="name">' + esc(S.name) + ' <small>Lv.' + c.level + '</small> <em>✎</em></button><div class="rk">' + pic('star') + V.RANK_NAMES[c.rank] + '</div></div></div>' +
+      '<button class="pbanner' + (V.canPromote(S) ? ' hot' : '') + '" data-act="rank" aria-label="Rank">' + pic('star') + '<b>' + (c.rank + 1) + '</b></button>' +
+      '<div class="pship">' + comp + playerShip(bt >= 0 ? tcol(bt) : '#35d0e0') + '</div>' +
+      '<div class="ppow"><span class="wl">' + lg + '</span><b>' + pic('sword') + V.fmt(p.power) + '</b></div>' +
+      '<div class="pstats"><h4>Stats</h4><div><span>Damage</span><b>' + V.fmt(p.dmg) + '</b></div><div><span>Hull</span><b>' + V.fmt(p.hull) + '</b></div>' + keys.map((k) => '<div class="s2"><span>' + V.SUBS[k].name + '</span><b>' + Math.round(tot[k] * 10) / 10 + '%</b></div>').join('') + '<button class="more" data-act="profile" data-v="more">More</button></div></div>' +
+      '<div class="pgear">' + gear + wg.join('') + '</div>' +
+      '<div class="pbtns"><button data-act="cloudOpen">' + pic('user') + '<b>Cloud</b></button><button data-act="profile" data-v="opts">' + pic('gear') + '<b>Options</b></button><button data-act="profile" data-v="backup">' + pic('save') + '<b>Backup</b></button><button class="bad" data-act="profile" data-v="wipe">' + pic('trash') + '<b>Erase</b></button></div></div>', 'prof');
+  }
+  function subTotals() {
+    const tot = {}; V.SLOTS.forEach((sl) => { const it = S.gear[sl.id]; if (it && it.subs) it.subs.forEach((x) => { tot[x.k] = (tot[x.k] || 0) + x.v; }); }); return tot;
+  }
+  /* rank screen: current rank -> next, stats before/after, the XP bar and Promote */
+  function rankSheet() {
+    const c = S.cmd, top = c.rank >= V.RANK_NAMES.length - 1, need = V.CFG.XP_NEED(c.level), p = V.power(S);
+    const t = JSON.parse(JSON.stringify(S)); if (!top) { t.cmd.rank++; t.cmd.level++; } const q = V.power(t), rw = V.rankReward(c.rank + 1), canP = V.canPromote(S);
+    const badge = (n, nm) => '<div class="rb"><div class="rbi">' + pic('star') + '<b>' + n + '</b></div><span>' + nm + '</span></div>';
+    sheet('<h3 class="ptitle">Rank</h3><div class="rankrow">' + badge(c.rank + 1, V.RANK_NAMES[c.rank]) + (top ? '' : '<span class="arr">▶</span>' + badge(c.rank + 2, V.RANK_NAMES[c.rank + 1])) + '</div>' +
+      '<div class="ovb"><div class="lvrow"><span>Lv.' + c.level + ' (max ' + V.levelCap(c) + ')</span>' + (top ? '' : '<span class="nx">Lv.' + (c.level >= V.levelCap(c) ? c.level + 1 : V.levelCap(c) + 1) + ' (max ' + V.levelCap({ rank: c.rank + 1 }) + ')</span>') + '</div>' +
+      '<div class="ov3"><span>Damage</span><b>' + V.fmt(p.dmg) + '</b><i>▶</i><b class="g">' + V.fmt(q.dmg) + '</b><span>Hull</span><b>' + V.fmt(p.hull) + '</b><i>▶</i><b class="g">' + V.fmt(q.hull) + '</b></div></div>' +
+      (top ? '' : '<div class="rkrw">' + coinIcon('flux') + rw.flux + ' ' + coinIcon('cores') + rw.cores + ' ' + coinIcon('shards') + rw.shards + '</div>') +
+      '<div class="bar xl"><i style="width:' + Math.min(100, c.xp / need * 100).toFixed(1) + '%"></i><span>' + V.fmt(c.xp) + ' / ' + V.fmt(need) + '</span></div>' +
+      (top ? '<p class="sb">Top rank.</p>' : '<p class="sb">' + (V.atCap(S) ? 'Fill the bar to promote.' : 'Reach Lv.' + V.levelCap(c) + ' first. Forging gives XP.') + '</p><button class="btn pri" style="width:100%" data-act="promote"' + (canP ? '' : ' disabled') + '>Promote</button>'), 'rank');
   }
   function encode() { return btoa(unescape(encodeURIComponent(JSON.stringify(S)))); }
   function decode(t) { return JSON.parse(decodeURIComponent(escape(atob(t.trim())))); }
 
   /* ---------- live updates ---------- */
   function head() {
-    $('callsign').textContent = S.name;
+    $('callsign').textContent = S.name; const av = $('avatar'); if (av && av.dataset.i !== String(S.avatar)) { av.dataset.i = S.avatar; av.innerHTML = avatarSvg(S.avatar); }
     $('power').textContent = V.fmt(V.power(S).power);
   }
   function live() {
@@ -569,6 +626,7 @@
     $('rate').textContent = '+' + (V.alloyRate(S) * 60).toFixed(2).replace(/0$/, '') + '/min';
     if ($('lvl')) { $('lvl').textContent = 'Lv.' + S.cmd.level; $('xpfill').style.width = Math.min(100, S.cmd.xp / V.CFG.XP_NEED(S.cmd.level) * 100).toFixed(1) + '%'; $('xpt').textContent = V.fmt(S.cmd.xp) + ' / ' + V.fmt(V.CFG.XP_NEED(S.cmd.level)); }
     $('shards').textContent = V.fmt(S.shards);
+    { const rb = $('rankbtn'); if (rb) rb.classList.toggle('hot', V.canPromote(S)); const sd = $('sDmg'); if (sd) { const p = V.power(S); sd.textContent = V.fmt(p.dmg); $('sHull').textContent = V.fmt(p.hull); $('sPow').textContent = V.fmt(p.power); } }
     if (tab === 'missions') ticketLabel();
     if (tab === 'armory') liveTech();
     badges();
@@ -593,7 +651,7 @@
       }
     }
   }
-  function refresh() { head(); live(); if (tab === 'foundry') renderFoundry(); else if (tab === 'ship') renderShip(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'wing') renderWing(); else if (tab === 'depot') renderDepot(); }
+  function refresh() { head(); live(); if (tab === 'foundry') renderForge(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'wing') renderWing(); else if (tab === 'depot') renderDepot(); }
 
   /* ---------- actions ---------- */
   function doForge() {
@@ -612,7 +670,13 @@
     if (a === 'info') return infoSheet(el.dataset.k);
     if (a === 'sheet') return missionSheet(el.dataset.k);
     if (a === 'wsheet') return wingSheet(el.dataset.key);
-    if (a === 'more') return moreSheet(el.dataset.k);
+    if (a === 'profile') return profile(el.dataset.v);
+    if (a === 'rank') return rankSheet();
+    if (a === 'cloudOpen') { $('modal').hidden = true; modalKind = null; if (window.Cloud) Cloud.open(); return; }
+    if (a === 'avatar') { if (V.setAvatar(S, +el.dataset.i)) { save(); head(); profile('avatar'); } return; }
+    if (a === 'rename') { const r = V.renameCommander(S, $('nameIn').value); if (r.ok) { buzz(20); save(); head(); live(); profile('main'); } else $('nameErr').innerHTML = r.reason === 'flux' ? 'Need ' + coinIcon('flux') + r.cost : r.reason === 'same' ? 'Same name' : '2–14 letters'; return; }
+    if (a === 'lab') { labView = el.dataset.v; return renderArmory(); }
+    if (a === 'labHome') { labBranch = null; labView = 'research'; return renderArmory(); }
     if (a === 'forge') return doForge();
     if (a === 'foundry') return foundryModal();
     if (a === 'goto') { tab = el.dataset.tab; showTab(); return; }
@@ -654,12 +718,11 @@
     if (a === 'clanJoin') { if (V.joinClan(S, el.dataset.id)) { toast('Joined ' + V.CLANS.find((c) => c.id === el.dataset.id).name); save(); renderMissions(); } return; }
     if (a === 'clanLeave') { V.leaveClan(S); save(); renderMissions(); return; }
     if (a === 'clanClaim') { if (V.claimClan(S, +el.dataset.i, Date.now())) { buzz(20); save(); head(); live(); renderMissions(); } return; }
-    if (a === 'lab') { labView = el.dataset.v; return renderArmory(); }
-    if (a === 'labBranch') { labBranch = el.dataset.v; return renderArmory(); }
+    if (a === 'labBranch') { labBranch = el.dataset.v; labView = 'research'; return renderArmory(); }
     if (a === 'tech') return techSheet(el.dataset.id);
     if (a === 'techGo') { if (V.startTech(S, el.dataset.id, Date.now())) { buzz(20); $('modal').hidden = true; modalKind = null; save(); head(); live(); renderArmory(); } return; }
     if (a === 'techRush') { if (V.rushTech(S, Date.now())) { buzz(30); save(); tick(); } return; }
-    if (a === 'promote') { const r = V.promote(S); if (r) { buzz([40, 40, 40]); toast('<b>Promoted to ' + V.RANK_NAMES[r.rank] + '</b><br>+' + r.reward.flux + ' Flux · +' + r.reward.cores + ' AI Cores · +' + r.reward.shards + ' Data Shards'); save(); head(); live(); renderShip(); } return; }
+    if (a === 'promote') { const r = V.promote(S); if (r) { buzz([40, 40, 40]); toast('<b>Promoted to ' + V.RANK_NAMES[r.rank] + '</b><br>+' + r.reward.flux + ' Flux · +' + r.reward.cores + ' AI Cores · +' + r.reward.shards + ' Data Shards'); save(); head(); live(); rankSheet(); } return; }
     if (a === 'rush') { if (V.rushUpgrade(S, Date.now())) { buzz(30); save(); tick(); } return; }
     if (a === 'part') { partSheet(el.dataset.ref); return; }
     if (a === 'quest') { if (V.claimQuest(S, el.dataset.id)) { buzz(20); save(); head(); live(); renderMissions(); missionSheet('orders'); } return; }
@@ -689,7 +752,7 @@
     document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.id === 'tab-' + tab));
     $('app').classList.toggle('onfoundry', tab === 'foundry');
     document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
-    if (tab === 'foundry') renderFoundry(); else if (tab === 'ship') renderShip(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'wing') renderWing(); else if (tab === 'depot') renderDepot(); else renderMore();
+    if (tab === 'foundry') renderForge(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'wing') renderWing(); else if (tab === 'depot') renderDepot(); else renderMore();
   }
   document.querySelectorAll('nav button').forEach((b) => { b.onclick = () => { tab = b.dataset.tab; showTab(); }; });
 
@@ -704,7 +767,7 @@
   function welcome(rep) {
     if (rep.away < 60) return;
     let h = '<h3>Welcome back, ' + esc(S.name) + '</h3><div class="sb">You were away ' + V.fmtTime(rep.away) + '.' + (rep.capped ? ' Production counts up to ' + V.fmtTime(rep.cap) + ' (raise it in Research).' : '') + '</div>' +
-      '<div class="panel" style="margin-top:10px"><div class="kv"><span>Alloy produced</span><span style="color:var(--amber)">+' + V.fmt(rep.alloy) + '</span>' + (rep.patrolCores ? '<span>AI Cores from patrol</span><span style="color:var(--cyan)">+' + V.fmt(rep.patrolCores) + '</span>' : '') + (rep.patrolCredits ? '<span>Patrol on stage ' + S.combat.best + ' (' + V.fmt(rep.patrolWins) + ' fights, half pay)</span><span style="color:var(--amber)">+' + V.fmt(rep.patrolCredits) + ' Cr</span>' : '') + (rep.levelUp ? '<span>Foundry upgrade done</span><span style="color:var(--good)">Level ' + rep.levelUp + '</span>' : '') + '</div></div>';
+      '<div class="panel" style="margin-top:10px"><div class="kv"><span>Alloy produced</span><span style="color:var(--amber)">+' + V.fmt(rep.alloy) + '</span>' + (rep.patrolCores ? '<span>AI Cores from patrol</span><span style="color:var(--cyan)">+' + V.fmt(rep.patrolCores) + '</span>' : '') + (rep.patrolCredits ? '<span>Patrol on stage ' + S.combat.best + ' (' + V.fmt(rep.patrolWins) + ' fights, half pay)</span><span style="color:var(--amber)">+' + V.fmt(rep.patrolCredits) + ' Cr</span>' : '') + (rep.levelUp ? '<span>Forge upgrade done</span><span style="color:var(--good)">Level ' + rep.levelUp + '</span>' : '') + '</div></div>';
     modal(h);
   }
   let lastSave = 0;
@@ -715,7 +778,7 @@
     V.earn(S, dt);
     const td = V.checkTech(S, now); if (td) { buzz([30, 30]); toast('<b>Research done</b><br>' + TECH_NAME[td] + ' · ' + V.techNode(td).text(V.rLevel(S, td))); save(); refresh(); }
     const lv = V.checkUpgrade(S, now);
-    if (lv) { buzz([40, 40, 40]); toast('<b>Foundry upgraded to level ' + lv + '</b>'); save(); refresh(); return; }
+    if (lv) { buzz([40, 40, 40]); toast('<b>Forge upgraded to level ' + lv + '</b>'); save(); refresh(); return; }
     if (now - lastSave > 5000) { lastSave = now; save(); }
     live();
   }
@@ -727,7 +790,7 @@
     read: () => { try { return localStorage.getItem(KEY); } catch (e) { return null; } },
     write: (s) => { window.vsNoSave = true; try { localStorage.setItem(KEY, s); } catch (e) { /* ignore */ } },
     score: (s) => { try { const o = JSON.parse(s), t = o.stats || {}; return (t.seconds || 0) + (t.forged || 0); } catch (e) { return 0; } },
-    describe: (s) => { try { const o = JSON.parse(s); return 'Foundry ' + ((o.forge && o.forge.level) || 1) + ', stage ' + V.stageLabel(Math.max(1, (o.combat && o.combat.best) || 1)) + ', commander ' + ((o.cmd && o.cmd.level) || 1); } catch (e) { return 'empty'; } }
+    describe: (s) => { try { const o = JSON.parse(s); return 'Forge ' + ((o.forge && o.forge.level) || 1) + ', stage ' + V.stageLabel(Math.max(1, (o.combat && o.combat.best) || 1)) + ', commander ' + ((o.cmd && o.cmd.level) || 1); } catch (e) { return 'empty'; } }
   });
   const rep = V.offline(S, Date.now());
   S.last = Date.now(); save();
