@@ -4,7 +4,7 @@
   'use strict';
 
   /* ===================== TABLES (tune the game here) ===================== */
-  const XP_C = 60, XP_P = 1.48;   // commander XP curve: need(L) = 60 x L^1.48
+  const XP_C = 16.9, XP_P = 1.48;   // commander XP curve: need(L) = 16.9 x L^1.48 (500 levels in about the time 300 used to take)
   const CFG = {
     NAME: 'Voidsmith',
     SAVE_VERSION: 1,
@@ -22,7 +22,7 @@
     INSTALL: (L) => FM_NODES[Math.min(FM_NODES.length, L) - 1],   // payments to go from L to L+1 = the original's 'No. of Nodes' on its row for level L+1; each payment costs the row's Cost, the timer starts after the last
     PAY_X: 0.27,                 // size of one payment against the old single price
     UPGRADE_SECONDS: (L) => Math.max(1, Math.round(FM_TIME[Math.min(FM_TIME.length, L) - 1] * CFG.TIME_SLOW)),   // wait to go from L to L+1: the original's Time on its row for level L+1, 1.5x longer
-    LEVEL_GROWTH: 1.0175,        // each gear level makes a part this much stronger
+    LEVEL_GROWTH: 1.0095,        // each gear level makes a part this much stronger
     GEAR_SPREAD: 2,             // a new part is made at your commander level, give or take this many levels (never below 1 or above the max commander level)
     SELL_LEVEL: 0.0016,         // a part sells for 0.16% more per gear level (tier sets the base: Rusted 1 .. Apex 40)
     COLLECT_LOCK_MS: 5000,      // after you collect, the button stays locked this long
@@ -41,21 +41,23 @@
     DAILY_ATTEMPTS: 3, DAILY_SCALE: 0.75,                            // each daily ladder: tries per day, and how hard its enemies are compared with the campaign
     ARENA_ATTEMPTS: 5, LEAGUE_LP: [0, 100, 250, 500, 900, 1500, 2500], SHOP_LIMIT: 2,
     CLAN_TARGET: 100, CLAN_STEPS: [25, 50, 75, 100], CLAN_WIN_POINTS: 8,
-    SWEEP_MAX: 4, SWEEP_REGEN_S: 7200, SWEEP_ADS: 2,                 // sweep tickets: 1 every 2 hours up to 4, plus 2 bonus tickets a day from ads (resets at midnight UTC)
+    SWEEP_MAX: 4, SWEEP_REGEN_S: 7200, SWEEP_ADS: 2,                 // sweep tickets: 1 every 120 minutes up to 4, plus 2 bonus tickets a day from ads (resets at midnight UTC)
     XP_TIER: [10, 10, 20, 20, 20, 30, 40, 50, 60, 70],               // commander XP per part forged, by tier
-    XP_NEED: (L) => Math.round(XP_C * Math.pow(L, XP_P)),             // XP to go from level L to L+1 (300 levels, about a year for a casual player)
-    LEVEL_MAX: 300, LEVEL_BONUS: 0.003, RANK_BONUS: 0.015, RANK_LEVELS: 20, RENAME_FLUX: 50, AVATARS: 12,                               // each commander level adds this to Damage and Hull
+    XP_NEED: (L) => Math.round(XP_C * Math.pow(L, XP_P)),             // XP to go from level L to L+1 (500 levels, about a year for a casual player)
+    LEVEL_MAX: 500, LEVEL_BONUS: 0.0018, RANK_BONUS: 0.009, RANK_LEVELS: 20, RENAME_FLUX: 50, AVATARS: 12,                               // each commander level adds this to Damage and Hull
     FIGHT_SECONDS: 12,           // how long a fight takes (also sets the offline Credit rate)
     CRIT_CHANCE: 0, CRIT_MULT: 1, OVERCHARGE_EVERY: 4, OVERCHARGE_MULT: 1,   // no built-in crit or overcharge: they come only from bonus lines on your parts (1 = no effect)
     ENEMY_CRIT_MULT: 1.5,
     RUSH_SECONDS_PER_FLUX: 300, // 1 Flux finishes 5 minutes of Foundry waiting
     SUB_COUNT: [0, 0, 1, 1, 1, 1, 2, 2, 2, 2],       // bonus lines a part rolls, by tier
-    CORE_FIRST: 3, CORE_BOSS: 15, CORE_DROP: 0,   // AI Cores: first clears, boss first clears, chance per win
-    SUMMON_COST: 30, SUMMON10_COST: 270, FUSE_NEED: 3,
-    BAY_STEP: 25, BAY_MAX: 20, WING_SLOTS: 3,
-    RANK_F: [1, 1.5, 2.2, 3.2, 4.6, 6.5],            // companion strength by rank
-    SUMMON_BASE: [70, 24, 5, 0.9, 0.1, 0],           // rank odds at Summon Bay level 1
-    SUMMON_SHIFT: 0.14                               // each Bay level makes higher ranks this much likelier
+    // Drones (see the DRONES section)
+    SUMMON_COST: 30, SUMMON_COUNT: 3, FREE_SUMMONS: 3,        // one summon = 3 drones; 3 free ones a day (each after an ad)
+    DRONE_ODDS: [55, 29, 12, 3.5, 0.5],                        // % chance of N, R, SR, SSR, UR for each of the 3 drones
+    STAR_MAX: 10, DRONE_LEVEL_MAX: 60, DRONE_COST0: 500, DRONE_COST_G: 1.043,   // Nanites for the next level: 500 at first, +4.3% each level
+    DRONE_RESET_FLUX: 10, DRONE_POWER: 0.7,                    // resetting a drone's level costs Flux and refunds every Nanite; DRONE_POWER scales ability damage and repair (tuned with tests/sim.js)
+    LINK_BASE: 0.5, LINK_STEP: 0.1, LINK_STAR_STEP: 5,         // Link: owning all N drones gives 0.5% x N, then 0.1% x N for every 5 total stars (up to 2N times)
+    ARMOR_PER_DEF: 0.2, ARMOR_MAX: 0.6,                        // 'Defense' from drones is damage reduction: 1/5 of the percent, up to 60% in total
+    NANITE_RAID: 200, NANITE_RAID_G: 1.0125                    // Drone Hangar: Nanites for a win at ladder stage n = 200 x 1.0125^(n-1)
   };
 
   // 4 weapon-type slots add Damage, 4 hull-type slots add Hull.
@@ -134,19 +136,6 @@
   // every bonus line can roll on any part (as in the reference games): purely random
   const SLOT_SUBS = {}; ['cannon', 'pod', 'array', 'coil', 'plating', 'bulkhead', 'emitter', 'spar'].forEach((id) => { SLOT_SUBS[id] = SUB_KEYS.slice(); });
 
-  // Wing: companion ships that act in turn order. Rank 0-5.
-  const RANKS = ['Recruit', 'Veteran', 'Elite', 'Ace', 'Legend', 'Paragon'];
-  const RANK_COLORS = ['#9a8672', '#6fcf6f', '#4aa3ff', '#b27cff', '#ff5ec4', '#ffb02e'];
-  const SPECIES = [
-    { id: 'hornet',  name: 'Hornet',  role: 'Gunner',  speed: 110, glyph: '➤', blurb: 'Fires fast. Hits for {a}% of your ship damage.',   a: 30 },
-    { id: 'longbow', name: 'Longbow', role: 'Sniper',  speed: 70,  glyph: '⌖', blurb: 'Slow, heavy shot. {a}% of your damage, ignores armor.', a: 80 },
-    { id: 'mender',  name: 'Mender',  role: 'Medic',   speed: 90,  glyph: '✚', blurb: 'Repairs your hull for {a}% of its maximum.',        a: 5 },
-    { id: 'aegis',   name: 'Aegis',   role: 'Shield',  speed: 85,  glyph: '◈', blurb: 'Adds a shield worth {a}% of your hull (up to 60%).', a: 10 },
-    { id: 'static',  name: 'Static',  role: 'Jammer',  speed: 95,  glyph: '≋', blurb: 'Slows the enemy by {a}% for its next two turns.',   a: 25 },
-    { id: 'surge',   name: 'Surge',   role: 'Amp',     speed: 90,  glyph: '⚡', blurb: 'Your next shot deals +{a}% damage.',                a: 50 }
-  ];
-
-
   /* ===================== FORGE MASTER MATH (35 levels), resampled to our 25 Foundry levels ===================== */
   // Chance of each tier (Primitive..Divine in the original, Rusted..Apex here) at each of the 35 original forge levels, in percent.
   const FM_ODDS = [[100],[99,1],[98,2],[96,4],[91.5,8,0.5],[82,16,2],[64,32,4],[27.8,64,8,0.2],[13,70,16,1],[6,60,32,2],[0,31.9,64,4,0.1],[0,27.5,64,8,0.5],[0,8,75,16,1],[0,0,66,32,2,0.05],[0,0,31.7,64,4,0.25],[0,0,21.5,70,8,0.5],[0,0,0,82.9,16,1,0.05],[0,0,0,65.7,32,2,0.25],[0,0,0,31.5,64,4,0.5],[0,0,0,0,91,8,1,0.05],[0,0,0,0,81.7,16,2,0.25],[0,0,0,0,63.5,32,4,0.5],[0,0,0,0,27,64,8,1],[0,0,0,0,0,82,16,2,0.02],[0,0,0,0,0,64,32,4,0.05],[0,0,0,0,0,43.8,50,6,0.25],[0,0,0,0,0,31.5,60,8,0.5],[0,0,0,0,0,21,65,13,1],[0,0,0,0,0,6.99,68,23,2,0.02],[0,0,0,0,0,0,60,36,4,0.05],[0,0,0,0,0,0,50.8,43,6,0.25],[0,0,0,0,0,0,41.5,50,8,0.5],[0,0,0,0,0,0,28,58,13,1],[0,0,0,0,0,0,11,64,23,2],[0,0,0,0,0,0,0,60,36,4]];
@@ -215,12 +204,12 @@
       v: CFG.SAVE_VERSION, name: 'Commander', avatar: 0, renames: 0, created: now, last: now,
       alloy: CFG.START_ALLOY, credits: 0, shards: 0, stock: { alloy: 0, credits: 0, lock: 0 },
       cmd: { level: 1, xp: 0, rank: 0 }, research: {}, tech: null, sweep: { tickets: CFG.SWEEP_MAX, at: now, day: '', ads: 0 },
-      medals: 0, ladders: { alloy: 0, shards: 0, cores: 0 }, daily: { day: '', att: {}, arena: 0, shop: {}, clan: [], clanPts: 0, gift: false, deals: {}, ads: {} }, noAds: false, arena: { lp: 0, opp: [], seed: 0 }, clan: null,
+      medals: 0, ladders: { alloy: 0, shards: 0, cores: 0, nanites: 0 }, daily: { day: '', att: {}, arena: 0, arenaX: 0, shop: {}, fstore: {}, dsum: 0, clan: [], clanPts: 0, gift: false, deals: {}, ads: {} }, noAds: false, arena: { lp: 0, opp: [], seed: 0 }, clan: null,
       forge: { level: 1, upgrade: null, paid: 0 },
       gear, held: [], codex: {}, quests: {},
       combat: { stage: 1, best: 0, push: true, speed: 1 }, flux: 0,
-      stats: { fused: 0, wins: 0, losses: 0, bosses: 0, forged: 0, sold: 0, equipped: 0, alloyEarned: 0, creditsEarned: 0, upgrades: 0, bestTier: 0, seconds: 0 },
-      cores: 0, wing: { owned: {}, active: [], summons: 0 },
+      stats: { fused: 0, summoned: 0, arena: 0, wins: 0, losses: 0, bosses: 0, forged: 0, sold: 0, equipped: 0, alloyEarned: 0, creditsEarned: 0, upgrades: 0, bestTier: 0, seconds: 0 },
+      cores: 0, nanites: 0, drones: { own: {}, active: '', summons: 0 },
       settings: { vibrate: true, auto: false, filter: [], filterMin: 1, autoTiers: [], autoSubs: [], runTiers: [] }
     };
   }
@@ -257,16 +246,35 @@
     out.sweep = Object.assign({ tickets: CFG.SWEEP_MAX, at: now, day: '', ads: 0 }, s.sweep || {});
     if (!isFinite(out.sweep.tickets) || out.sweep.tickets < 0) out.sweep.tickets = 0;
     if (!isFinite(out.medals) || out.medals < 0) out.medals = 0;
-    out.ladders = Object.assign({ alloy: 0, shards: 0, cores: 0 }, s.ladders || {});
+    out.ladders = Object.assign({ alloy: 0, shards: 0, cores: 0, nanites: 0 }, s.ladders || {});
     Object.keys(out.ladders).forEach((k) => { out.ladders[k] = clamp(Math.floor(out.ladders[k]) || 0, 0, CFG.MAX_STAGE); });
-    out.daily = Object.assign({ day: '', att: {}, arena: 0, shop: {}, clan: [], clanPts: 0, gift: false, deals: {}, ads: {} }, s.daily || {});
+    out.daily = Object.assign({ day: '', att: {}, arena: 0, arenaX: 0, shop: {}, fstore: {}, dsum: 0, clan: [], clanPts: 0, gift: false, deals: {}, ads: {} }, s.daily || {});
     out.noAds = !!out.noAds;
     out.arena = Object.assign({ lp: 0, opp: [], seed: 0 }, s.arena || {});
     if (!Array.isArray(out.arena.opp)) out.arena.opp = [];
     if (!out.clan || typeof out.clan !== 'object') out.clan = null;
     if (!isFinite(out.cores) || out.cores < 0) out.cores = 0;
-    out.wing = Object.assign({ owned: {}, active: [], summons: 0 }, s.wing || {});
-    if (!Array.isArray(out.wing.active)) out.wing.active = [];
+    if (!isFinite(out.nanites) || out.nanites < 0) out.nanites = 0;
+    out.drones = { own: {}, active: '', summons: Math.max(0, Math.floor(s.drones && s.drones.summons) || 0) };
+    if (s.drones && s.drones.own && typeof s.drones.own === 'object') {
+      Object.keys(s.drones.own).forEach((id) => {
+        const r = s.drones.own[id]; if (!DRONE_BY[id] || !r) return;
+        out.drones.own[id] = { s: clamp(Math.floor(r.s) || 0, 0, CFG.STAR_MAX), c: Math.max(0, Math.floor(r.c) || 0), l: clamp(Math.floor(r.l) || 1, 1, CFG.DRONE_LEVEL_MAX), p: Math.max(0, Math.floor(r.p) || 0) };
+      });
+      if (DRONE_BY[s.drones.active] && out.drones.own[s.drones.active]) out.drones.active = s.drones.active;
+    } else if (s.wing && s.wing.owned) {
+      // saves from before drones: every old companion becomes its drone, and fused ranks count as the copies they cost (3 per rank)
+      Object.keys(s.wing.owned).forEach((k) => {
+        const [sp, rank] = k.split(':').map(Number), id = OLD_WING[sp]; if (!DRONE_BY[id]) return;
+        const copies = Math.max(0, Math.floor(s.wing.owned[k]) || 0) * Math.pow(3, rank || 0); if (!copies) return;
+        const r = out.drones.own[id] || (out.drones.own[id] = { s: 0, c: -1, l: 1, p: 0 }); r.c += copies;
+      });
+      Object.keys(out.drones.own).forEach((id) => { const r = out.drones.own[id], total = r.c + 1, st = Math.min(CFG.STAR_MAX, total - 1); r.s = st; r.c = total - 1 - st; });
+      const first = s.wing.active && s.wing.active[0] ? OLD_WING[Number(String(s.wing.active[0]).split(':')[0])] : '';
+      out.drones.active = out.drones.own[first] ? first : (Object.keys(out.drones.own)[0] || '');
+    }
+    if (!out.drones.active) out.drones.active = Object.keys(out.drones.own)[0] || '';
+    delete out.wing;
     if (!Array.isArray(out.settings.filter)) out.settings.filter = [];
     ['autoTiers', 'autoSubs'].forEach((k) => { if (!Array.isArray(out.settings[k])) out.settings[k] = []; });
     if (!Array.isArray(out.settings.runTiers)) out.settings.runTiers = [];
@@ -299,13 +307,14 @@
   const TECH_GEMS = [[1, 1, 2, 5, 9, 18, 37, 74, 147, 162, 178, 196, 216, 237, 261, 287, 316, 347, 382, 420, 462, 508, 559, 615, 676], [1, 1, 2, 4, 8, 16, 32, 63, 126, 139, 153, 168, 185, 203, 224, 246, 270, 298, 327, 360, 396, 436, 479, 527, 580], [1, 1, 2, 3, 7, 14, 28, 55, 110, 121, 134, 147, 162, 178, 196, 215, 237, 260, 286, 315, 347, 381, 419, 461, 507], [1, 1, 2, 3, 6, 12, 25, 49, 98, 108, 119, 131, 144, 158, 174, 191, 210, 231, 255, 280, 308, 339, 373, 410, 451], [1, 1, 1, 3, 6, 12, 22, 44, 98, 97, 107, 118, 129, 142, 156, 172, 189, 208, 229, 252, 277, 305, 335, 369, 406]];
 
   /* ===================== COMMANDER, RANKS, RESEARCH ===================== */
-  const RANK_NAMES = ['Cadet', 'Ensign', 'Spacer', 'Lieutenant JG', 'Lieutenant', 'Lt. Commander', 'Commander', 'Captain', 'Commodore', 'Rear Admiral', 'Vice Admiral', 'Admiral', 'Fleet Admiral', 'Grand Admiral', 'Warlord'];
+  const RANK_FAMILIES = ['Cadet', 'Ensign', 'Lieutenant', 'Lieutenant Commander', 'Commander', 'Captain', 'Commodore', 'Rear Admiral'], NUMERALS = ['I', 'II', 'III'];
+  const RANK_NAMES = []; RANK_FAMILIES.forEach((f) => NUMERALS.forEach((n) => RANK_NAMES.push(f + ' ' + n))); RANK_NAMES.push('Fleet Admiral');   // 8 names x I-III, then Fleet Admiral: 25 ranks, 20 levels each = level 500
   // Every 20 levels is one rank. At the last level of a rank (20, 40, ...) the bar fills for the next level and you are promoted.
   const levelCap = (cmd) => Math.min(CFG.LEVEL_MAX, (cmd.rank + 1) * CFG.RANK_LEVELS);
   /* ----- the research tree: Forge Master's layout. Every node has 5 tiers (I-V) of 5 levels = 25 upgrades. ----- */
   // cls = which of the five cost tables it follows (T1 is the dearest). per = what one level gives, a little under Forge Master's.
-  const TECH_TIERS = 5, TECH_TIER_GATE = [1, 48, 100, 156, 210];     // commander level that opens tier I-V of a node
-  const BATCH_STEPS = [0, 2, 4, 6, 8, 9], BATCH_GATE = [18, 60, 114, 168, 225];   // Multi-Forge: one upgrade per tier, +2 parts each (+1 on the last), so 10 at once at the end
+  const TECH_TIERS = 5, TECH_TIER_GATE = [1, 80, 167, 260, 350];     // commander level that opens tier I-V of a node
+  const BATCH_STEPS = [0, 2, 4, 6, 8, 9], BATCH_GATE = [30, 100, 190, 280, 375];   // Multi-Forge: one upgrade per tier, +2 parts each (+1 on the last), so 10 at once at the end
   const TECH_BRANCHES = [{ id: 'forge', name: 'Forge' }, { id: 'power', name: 'Power' }, { id: 'fleet', name: 'Fleet' }];
   const pct = (n, p) => (n * p).toFixed(1).replace('.0', '') + '%';
   const TECH_NODES = [
@@ -330,10 +339,10 @@
     { id: 'techcst', branch: 'fleet', cls: 2, per: 1.6,   text: (n) => 'Research ' + pct(n, 1.6) + ' cheaper' },
     { id: 'odmg',    branch: 'fleet', cls: 2, per: 1.6,   text: (n) => 'Damage +' + pct(n, 1.6) },
     { id: 'ohull',   branch: 'fleet', cls: 2, per: 1.6,   text: (n) => 'Hull +' + pct(n, 1.6) },
-    { id: 'woff',    branch: 'fleet', cls: 3, per: 1.6,   text: (n) => 'Attack wingmen +' + pct(n, 1.6) },
-    { id: 'wsup',    branch: 'fleet', cls: 3, per: 1.6,   text: (n) => 'Support wingmen +' + pct(n, 1.6) },
+    { id: 'woff',    branch: 'fleet', cls: 3, per: 1.6,   text: (n) => 'Drone attacks +' + pct(n, 1.6) },
+    { id: 'wsup',    branch: 'fleet', cls: 3, per: 1.6,   text: (n) => 'Drone support +' + pct(n, 1.6) },
     { id: 'summon',  branch: 'fleet', cls: 4, per: 0.8,   text: (n) => 'Summons ' + pct(n, 0.8) + ' cheaper' },
-    { id: 'wtwin',   branch: 'fleet', cls: 4, per: 1.6,   text: (n) => pct(n, 1.6) + ' chance of a second companion' },
+    { id: 'wtwin',   branch: 'fleet', cls: 4, per: 1.6,   text: (n) => pct(n, 1.6) + ' chance of a bonus copy' },
     { id: 'heist',   branch: 'fleet', cls: 5, per: 1.6,   text: (n) => 'Data Heist Shards +' + pct(n, 1.6) },
     { id: 'convoy',  branch: 'fleet', cls: 5, per: 1.6,   text: (n) => 'Clan Convoy Cores +' + pct(n, 1.6) }
   ];
@@ -382,7 +391,8 @@
   function statBonus(state) {
     const lv = (1 + CFG.LEVEL_BONUS * (state.cmd.level - 1)) * (1 + CFG.RANK_BONUS * state.cmd.rank);
     const slotMul = {}; TECH_NODES.forEach((n) => { if (n.slot) slotMul[n.slot] = 1 + techBonus(state, n.id); });
-    return { dmg: lv * (1 + techBonus(state, 'odmg')), hull: lv * (1 + techBonus(state, 'ohull')), slotMul };
+    const db = droneBonus(state);
+    return { dmg: lv * (1 + techBonus(state, 'odmg')) * (1 + db.dmg), hull: lv * (1 + techBonus(state, 'ohull')) * (1 + db.hull), armor: db.armor, slotMul };
   }
   // forging XP: returns levels gained
   function levelLoop(state) {
@@ -397,7 +407,7 @@
   }
   function addXp(state, tier) { const x = (CFG.XP_TIER[tier] || 10) * 1; state.cmd.xp += x; state.stats.xpTotal = (state.stats.xpTotal || 0) + x; return levelLoop(state); }
   const atCap = (state) => state.cmd.level >= levelCap(state.cmd) && state.cmd.rank < RANK_NAMES.length - 1;
-  const rankReward = (k) => ({ flux: 10 * k, cores: 10 * k, shards: 2 * k });
+  const rankReward = (k) => ({ flux: 6 * k, cores: 6 * k, shards: Math.max(1, Math.round(1.2 * k)) });
   function canPromote(state) { return atCap(state) && state.cmd.xp >= CFG.XP_NEED(state.cmd.level); }
   function promote(state) {
     if (!canPromote(state)) return null;
@@ -473,6 +483,7 @@
     const sb = setBonus(gear), mul = (1 + sb.bonus) * (1 + codexB);
     dmg = dmg * mul * sbn.dmg; hull = hull * mul * sbn.hull;
     const raw = dmg + hull / 4, cs = gearCombat(gear);
+    if (sbn.armor) cs.armor = Math.min(CFG.ARMOR_MAX, cs.armor + sbn.armor);
     const bf = buildFactor(cs);
     return { dmg: Math.floor(dmg), hull: Math.floor(hull), power: Math.round(raw), raw, set: sb, codex: codexB, combat: cs, build: bf, rating: raw * bf };
   }
@@ -635,114 +646,285 @@
     const key = PATTERN[(stage % 10) - 1], f = FOES[key], nf = Math.sqrt(f.dm * f.hm / (1 - f.armor));   // nf: the type only reshapes the enemy (glass cannon vs tank); its total strength follows the curve, so every stage is harder than the one before
     return { stage, boss: false, type: key, name: sec.name + ' ' + f.name, pe, dmg: Math.max(1, Math.round(pe * ATK_SHARE * f.dm / nf)), hull: Math.max(5, Math.round(pe * HULL_SHARE * f.hm / nf)), speed: f.speed, armor: f.armor, crit: f.crit };
   }
-  /* ===================== WING (companions) ===================== */
-  const wingKey = (sp, rank) => sp + ':' + rank;
-  const parseKey = (k) => { const [sp, r] = k.split(':'); return { sp: +sp, rank: +r }; };
-  const bayLevel = (state) => Math.min(CFG.BAY_MAX, 1 + Math.floor(state.wing.summons / CFG.BAY_STEP));
-  function summonOdds(level) {
-    const w = CFG.SUMMON_BASE.map((x, r) => x * Math.pow(1 + CFG.SUMMON_SHIFT * (level - 1), r));
-    const sum = w.reduce((a, b) => a + b, 0); return w.map((x) => x / sum);
+  /* ===================== DRONES ===================== */
+  // One active drone fights beside your ship; you can own as many as you like. Rarity N..UR is fixed. A copy fused into a drone gives it a star (0-10).
+  // Every drone has 3 abilities that unlock and grow with stars. Each drone also gives all stats while it is the active one, and every drone belongs to one Link.
+  const D_RAR = ['N', 'R', 'SR', 'SSR', 'UR'];
+  const D_COLOR = ['#9aa5b5', '#4aa3ff', '#b27cff', '#ffb02e', '#ff5ec4'];
+  const D_BASE = [6, 8, 10, 13, 16], D_GAIN = [0.4, 0.5, 0.7, 0.9, 1.2], D_POW = [1, 1.1, 1.22, 1.45, 1.8];
+  const D_UNLOCK = [0, 3, 6];                                   // star that unlocks ability 1, 2, 3
+  const D_UPS = [[1, 4, 10], [5, 7, 10], [8, 10]];              // stars that upgrade ability 1, 2, 3
+  // fx: [type, amount, rounds-or-count, options]. See the engine in simulateFight.
+  const LINKS = [
+    { id: 1, name: 'Gun Line',      stat: 'attack',  ids: ['hornet', 'longbow', 'lancer', 'nova'] },
+    { id: 2, name: 'Field Hospital', stat: 'hull',   ids: ['mender', 'patch', 'tinker', 'aurora'] },
+    { id: 3, name: 'Bulwark',       stat: 'defense', ids: ['aegis', 'buckler', 'warden', 'bastion', 'leviathan'] },
+    { id: 4, name: 'Burn Crew',     stat: 'attack',  ids: ['flare', 'torch', 'inferno', 'phoenix'] },
+    { id: 5, name: 'Storm Cell',    stat: 'hull',    ids: ['sparker', 'static', 'arc', 'tempest'] },
+    { id: 6, name: 'Shadow Ops',    stat: 'defense', ids: ['tick', 'hex', 'phantom', 'oblivion'] },
+    { id: 7, name: 'Siege Battery', stat: 'hull',    ids: ['scrapper', 'mortar', 'salvo', 'titan'] },
+    { id: 8, name: 'Command',       stat: 'defense', ids: ['relay', 'surge', 'overlord', 'eclipse'] },
+    { id: 9, name: 'Hunter Pack',   stat: 'attack',  ids: ['rivet', 'siphon', 'nullifier', 'reaper'] }
+  ];
+  const DRONES = [
+    ['hornet', 'Hornet', 0, 'Gunner', [['Sting', 3, [['hit', 45]]], ['Swarm', 4, [['hit', 24, 0, { x: 3 }]]], ['Venom', 5, [['hit', 40], ['weaken', 15, 2]]]]],
+    ['rivet', 'Rivet', 0, 'Gunner', [['Rivet Burst', 3, [['hit', 26, 0, { x: 2 }]]], ['Overheat', 5, [['hit', 95]]], ['Ricochet', 6, [['hit', 90], ['hit', 45]]]]],
+    ['mender', 'Mender', 0, 'Medic', [['Patch Up', 3, [['heal', 8]]], ['Welding Beam', 4, [['regen', 3, 3]]], ['Emergency Fix', 6, [['heal', 10, 0, { low: [0.5, 2] }]]]]],
+    ['patch', 'Patch', 0, 'Medic', [['Quick Fix', 2, [['heal', 4]]], ['Hull Tape', 5, [['shield', 10]]], ['Spare Parts', 6, [['heal', 4], ['armor', 8, 2]]]]],
+    ['aegis', 'Aegis', 0, 'Shield', [['Barrier', 3, [['shield', 10]]], ['Reflect Plate', 5, [['shield', 8], ['reflect', 20, 2]]], ['Fortify', 6, [['shield', 20]]]]],
+    ['buckler', 'Buckler', 0, 'Shield', [['Block', 3, [['dodge', 1]]], ['Dent Guard', 5, [['guard', 20, 2]]], ['Counter Plate', 6, [['dodge', 1], ['hit', 60]]]]],
+    ['flare', 'Flare', 0, 'Decoy', [['Flare Burst', 4, [['blind', 50, 1]]], ['Smoke', 5, [['blind', 30, 2]]], ['Dazzle', 7, [['stun', 100, 1]]]]],
+    ['sparker', 'Sparker', 0, 'Pulse', [['Zap', 3, [['hit', 42]]], ['Static Cling', 5, [['hit', 30], ['slow', 25, 2]]], ['Overload', 6, [['hit', 50, 0, { x: 2 }]]]]],
+    ['tick', 'Tick', 0, 'Mine-layer', [['Drop Mine', 3, [['mine', 55, 1]]], ['Sticky Mine', 5, [['mine', 45, 1], ['slow', 25, 2]]], ['Minefield', 6, [['mine', 50, 2]]]]],
+    ['scrapper', 'Scrapper', 0, 'Gunner', [['Ram', 3, [['hit', 45]]], ['Pile Driver', 5, [['hit', 95]]], ['Scrap Armor', 6, [['hit', 50], ['armor', 8, 3]]]]],
+    ['longbow', 'Longbow', 1, 'Sniper', [['Long Shot', 4, [['hit', 75, 0, { pierce: 1 }]]], ['Steady Aim', 5, [['crit', 30, 2]]], ['Headshot', 6, [['hit', 80, 0, { low: [0.5, 2.2] }]]]]],
+    ['tinker', 'Tinker', 1, 'Mechanic', [['Tune-Up', 4, [['amp', 25, 2]]], ['Field Repair', 4, [['heal', 7]]], ['Overclock', 6, [['amp', 30, 2], ['heal', 7]]]]],
+    ['warden', 'Warden', 1, 'Anchor', [['Guard Stance', 4, [['guard', 25, 2]]], ['Taunt', 5, [['weaken', 20, 3]]], ['Iron Wall', 7, [['shield', 12], ['guard', 25, 2]]]]],
+    ['torch', 'Torch', 1, 'Burner', [['Ignite', 3, [['burn', 12, 3]]], ['Hot Streak', 5, [['burn', 20, 3]]], ['Flashpoint', 6, [['expose', 20, 3], ['burn', 10, 3]]]]],
+    ['static', 'Static', 1, 'Jammer', [['Jam', 4, [['slow', 30, 2]]], ['Feedback', 5, [['slow', 20, 2], ['hit', 55]]], ['Blackout', 7, [['stun', 100, 1]]]]],
+    ['hex', 'Hex', 1, 'Saboteur', [['Hex', 4, [['weaken', 22, 3]]], ['Corrode', 5, [['break', 40, 3]]], ['Curse', 7, [['weaken', 22, 4], ['break', 30, 4]]]]],
+    ['mortar', 'Mortar', 1, 'Bomber', [['Shell', 4, [['hit', 80]]], ['Cluster', 5, [['hit', 30, 0, { x: 3 }]]], ['Bunker Buster', 6, [['hit', 90, 0, { pierce: 1 }]]]]],
+    ['relay', 'Relay', 1, 'Amp', [['Boost Signal', 4, [['amp', 25, 2]]], ['Crit Beacon', 5, [['crit', 25, 3]]], ['Command Link', 7, [['amp', 20, 3], ['crit', 15, 3]]]]],
+    ['siphon', 'Siphon', 1, 'Leech', [['Drain', 4, [['hit', 50, 0, { drain: 0.5 }]]], ['Leech Field', 5, [['leech', 12, 3]]], ['Overdrain', 7, [['hit', 90, 0, { drain: 0.6 }]]]]],
+    ['lancer', 'Lancer', 2, 'Sniper', [['Piercing Lance', 4, [['hit', 70, 0, { pierce: 1 }]]], ['Overpenetrate', 5, [['hit', 60, 0, { pierce: 1 }], ['hit', 30, 0, { pierce: 1 }]]], ['Marked Kill', 6, [['expose', 25, 3]]]]],
+    ['bastion', 'Bastion', 2, 'Shield', [['Bastion Field', 4, [['shield', 22]]], ['Hardened', 5, [['shield', 12], ['armor', 10, 3]]], ['Last Stand', 6, [['shield', 18, 0, { low: [0.4, 2] }]]]]],
+    ['inferno', 'Inferno', 2, 'Burner', [['Firestorm', 4, [['burn', 18, 4]]], ['Fuel', 5, [['burn', 12, 3], ['leech', 15, 3]]], ['Meltdown', 7, [['hit', 120], ['burn', 15, 3]]]]],
+    ['arc', 'Arc', 2, 'Pulse', [['Arc Bolt', 4, [['hit', 32, 0, { x: 3 }]]], ['Conduct', 5, [['hit', 35, 0, { x: 3 }], ['slow', 15, 1]]], ['Chain Lightning', 7, [['hit', 30, 0, { x: 5 }]]]]],
+    ['phantom', 'Phantom', 2, 'Decoy', [['Ghost Step', 4, [['dodge', 1]]], ['Afterimage', 5, [['dodge', 1], ['hit', 60]]], ['Vanish', 7, [['dodge', 2]]]]],
+    ['salvo', 'Salvo', 2, 'Bomber', [['Missile Volley', 4, [['hit', 24, 0, { x: 3 }]]], ['Homing', 5, [['hit', 26, 0, { x: 3 }], ['crit', 25, 1]]], ['Full Salvo', 7, [['hit', 20, 0, { x: 6 }]]]]],
+    ['surge', 'Surge', 2, 'Amp', [['Surge', 4, [['amp', 45, 1]]], ['Overcharge', 5, [['amp', 35, 2], ['crit', 15, 2]]], ['Power Spike', 7, [['amp', 45, 2]]]]],
+    ['nullifier', 'Nullifier', 2, 'Jammer', [['Null Pulse', 4, [['stun', 35, 1]]], ['Suppress', 5, [['weaken', 25, 3]]], ['Lockdown', 7, [['stun', 100, 1]]]]],
+    ['reaper', 'Reaper', 3, 'Executioner', [['Cull', 4, [['hit', 70, 0, { grow: 1 }]]], ['Harvest', 5, [['hit', 40], ['leech', 30, 2]]], ['Final Verdict', 7, [['hit', 90, 0, { low: [0.2, 4] }]]]]],
+    ['aurora', 'Aurora', 3, 'Medic', [['Aurora Mend', 4, [['heal', 18]]], ['Regen Veil', 5, [['regen', 6, 3]]], ['Second Dawn', 0, [['revive', 30]]]]],
+    ['tempest', 'Tempest', 3, 'Pulse', [['Storm Surge', 4, [['hit', 85]]], ['Thunderhead', 5, [['hit', 40], ['stun', 30, 1]]], ['Tempest Fury', 7, [['hit', 30, 0, { x: 5, rise: 1 }]]]]],
+    ['eclipse', 'Eclipse', 3, 'Saboteur', [['Eclipse', 4, [['weaken', 25, 3], ['blind', 25, 3]]], ['Dark Pull', 5, [['weaken', 20, 3], ['amp', 20, 3]]], ['Total Eclipse', 7, [['stun', 100, 1], ['weaken', 25, 3]]]]],
+    ['titan', 'Titan', 3, 'Anchor', [['Titan Slam', 4, [['hit', 80], ['stun', 25, 1]]], ['Armor Plating', 5, [['guard', 25, 3]]], ['Colossus', 7, [['hit', 55, 0, { x: 2 }], ['shield', 14]]]]],
+    ['overlord', 'Overlord', 3, 'Overseer', [['Decree', 4, [['amp', 22, 3], ['armor', 8, 3]]], ['Mandate', 5, [['guard', 20, 3], ['amp', 15, 3]]], ['Supreme Order', 7, [['hit', 80], ['amp', 25, 3]]]]],
+    ['phoenix', 'Phoenix', 4, 'Rebirth', [['Ember Strike', 3, [['hit', 50], ['burn', 12, 2]]], ['Rekindle', 5, [['burn', 15, 3], ['regen', 3, 3]]], ['Rebirth', 0, [['revive', 40]]]]],
+    ['nova', 'Nova', 4, 'Striker', [['Nova Burst', 4, [['hit', 110]]], ['Supernova', 5, [['hit', 60], ['burn', 15, 3]]], ['Collapse', 7, [['hit', 120, 0, { pierce: 1 }], ['stun', 100, 1]]]]],
+    ['leviathan', 'Leviathan', 4, 'Guardian', [['Deep Shield', 4, [['shield', 28]]], ['Tidal Repair', 5, [['heal', 12], ['shield', 12]]], ['Abyss Guard', 7, [['dodge', 2], ['shield', 20]]]]],
+    ['oblivion', 'Oblivion', 4, 'Voidbreaker', [['Void Rend', 4, [['hit', 85, 0, { pierce: 1, grow: 1 }]]], ['Erase', 5, [['weaken', 30, 4]]], ['Oblivion', 7, [['hit', 110, 0, { low: [0.15, 3] }]]]]]
+  ].map((d) => ({ id: d[0], name: d[1], rar: d[2], role: d[3], abil: d[4].map((a) => ({ name: a[0], cd: a[1], fx: a[2] })) }));
+  const DRONE_BY = {}; DRONES.forEach((d) => { DRONE_BY[d.id] = d; });
+  const LINK_OF = {}; LINKS.forEach((L) => L.ids.forEach((id) => { LINK_OF[id] = L; }));
+  // old Wing species -> drone id (for saves from before drones)
+  const OLD_WING = ['hornet', 'longbow', 'mender', 'aegis', 'static', 'surge'];
+
+  const droneRec = (state, id) => state.drones.own[id] || null;
+  const droneStat = (d, lvl) => D_BASE[d.rar] + D_GAIN[d.rar] * (lvl - 1);                // % to all stats at this level
+  const levelCost = (lvl) => Math.round(CFG.DRONE_COST0 * Math.pow(CFG.DRONE_COST_G, lvl - 1));   // Nanites to go from lvl to lvl+1
+  // ability levels for a star count: 0 = still locked
+  function abilityLevels(stars) { return [0, 1, 2].map((i) => stars < D_UNLOCK[i] ? 0 : 1 + D_UPS[i].filter((u) => stars >= u).length); }
+  const abilityScale = (lvl) => 1 + 0.22 * (lvl - 1);
+  const HIT_TYPES = ['hit', 'burn', 'mine'], SUPPORT_TYPES = ['heal', 'shield', 'regen', 'guard', 'armor', 'reflect', 'leech'];
+  const POWER_TYPES = ['hit', 'burn', 'mine', 'heal', 'shield', 'regen'];
+  // the abilities a drone has right now, with every number worked out (this is what combat uses)
+  function droneAbilities(state, id) {
+    const d = DRONE_BY[id], rec = droneRec(state, id); if (!d || !rec) return [];
+    const lv = abilityLevels(rec.s), out = [];
+    const woff = 1 + techBonus(state, 'woff'), wsup = 1 + techBonus(state, 'wsup');
+    d.abil.forEach((a, i) => {
+      if (!lv[i]) return;
+      const s = abilityScale(lv[i]) * D_POW[d.rar];
+      out.push({ name: a.name, cd: a.cd, level: lv[i], fx: a.fx.map((f) => {
+        let v = f[1];
+        if (f[0] !== 'dodge') v = v * s * (POWER_TYPES.includes(f[0]) ? CFG.DRONE_POWER : 1) * (HIT_TYPES.includes(f[0]) ? woff : SUPPORT_TYPES.includes(f[0]) ? wsup : 1);
+        return { t: f[0], a: v, b: f[2] || 0, o: f[3] || {} };
+      }) });
+    });
+    return out;
   }
-  function usedInWing(state, key) { return state.wing.active.filter((k) => k === key).length; }
-  function trimWing(state) {
-    const seen = {}, keep = [];
-    state.wing.active.forEach((k) => { seen[k] = (seen[k] || 0) + 1; if (seen[k] <= (state.wing.owned[k] || 0)) keep.push(k); });
-    state.wing.active = keep;
+  // plain-words line for one effect (numbers already worked out)
+  function describeFx(f) {
+    const n = (x) => Math.round(x * 10) / 10, o = f.o || {}, x = o.x ? ' ×' + o.x : '';
+    switch (f.t) {
+      case 'hit': return 'Hit ' + n(f.a) + '%' + x + (o.pierce ? ', ignores armor' : '') + (o.grow ? ', more as the enemy weakens' : '') + (o.low ? ', ×' + o.low[1] + ' under ' + Math.round(o.low[0] * 100) + '% hull' : '') + (o.drain ? ', heals you' : '') + (o.rise ? ', rising' : '');
+      case 'heal': return 'Repair ' + n(f.a) + '% hull' + (o.low ? ', ×' + o.low[1] + ' below ' + Math.round(o.low[0] * 100) + '% hull' : '');
+      case 'shield': return 'Shield ' + n(f.a) + '% hull' + (o.low ? ', ×' + o.low[1] + ' below ' + Math.round(o.low[0] * 100) + '% hull' : '');
+      case 'regen': return 'Repair ' + n(f.a) + '% hull a round for ' + f.b;
+      case 'guard': return 'Take ' + n(Math.min(70, f.a)) + '% less for ' + f.b + ' rounds';
+      case 'weaken': return 'Enemy hits ' + n(Math.min(60, f.a)) + '% weaker for ' + f.b;
+      case 'expose': return 'Enemy takes ' + n(f.a) + '% more for ' + f.b;
+      case 'break': return 'Enemy armor −' + n(Math.min(90, f.a)) + '% for ' + f.b;
+      case 'stun': return (f.a >= 99.5 ? 'Stun' : n(Math.min(100, f.a)) + '% to stun') + ' ' + f.b + (f.b > 1 ? ' turns' : ' turn');
+      case 'slow': return 'Slow enemy ' + n(Math.min(90, f.a)) + '% for ' + f.b;
+      case 'burn': return 'Burn ' + n(f.a) + '% a round for ' + f.b;
+      case 'amp': return 'Your damage +' + n(f.a) + '% for ' + f.b + (f.b > 1 ? ' shots' : ' shot');
+      case 'crit': return 'Crit chance +' + n(f.a) + '% for ' + f.b;
+      case 'dodge': return 'Dodge the next ' + (f.a > 1 ? f.a + ' hits' : 'hit');
+      case 'blind': return 'Enemy misses ' + n(Math.min(90, f.a)) + '% for ' + f.b;
+      case 'mine': return 'Mine: ' + n(f.a) + '% when it attacks' + (f.b > 1 ? ' ×' + f.b : '');
+      case 'reflect': return 'Reflect ' + n(f.a) + '% for ' + f.b;
+      case 'leech': return 'Heal ' + n(f.a) + '% of your damage for ' + f.b;
+      case 'armor': return 'Armor +' + n(f.a) + '% for ' + f.b;
+      case 'revive': return 'Once per fight, come back at ' + n(Math.min(90, f.a)) + '% hull';
+    }
+    return '';
   }
-  function summon(state, n, rng) {
-    const cost = Math.ceil((n === 10 ? CFG.SUMMON10_COST : CFG.SUMMON_COST * n) * (1 - techBonus(state, 'summon')));
-    if (state.cores < cost) return { ok: false, reason: 'cores' };
-    state.cores -= cost; const got = [];
-    for (let i = 0; i < n; i++) {
-      const odds = summonOdds(bayLevel(state)); let r = rng(), rank = 0;
-      for (let k = 0; k < odds.length; k++) { r -= odds[k]; if (r <= 0) { rank = k; break; } rank = k; }
-      const sp = Math.floor(rng() * SPECIES.length) % SPECIES.length, key = wingKey(sp, rank);
+  const describeAbility = (a) => a.fx.map(describeFx).join(' · ') + (a.cd ? ' · every ' + a.cd + ' rounds' : '');
+
+  // ---- Links: owning every drone of a set gives a small permanent bonus; total stars across the set raise it
+  function linkInfo(state, L) {
+    const own = L.ids.filter((id) => droneRec(state, id)), stars = own.reduce((s, id) => s + droneRec(state, id).s, 0), n = L.ids.length;
+    const all = own.length === n, steps = all ? Math.min(2 * n, Math.floor(stars / CFG.LINK_STAR_STEP)) : 0;
+    const bonus = all ? CFG.LINK_BASE * n + CFG.LINK_STEP * n * steps : 0;
+    return { link: L, owned: own.length, size: n, stars, all, steps, maxSteps: 2 * n, bonus, next: all && steps < 2 * n ? (steps + 1) * CFG.LINK_STAR_STEP : 0, max: CFG.LINK_BASE * n + CFG.LINK_STEP * n * 2 * n };
+  }
+  // all stat bonuses from drones, as fractions: { dmg, hull, armor }
+  function droneBonus(state) {
+    const out = { dmg: 0, hull: 0, armor: 0 }, add = (stat, pct) => {
+      if (stat === 'attack') out.dmg += pct / 100; else if (stat === 'hull') out.hull += pct / 100; else out.armor += pct / 100 * CFG.ARMOR_PER_DEF;
+    };
+    if (!state.drones) return out;
+    const a = state.drones.active, rec = a && droneRec(state, a);
+    if (rec) { const p = droneStat(DRONE_BY[a], rec.l); out.dmg += p / 100; out.hull += p / 100; out.armor += p / 100 * CFG.ARMOR_PER_DEF; }
+    LINKS.forEach((L) => { const i = linkInfo(state, L); if (i.bonus) add(L.stat, i.bonus); });
+    return out;
+  }
+  // ---- Summoning: 3 drones at a time. Rarity is rolled for each, then a drone of that rarity.
+  const summonCost = (state) => Math.ceil(CFG.SUMMON_COST * (1 - techBonus(state, 'summon')));
+  const freeSummonsLeft = (state, now) => { rollDaily(state, now); return CFG.FREE_SUMMONS - (state.daily.dsum || 0); };
+  function giveDrone(state, id, n) {
+    const r = state.drones.own[id];
+    if (!r) { state.drones.own[id] = { s: 0, c: n - 1, l: 1, p: 0 }; if (!state.drones.active) state.drones.active = id; return true; }
+    r.c += n; return false;
+  }
+  function summonRoll(state, rng) {
+    const got = [];
+    for (let i = 0; i < CFG.SUMMON_COUNT; i++) {
+      let r = rng() * CFG.DRONE_ODDS.reduce((a, b) => a + b, 0), rar = 0;
+      for (let k = 0; k < CFG.DRONE_ODDS.length; k++) { r -= CFG.DRONE_ODDS[k]; if (r <= 0) { rar = k; break; } rar = k; }
+      const pool = DRONES.filter((d) => d.rar === rar), d = pool[Math.floor(rng() * pool.length) % pool.length];
       const copies = rng() < techBonus(state, 'wtwin') ? 2 : 1;
-      state.wing.owned[key] = (state.wing.owned[key] || 0) + copies; state.wing.summons++; got.push({ sp, rank });
+      got.push({ id: d.id, rar, isNew: giveDrone(state, d.id, copies), copies });
     }
-    // fill empty wing slots automatically with the first companions you ever get
-    got.forEach((g) => { if (state.wing.active.length < CFG.WING_SLOTS) state.wing.active.push(wingKey(g.sp, g.rank)); });
-    return { ok: true, got };
+    state.drones.summons++; state.stats.summoned = (state.stats.summoned || 0) + got.length;
+    return got;
   }
-  function assign(state, key) {
-    if (state.wing.active.length >= CFG.WING_SLOTS) return false;
-    if (usedInWing(state, key) >= (state.wing.owned[key] || 0)) return false;
-    state.wing.active.push(key); return true;
+  function summon(state, rng) {
+    const cost = summonCost(state);
+    if (state.cores < cost) return { ok: false, reason: 'cores' };
+    state.cores -= cost; return { ok: true, got: summonRoll(state, rng) };
   }
-  function unassign(state, i) { if (i < 0 || i >= state.wing.active.length) return false; state.wing.active.splice(i, 1); return true; }
-  function canFuse(state, key) { const p = parseKey(key); return (state.wing.owned[key] || 0) >= CFG.FUSE_NEED && p.rank < RANKS.length - 1; }
-  function fuse(state, key) {
-    if (!canFuse(state, key)) return false;
-    const p = parseKey(key), up = wingKey(p.sp, p.rank + 1);
-    state.wing.owned[key] -= CFG.FUSE_NEED; if (state.wing.owned[key] <= 0) delete state.wing.owned[key];
-    state.wing.owned[up] = (state.wing.owned[up] || 0) + 1; state.stats.fused++;
-    trimWing(state); return up;
+  // one of the daily free summons (the screen shows the ad first)
+  function summonFree(state, rng, now) {
+    if (freeSummonsLeft(state, now) <= 0) return { ok: false, reason: 'limit' };
+    state.daily.dsum = (state.daily.dsum || 0) + 1; return { ok: true, got: summonRoll(state, rng) };
   }
-  function fuseAll(state) {
-    let n = 0, again = true;
-    while (again) {
-      again = false;
-      const keys = Object.keys(state.wing.owned).sort((a, b) => parseKey(a).rank - parseKey(b).rank);
-      for (const k of keys) if (canFuse(state, k)) { fuse(state, k); n++; again = true; break; }
-    }
-    return n;
+  const canFuse = (state, id) => { const r = droneRec(state, id); return !!r && r.c >= 1 && r.s < CFG.STAR_MAX; };
+  function fuse(state, id) { if (!canFuse(state, id)) return false; const r = droneRec(state, id); r.c--; r.s++; state.stats.fused = (state.stats.fused || 0) + 1; return true; }
+  function fuseAll(state) { let n = 0; DRONES.forEach((d) => { while (canFuse(state, d.id)) { fuse(state, d.id); n++; } }); return n; }
+  function setActive(state, id) { if (!droneRec(state, id)) return false; state.drones.active = id; return true; }
+  // ---- Levels (Nanites) and reset (Flux)
+  function levelUp(state, id, count) {
+    const r = droneRec(state, id); if (!r) return 0; let done = 0;
+    while (done < (count || 1) && r.l < CFG.DRONE_LEVEL_MAX) { const c = levelCost(r.l); if (state.nanites < c) break; state.nanites -= c; r.p += c; r.l++; done++; }
+    return done;
   }
-  // numbers for one companion
-  function companionInfo(key) {
-    const p = parseKey(key), sp = SPECIES[p.sp], f = CFG.RANK_F[p.rank];
-    return { sp, rank: p.rank, f, amount: Math.round(sp.a * f), speed: sp.speed, rankName: RANKS[p.rank], color: RANK_COLORS[p.rank], text: sp.blurb.replace('{a}', Math.round(sp.a * f)) };
+  function resetDrone(state, id) {
+    const r = droneRec(state, id); if (!r || r.l <= 1 || state.flux < CFG.DRONE_RESET_FLUX) return false;
+    state.flux -= CFG.DRONE_RESET_FLUX; state.nanites += r.p; r.p = 0; r.l = 1; return true;
   }
 
   /* ===================== FIGHTING ===================== */
   function fighter(state) {
-    const p = power(state), c = p.combat;
+    const p = power(state), c = p.combat, a = state.drones && state.drones.active;
+    let drone = null;
+    if (a && droneRec(state, a)) {
+      const ab = droneAbilities(state, a), rv = ab.find((x) => x.cd === 0 && x.fx[0].t === 'revive');
+      drone = { id: a, name: DRONE_BY[a].name, abilities: ab.filter((x) => x.cd > 0), revive: rv ? Math.min(0.9, rv.fx[0].a / 100) : 0 };
+    }
     return {
       dmg: Math.max(1, p.dmg), hull: Math.max(1, p.hull), speed: 100 * (1 + c.haste),
-      crit: c.crit, critMult: c.critMult, ocMult: c.ocMult, armor: c.armor, dodge: c.dodge, leech: c.leech, pierce: c.pierce,
-      wing: state.wing.active.map((k) => { const i = companionInfo(k); return { id: i.sp.id, name: i.sp.name, speed: i.speed, f: i.f * (1 + techBonus(state, ['hornet', 'longbow', 'surge'].includes(i.sp.id) ? 'woff' : 'wsup')), a: i.sp.a }; })
+      crit: c.crit, critMult: c.critMult, ocMult: c.ocMult, armor: c.armor, dodge: c.dodge, leech: c.leech, pierce: c.pierce, drone
     };
   }
 
   // Plays a whole fight instantly and returns every turn so the screen can replay it.
+  // A "round" is one shot from your ship. Your drone's abilities fire at the end of the rounds their timer says.
   function simulateFight(p, e, rng) {
-    p = Object.assign({ speed: 100, crit: CFG.CRIT_CHANCE, critMult: CFG.CRIT_MULT, ocMult: CFG.OVERCHARGE_MULT, armor: 0, dodge: 0, leech: 0, pierce: 0, wing: [] }, p);
-    const events = [], pmax = p.hull;
-    let php = p.hull, ehp = e.hull, shield = 0, np = 0, ne = 0, amp = 1, slowActs = 0, slowF = 0;
-    const actors = [{ id: 'p', t: 100 / p.speed, period: 100 / p.speed, order: 0 }];
-    p.wing.forEach((c, i) => actors.push({ id: 'c', c, t: 100 / c.speed, period: 100 / c.speed, order: 1 + i }));
-    actors.push({ id: 'e', t: 100 / e.speed, period: 100 / e.speed, order: 99 });
+    p = Object.assign({ speed: 100, crit: CFG.CRIT_CHANCE, critMult: CFG.CRIT_MULT, ocMult: CFG.OVERCHARGE_MULT, armor: 0, dodge: 0, leech: 0, pierce: 0, drone: null }, p);
+    const events = [], pmax = p.hull, dr = p.drone;
+    let php = p.hull, ehp = e.hull, shield = 0, np = 0, ne = 0, stun = 0, dodgeN = 0, mines = [], revived = false;
+    const B = { amp: [], crit: [], guard: [], weaken: [], expose: [], brk: [], slow: [], burn: [], reflect: [], leech: [], regen: [], armor: [], blind: [] };
+    const sum = (k) => B[k].reduce((s, x) => s + x.v, 0);
+    const actors = [{ id: 'p', t: 100 / p.speed, period: 100 / p.speed, order: 0 }, { id: 'e', t: 100 / e.speed, period: 100 / e.speed, order: 99 }];
     const push = (o) => { o.php = php; o.ehp = ehp; o.shield = Math.round(shield); events.push(o); };
-    const hit = (base, ign) => { const ar = e.armor * (1 - (ign ? 1 : p.pierce)); return Math.max(1, Math.round(base * (0.8 + rng() * 0.4) * (1 - ar))); };
+    const dmgTo = (base, ign) => {
+      const ar = e.armor * (1 - Math.min(0.9, sum('brk') / 100)) * (1 - (ign ? 1 : p.pierce));
+      return Math.max(1, Math.round(base * (0.8 + rng() * 0.4) * (1 - ar) * (1 + sum('expose') / 100)));
+    };
+    const tick = () => { Object.keys(B).forEach((k) => { B[k].forEach((x) => { x.left--; }); B[k] = B[k].filter((x) => x.left > 0); }); };
+    // one ability: returns what to show
+    function fire(ab) {
+      const ev = { who: 'c', name: dr.name, kind: dr.id, ab: ab.name, dmg: 0, heal: undefined, shieldGain: 0, notes: [] };
+      ab.fx.forEach((f) => {
+        const o = f.o || {};
+        if (f.t === 'hit') {
+          const n = o.x || 1;
+          for (let i = 0; i < n; i++) {
+            let m = f.a / 100 * (o.rise ? 0.5 + 0.25 * i : 1);
+            if (o.grow) m *= 1 + (1 - ehp / e.hull);
+            if (o.low && ehp / e.hull < o.low[0]) m *= o.low[1];
+            const d = dmgTo(p.dmg * m, o.pierce); ehp = Math.max(0, ehp - d); ev.dmg += d;
+            if (o.drain) { const h = Math.round(d * o.drain); php = Math.min(pmax, php + h); ev.heal = (ev.heal || 0) + h; }
+          }
+        } else if (f.t === 'heal') {
+          let h = pmax * f.a / 100; if (o.low && php / pmax < o.low[0]) h *= o.low[1];
+          const before = php; php = Math.min(pmax, php + Math.round(h)); ev.heal = (ev.heal || 0) + (php - before);
+        } else if (f.t === 'shield') {
+          let s = pmax * f.a / 100; if (o.low && php / pmax < o.low[0]) s *= o.low[1];
+          const before = shield; shield = Math.min(pmax * 0.6, shield + Math.round(s)); ev.shieldGain += Math.round(shield - before);
+        } else if (f.t === 'dodge') { dodgeN += Math.round(f.a); ev.notes.push('DODGE'); }
+        else if (f.t === 'stun') { if (rng() * 100 < f.a) { stun += f.b; ev.notes.push('STUN'); } }
+        else if (f.t === 'mine') { for (let i = 0; i < Math.max(1, f.b); i++) mines.push(p.dmg * f.a / 100); ev.notes.push('MINE'); }
+        else if (f.t === 'burn') { B.burn.push({ v: f.a, left: f.b }); ev.notes.push('BURN'); }
+        else if (f.t === 'revive') { /* passive, handled when the hull hits 0 */ }
+        else {
+          const key = f.t === 'break' ? 'brk' : f.t;
+          if (B[key]) { B[key].push({ v: f.t === 'amp' ? f.a / 100 : f.a, left: f.t === 'amp' ? f.b + 0 : f.b }); ev.notes.push(({ amp: 'AMP', crit: 'CRIT+', guard: 'GUARD', weaken: 'WEAK', expose: 'MARK', brk: 'BREAK', slow: 'SLOW', reflect: 'REFLECT', leech: 'LEECH', regen: 'REGEN', armor: 'ARMOR', blind: 'BLIND' })[key] || ''); }
+        }
+      });
+      if (ev.notes.length) ev.note = ev.notes[0];
+      if (ev.heal === undefined && !ev.dmg && !ev.shieldGain && !ev.note) ev.note = ab.name;
+      push(ev);
+    }
     let guard = 0;
-    while (php > 0 && ehp > 0 && guard++ < 700) {
+    while (php > 0 && ehp > 0 && guard++ < 900) {
       let a = actors[0];
       for (const x of actors) if (x.t < a.t - 1e-9 || (Math.abs(x.t - a.t) <= 1e-9 && x.order < a.order)) a = x;
       if (a.id === 'p') {
-        np++; let m = amp, label = null; amp = 1;
+        np++; let m = 1 + sum('amp'), label = null;
         if (np % CFG.OVERCHARGE_EVERY === 0) { m *= p.ocMult; label = 'overcharge'; }
-        const crit = rng() < p.crit; if (crit) m *= p.critMult;
-        const d = hit(p.dmg * m); ehp = Math.max(0, ehp - d);
-        const heal = Math.round(d * p.leech); if (heal) php = Math.min(pmax, php + heal);
+        const crit = rng() < Math.min(0.95, p.crit + sum('crit') / 100); if (crit) m *= p.critMult;
+        const d = dmgTo(p.dmg * m); ehp = Math.max(0, ehp - d);
+        const lk = p.leech + sum('leech') / 100, heal = Math.round(d * lk); if (heal) php = Math.min(pmax, php + heal);
         push({ who: 'p', dmg: d, crit, label, heal }); a.t += a.period;
-      } else if (a.id === 'c') {
-        const c = a.c; let ev = { who: 'c', name: c.name, kind: c.id };
-        if (c.id === 'hornet') { const d = hit(p.dmg * c.a / 100 * c.f); ehp = Math.max(0, ehp - d); ev.dmg = d; }
-        else if (c.id === 'longbow') { const d = hit(p.dmg * c.a / 100 * c.f, true); ehp = Math.max(0, ehp - d); ev.dmg = d; }
-        else if (c.id === 'mender') { const h = Math.round(pmax * c.a / 100 * c.f); const before = php; php = Math.min(pmax, php + h); ev.heal = php - before; }
-        else if (c.id === 'aegis') { const sh = Math.round(pmax * c.a / 100 * c.f); shield = Math.min(pmax * 0.6, shield + sh); ev.shieldGain = sh; }
-        else if (c.id === 'static') { slowActs = 2; slowF = Math.min(0.9, c.a / 100 * c.f); ev.slow = true; }
-        else if (c.id === 'surge') { amp = Math.max(amp, 1 + c.a / 100 * c.f); ev.amp = true; }
-        push(ev); a.t += a.period;
+        // end of the round: effects count down, burns and repairs tick, then the drone's abilities whose timer is up
+        tick0: {
+          const bd = B.burn.reduce((s, x) => s + x.v, 0); let bdone = 0;
+          if (bd > 0 && ehp > 0) { bdone = Math.max(1, Math.round(p.dmg * bd / 100)); ehp = Math.max(0, ehp - bdone); }
+          const rg = sum('regen'); if (rg > 0) php = Math.min(pmax, php + Math.round(pmax * rg / 100));
+          if (bdone || rg > 0) push({ who: 'c', name: dr ? dr.name : '', kind: dr ? dr.id : '', dmg: bdone, heal: rg > 0 ? Math.round(pmax * rg / 100) : undefined, note: bdone ? 'BURN' : '' });
+        }
+        tick();
+        if (dr && ehp > 0) dr.abilities.forEach((ab) => { if (ehp > 0 && np % ab.cd === 0) fire(ab); });
       } else {
         ne++; let m = 1, label = null;
+        if (stun > 0) { stun--; push({ who: 'e', dmg: 0, stunned: true }); a.t += a.period; continue; }
         if (e.boss && ne % 3 === 0) { m = 2; label = 'salvo'; }
         const crit = e.crit > 0 && rng() < e.crit; if (crit) m *= CFG.ENEMY_CRIT_MULT;
-        let d = Math.max(1, Math.round(e.dmg * m * (0.8 + rng() * 0.4))), dodged = false;
-        if (rng() < p.dodge) { d = 0; dodged = true; } else d = Math.max(1, Math.round(d * (1 - p.armor)));
+        let d = Math.max(1, Math.round(e.dmg * m * (0.8 + rng() * 0.4) * (1 - Math.min(0.6, sum('weaken') / 100)))), dodged = false;
+        if (dodgeN > 0) { dodgeN--; d = 0; dodged = true; }
+        else if (rng() < p.dodge || rng() * 100 < Math.min(90, sum('blind'))) { d = 0; dodged = true; }
+        else { const ar = Math.min(0.8, p.armor + sum('armor') / 100); d = Math.max(1, Math.round(d * (1 - ar) * (1 - Math.min(0.7, sum('guard') / 100)))); }
         let absorbed = 0; if (shield > 0 && d > 0) { absorbed = Math.min(shield, d); shield -= absorbed; d -= absorbed; }
         php = Math.max(0, php - d);
+        if (d > 0 && sum('reflect') > 0) ehp = Math.max(0, ehp - Math.round(d * sum('reflect') / 100));
+        if (mines.length) { const md = Math.round(mines.reduce((s, x) => s + x, 0)); mines = []; ehp = Math.max(0, ehp - md); }
+        if (php <= 0 && dr && dr.revive > 0 && !revived) { revived = true; php = Math.max(1, Math.round(pmax * dr.revive)); shield = 0; push({ who: 'e', dmg: d, crit, label, dodged, absorbed }); push({ who: 'c', name: dr.name, kind: dr.id, heal: php, note: 'REVIVE' }); a.t += a.period * (1 + sum('slow') / 100 > 1 ? 1 + Math.min(0.9, sum('slow') / 100) : 1); continue; }
         push({ who: 'e', dmg: d, crit, label, dodged, absorbed });
-        a.t += a.period * (1 + (slowActs > 0 ? slowF : 0)); if (slowActs > 0) slowActs--;
+        a.t += a.period * (1 + Math.min(0.9, sum('slow') / 100));
       }
     }
     return { win: ehp <= 0 && php > 0, events, pmax, emax: e.hull };
@@ -759,7 +941,7 @@
   function describeRewards(state, stage) {
     const first = stage > state.combat.best;
     const cr = creditsWin(stage, state) * (first ? CFG.FIRST_CLEAR_X : 1);
-    let flux = 0, cores = 0, shards = first ? shardsFor(stage) : 0; if (first) cores = isBoss(stage) ? CFG.CORE_BOSS : CFG.CORE_FIRST;
+    let flux = 0, cores = 0, shards = first ? shardsFor(stage) : 0;   // fights never give AI Cores
     if (first && isBoss(stage)) flux = CFG.FLUX_BOSS + (stage === CFG.MAX_STAGE ? CFG.FLUX_SECTOR : 0);
     return { first, credits: cr, flux, cores, shards };
   }
@@ -770,7 +952,6 @@
     if (!win) { state.stats.losses++; if (c.push && c.stage === stage && c.stage > 1) c.stage = Math.max(1, stage - 1); return rep; }
     const r = describeRewards(state, stage);
     addCredits(state, r.credits); state.flux += r.flux; state.shards += r.shards; rep.credits = r.credits; rep.flux = r.flux; rep.shards = r.shards; rep.first = r.first;
-    rep.cores = r.cores + (rng() < CFG.CORE_DROP ? 1 : 0); state.cores += rep.cores;
     state.stats.wins++; if (isBoss(stage)) state.stats.bosses++;
     if (r.first) { c.best = stage; }
     if (c.push && stage === c.stage && c.stage < CFG.MAX_STAGE && c.best >= c.stage) { c.stage = c.stage + 1; rep.unlockedStage = c.stage; }
@@ -800,13 +981,14 @@
   const DAILIES = [
     { id: 'alloy',  name: 'Salvage Run', glyph: '⚒', blurb: 'Strip wrecks for Alloy.',          reward: (n) => ({ alloy: 20 + Math.floor((n - 1) / 4) }), text: (r) => r.alloy + ' Alloy' },
     { id: 'shards', name: 'Data Heist',  glyph: '▤', blurb: 'Raid a data vault for Data Shards.', reward: (n) => ({ shards: 2 + Math.floor((n - 1) / 25) }), text: (r) => r.shards + ' Data Shards' },
+    { id: 'nanites', name: 'Drone Hangar', glyph: '⚙', blurb: 'Strip a drone hangar for Nanites.', reward: (n) => ({ nanites: Math.round(CFG.NANITE_RAID * Math.pow(CFG.NANITE_RAID_G, n - 1)) }), text: (r) => r.nanites + ' Nanites' },
     { id: 'cores',  name: 'Clan Convoy', glyph: '✈', blurb: 'Escort the clan convoy for AI Cores. Needs a clan.', reward: (n) => ({ cores: 1 + Math.floor((n - 1) / 25) }), clan: true, text: (r) => r.cores + ' AI Cores' }
   ];
   const dailyById = (id) => DAILIES.find((d) => d.id === id);
   // Everything with a daily limit resets at midnight UTC.
   function rollDaily(state, now) {
     const key = utcDay(now), d = state.daily;
-    if (d.day !== key) { d.day = key; d.att = {}; d.arena = 0; d.shop = {}; d.clan = []; d.clanPts = 0; d.gift = false; d.deals = {}; d.ads = {}; }
+    if (d.day !== key) { d.day = key; d.att = {}; d.arena = 0; d.arenaX = 0; d.shop = {}; d.fstore = {}; d.dsum = 0; d.clan = []; d.clanPts = 0; d.gift = false; d.deals = {}; d.ads = {}; }
     return d;
   }
   const attemptsLeft = (state, id, now) => { rollDaily(state, now); return CFG.DAILY_ATTEMPTS - (state.daily.att[id] || 0); };
@@ -814,10 +996,11 @@
     if (r.alloy) { state.alloy += r.alloy; state.stats.alloyEarned += r.alloy; }
     if (r.shards) state.shards += r.shards;
     if (r.cores) state.cores += r.cores;
+    if (r.nanites) state.nanites += r.nanites;
   }
   // research bonuses for the daily missions
   function dailyBonus(state, id, r) {
-    const k = id === 'alloy' ? 'salv' : id === 'shards' ? 'heist' : 'convoy', f = 1 + techBonus(state, k), out = {};
+    const k = id === 'alloy' ? 'salv' : id === 'shards' ? 'heist' : id === 'nanites' ? null : 'convoy', f = 1 + (k ? techBonus(state, k) : 0), out = {};
     Object.keys(r).forEach((x) => { out[x] = Math.round(r[x] * f); }); return out;
   }
   const ladderEnemy = (n) => enemyFor(n, CFG.DAILY_SCALE);
@@ -860,11 +1043,11 @@
     if (!a.opp.length) { a.seed = (Math.floor(now / 3600000) * 7919 + a.lp) >>> 0; a.opp = makeOpponents(state, a.seed); }
     return a.opp;
   }
-  const arenaLeft = (state, now) => { rollDaily(state, now); return CFG.ARENA_ATTEMPTS - state.daily.arena; };
+  const arenaLeft = (state, now) => { rollDaily(state, now); return CFG.ARENA_ATTEMPTS + (state.daily.arenaX || 0) - state.daily.arena; };
   function arenaFight(state, idx, rng, now) {
     const opp = arenaOpponents(state, now)[idx]; if (!opp) return { ok: false, reason: 'none' };
     if (arenaLeft(state, now) <= 0) return { ok: false, reason: 'attempts' };
-    state.daily.arena++;
+    state.daily.arena++; state.stats.arena = (state.stats.arena || 0) + 1;
     const p = fighter(state), e = { stage: 0, boss: false, type: 'duel', name: opp.name, dmg: Math.max(1, Math.round(p.dmg * opp.f)), hull: Math.max(5, Math.round(p.hull * opp.f)), speed: 100, armor: 0, crit: 0.1 };
     const f = simulateFight(p, e, rng), L = leagueOf(state.arena.lp);
     let lp = 0, medals = 0;
@@ -877,6 +1060,7 @@
     { id: 'alloy', name: 'Alloy crate', cost: 50, give: { alloy: 60 }, text: '60 Alloy' },
     { id: 'shards', name: 'Data cache', cost: 120, give: { shards: 3 }, text: '3 Data Shards' },
     { id: 'cores', name: 'Core pack', cost: 100, give: { cores: 5 }, text: '5 AI Cores' },
+    { id: 'nanites', name: 'Nanite cache', cost: 60, give: { nanites: 150 }, text: '150 Nanites' },
     { id: 'flux', name: 'Flux cell', cost: 150, give: { flux: 10 }, text: '10 Flux' }
   ];
   function shopBuy(state, id, now) {
@@ -915,7 +1099,8 @@
     { id: 'alloy',   name: 'Salvage drop',   text: '+30 Alloy',                    cap: 4, cdS: 1200 },
     { id: 'credits', name: 'Supply cache',   text: '20 minutes of Credits', cap: 4, cdS: 1800 },
     { id: 'speed',   name: 'Rush crew',      text: 'Foundry upgrade 20 minutes faster', cap: 3, cdS: 3600 },
-    { id: 'flux',    name: 'Flux cell',      text: '+2 Flux',                      cap: 3, cdS: 3600 }
+    { id: 'flux',    name: 'Flux cell',      text: '+2 Flux',                      cap: 3, cdS: 3600 },
+    { id: 'nanites', name: 'Spare parts',    text: '+150 Nanites',                 cap: 3, cdS: 1800 }
   ];
   // what an average forged part sells for at your Foundry level (ad and deal Credits are counted in forges)
   function typicalSell(state) { return avgSell(state.forge.level) * creditMult(state); }
@@ -932,16 +1117,18 @@
     else if (id === 'credits') addCredits(state, adCredits(state));
     else if (id === 'speed') state.forge.upgrade.endAt = Math.max(now, state.forge.upgrade.endAt - 20 * 60000);
     else if (id === 'flux') state.flux += 2;
+    else if (id === 'nanites') state.nanites += 150;
     const a = state.daily.ads[id] || (state.daily.ads[id] = { n: 0, at: 0 }); a.n++; a.at = now; return true;
   }
   function claimGift(state, now) { rollDaily(state, now); if (state.daily.gift) return false; state.daily.gift = true; state.alloy += 100; state.stats.alloyEarned += 100; return true; }
   const DEAL_POOL = [
-    { id: 'alloy200', name: 'Alloy bundle',   cost: 20, text: '200 Alloy' },
-    { id: 'alloy600', name: 'Alloy crate',    cost: 50, text: '600 Alloy' },
-    { id: 'cores10',  name: 'Core shipment',  cost: 30, text: '10 AI Cores' },
+    { id: 'alloy200', name: 'Alloy bundle',   cost: 40, text: '200 Alloy' },
+    { id: 'alloy600', name: 'Alloy crate',    cost: 100, text: '600 Alloy' },
+    { id: 'cores10',  name: 'Core shipment',  cost: 60, text: '10 AI Cores' },
+    { id: 'nan300',   name: 'Nanite crate',   cost: 50, text: '300 Nanites' },
     { id: 'shards4',  name: 'Data vault',     cost: 40, text: '4 Data Shards' },
-    { id: 'credits',  name: 'Credit chest',   cost: 25, text: '1 hour of Credits' },
-    { id: 'tickets2', name: 'Sweep voucher',  cost: 15, text: '2 sweep tickets' }
+    { id: 'credits',  name: 'Credit chest',   cost: 50, text: '1 hour of Credits' },
+    { id: 'tickets2', name: 'Sweep voucher',  cost: 30, text: '2 sweep tickets' }
   ];
   function dealsToday(now) {
     const day = Math.floor(now / 86400000), r = lcg(day * 2654435761 + 17), pool = DEAL_POOL.slice(), out = [];
@@ -953,13 +1140,43 @@
     if (state.daily.deals[id] || state.flux < d.cost) return false;
     state.flux -= d.cost; state.daily.deals[id] = 1;
     if (id === 'alloy200') applyReward(state, { alloy: 200 }); else if (id === 'alloy600') applyReward(state, { alloy: 600 });
-    else if (id === 'cores10') applyReward(state, { cores: 10 }); else if (id === 'shards4') applyReward(state, { shards: 4 });
+    else if (id === 'cores10') applyReward(state, { cores: 10 }); else if (id === 'nan300') applyReward(state, { nanites: 300 }); else if (id === 'shards4') applyReward(state, { shards: 4 });
     else if (id === 'credits') addCredits(state, Math.round(creditRate(state) * 3600));   // an hour of the stockpile rate
     else if (id === 'tickets2') state.sweep.tickets += 2;
     return true;
   }
   // stand-in for the one-time "remove ads" purchase: rewards then claim with no video
   function buyNoAds(state) { state.noAds = true; return true; }
+
+
+  /* ===================== FLUX STORE: every currency can be bought with Flux (the premium currency) ===================== */
+  // Prices follow the reference game's store: few items per Flux, small daily limits on the strong ones.
+  const FSTORE = [
+    { id: 'cr2',  give: 'credits', hours: 2,  cost: 50 },
+    { id: 'cr5',  give: 'credits', hours: 5,  cost: 100 },
+    { id: 'cr12', give: 'credits', hours: 12, cost: 200 },
+    { id: 'al1',  give: 'alloy',   hours: 1,  cost: 15, limit: 20 },
+    { id: 'co10', give: 'cores',   amount: 10,  cost: 75, limit: 10 },
+    { id: 'na200', give: 'nanites', amount: 200, cost: 75 },
+    { id: 'ar1',  give: 'arena',   amount: 1,   cost: 50, limit: 15 }
+  ];
+  function fstoreAmount(state, it) {
+    if (it.give === 'credits') return Math.round(creditRate(state) * 3600 * it.hours);
+    if (it.give === 'alloy') return Math.max(1, Math.round(alloyRate(state) * 3600 * it.hours));
+    return it.amount;
+  }
+  function fstoreLeft(state, it, now) { rollDaily(state, now); return it.limit ? it.limit - (state.daily.fstore[it.id] || 0) : 99; }
+  function fluxBuy(state, id, now) {
+    const it = FSTORE.find((x) => x.id === id); if (!it) return false;
+    if (fstoreLeft(state, it, now) <= 0 || state.flux < it.cost) return false;
+    state.flux -= it.cost; if (it.limit) state.daily.fstore[id] = (state.daily.fstore[id] || 0) + 1;
+    const n = fstoreAmount(state, it);
+    if (it.give === 'credits') addCredits(state, n); else if (it.give === 'alloy') applyReward(state, { alloy: n });
+    else if (it.give === 'cores') state.cores += n; else if (it.give === 'nanites') state.nanites += n; else if (it.give === 'arena') state.daily.arenaX = (state.daily.arenaX || 0) + n;
+    return true;
+  }
+  // Real-money Flux packs (shown only; payments are not connected yet). Flux per price, double the first time you buy each.
+  const FLUX_PACKS = [[30, 0.99], [150, 4.99], [320, 9.99], [480, 14.99], [990, 29.99], [1650, 49.99], [3300, 99.99], [7000, 199.99], [11000, 299.99]];
 
   /* ===================== CAMPAIGN ORDERS: a few small quests for every 20 stages ===================== */
   // Small bonuses only: never more than 200 Alloy, or a couple of Flux.
@@ -973,12 +1190,23 @@
     }
     return out;
   })();
-  const questProgress = (state, q) => q.kind === 'stage' ? state.combat.best : state.stats.forged;
-  // a block of orders opens once you have cleared the one before it
-  const visibleQuests = (state) => QUESTS.filter((q) => q.block <= Math.floor(state.combat.best / 20));
+  // Rank orders: 3 for every commander rank. One is always 'reach the last level of this rank'. Small rewards only.
+  const RANK_FORGED = Array.from({ length: 25 }, (_, r) => Math.round(150 * Math.pow(r + 1, 1.9) / 50) * 50);   // forged parts needed during rank r
+  for (let r = 0; r < RANK_NAMES.length; r++) {
+    QUESTS.push({ id: 'r' + r + 'a', rank: r, kind: 'level', need: Math.min(CFG.LEVEL_MAX, (r + 1) * CFG.RANK_LEVELS), reward: { flux: 2, cores: 6 } });
+    QUESTS.push({ id: 'r' + r + 'b', rank: r, kind: 'forge', need: RANK_FORGED[r], reward: { alloy: 100 + 25 * r } });
+    const k = r % 3;
+    if (k === 0) QUESTS.push({ id: 'r' + r + 'c', rank: r, kind: 'stage', need: Math.min(CFG.MAX_STAGE, 8 * (r + 1)), reward: { nanites: 150 + 50 * r } });
+    else if (k === 1) QUESTS.push({ id: 'r' + r + 'c', rank: r, kind: 'arena', need: 5 * (r + 1), reward: { nanites: 150 + 50 * r } });
+    else QUESTS.push({ id: 'r' + r + 'c', rank: r, kind: 'credits', need: Math.round(5000 * Math.pow(r + 1, 2.2)), reward: { cores: 6 + r } });
+  }
+  const questProgress = (state, q) => ({ stage: () => state.combat.best, forge: () => state.stats.forged, level: () => state.cmd.level, arena: () => state.stats.arena || 0, credits: () => state.stats.creditsEarned })[q.kind]();
+  // a block of campaign orders opens once you have cleared the one before it; rank orders open with your rank
+  const questOpen = (state, q) => q.rank !== undefined ? q.rank <= state.cmd.rank : q.block <= Math.floor(state.combat.best / 20);
+  const visibleQuests = (state) => QUESTS.filter((q) => questOpen(state, q));
   function claimQuest(state, id) {
-    const q = QUESTS.find((x) => x.id === id); if (!q || state.quests[id] || questProgress(state, q) < q.need || q.block > Math.floor(state.combat.best / 20)) return false;
-    state.quests[id] = 1; if (q.reward.alloy) applyReward(state, { alloy: q.reward.alloy }); if (q.reward.flux) state.flux += q.reward.flux; return true;
+    const q = QUESTS.find((x) => x.id === id); if (!q || state.quests[id] || questProgress(state, q) < q.need || !questOpen(state, q)) return false;
+    state.quests[id] = 1; applyReward(state, { alloy: q.reward.alloy || 0, cores: q.reward.cores || 0, nanites: q.reward.nanites || 0 }); if (q.reward.flux) state.flux += q.reward.flux; return true;
   }
 
   function setStage(state, stage) { state.combat.stage = clamp(stage, 1, Math.min(CFG.MAX_STAGE, state.combat.best + 1)); }
@@ -1062,6 +1290,6 @@
     return s + 's';
   }
 
-  const api = { SHIPS, hullTier, shipOf, batchSize, SUBS, SUB_KEYS, SLOT_SUBS, RANKS, RANK_COLORS, SPECIES, gearCombat, buildFactor, rollSubs, wingKey, parseKey, bayLevel, summonOdds, summon, assign, unassign, canFuse, fuse, fuseAll, companionInfo, usedInWing, CFG, SLOTS, TIERS, LAUNCH_TIERS, slotById, itemStat, itemName, sellValue, sellFor, tierOdds, rollItem, newState, migrate, power, powerWith, calcPower, setBonus, codexKey, codexHas, codexTierCount, codexCount, codexBonus, discover, highestTier, SECTORS, FOES, sectorOf, isBoss, enemyFor, fighter, simulateFight, creditsWin, describeRewards, resolveFight, setStage, winChance, rushCost, rushUpgrade, autoUnlocked, autoFiltered, isUpgrade, equip, forgeCost, forgeOnce, forgeBatch, maxForges, holdAdd, holdFree, forgeRun, forgeHold, equipHeld, sellHeld, upgradeInfo, startUpgrade, checkUpgrade, earn, offline, fmt, fmtTime, stageLabel, shardsFor, AD_OFFERS, adStatus, claimAd, claimGift, DEAL_POOL, dealsToday, buyDeal, buyNoAds, useTicket, sweepInfo, sweepAd, DAILIES, dailyById, rollDaily, attemptsLeft, ladderEnemy, ladderLocked, ladderFight, ladderSweep, LEAGUES, leagueOf, arenaOpponents, arenaLeft, arenaFight, SHOP, shopBuy, CLANS, CLAN_REWARDS, joinClan, leaveClan, addClanPoints, clanProgress, claimClan, utcDay, RANK_NAMES, TECH_NODES, TECH_BRANCHES, TECH_TIERS, TECH_TIER_GATE, BATCH_STEPS, techNode, techBonus, techInfo, startTech, checkTech, techRushCost, rushTech, techReady, rLevel, dailyBonus, typicalSell, creditRate, collect, QUESTS, questProgress, visibleQuests, claimQuest, FM_ODDS, alloyRate, offlineCapS, creditMult, statBonus, addXp, levelCap, atCap, rankReward, canPromote, promote, renameCost, renameCommander, setAvatar };
+  const api = { SHIPS, hullTier, shipOf, batchSize, SUBS, SUB_KEYS, SLOT_SUBS, gearCombat, buildFactor, rollSubs, DRONES, DRONE_BY, LINK_OF, LINKS, D_RAR, D_COLOR, D_UNLOCK, D_UPS, abilityLevels, droneAbilities, describeAbility, describeFx, droneStat, levelCost, linkInfo, droneBonus, summon, summonFree, summonCost, freeSummonsLeft, giveDrone, canFuse, fuse, fuseAll, setActive, levelUp, resetDrone, FSTORE, fstoreAmount, fstoreLeft, fluxBuy, FLUX_PACKS, questOpen, CFG, SLOTS, TIERS, LAUNCH_TIERS, slotById, itemStat, itemName, sellValue, sellFor, tierOdds, rollItem, newState, migrate, power, powerWith, calcPower, setBonus, codexKey, codexHas, codexTierCount, codexCount, codexBonus, discover, highestTier, SECTORS, FOES, sectorOf, isBoss, enemyFor, fighter, simulateFight, creditsWin, describeRewards, resolveFight, setStage, winChance, rushCost, rushUpgrade, autoUnlocked, autoFiltered, isUpgrade, equip, forgeCost, forgeOnce, forgeBatch, maxForges, holdAdd, holdFree, forgeRun, forgeHold, equipHeld, sellHeld, upgradeInfo, startUpgrade, checkUpgrade, earn, offline, fmt, fmtTime, stageLabel, shardsFor, AD_OFFERS, adStatus, claimAd, claimGift, DEAL_POOL, dealsToday, buyDeal, buyNoAds, useTicket, sweepInfo, sweepAd, DAILIES, dailyById, rollDaily, attemptsLeft, ladderEnemy, ladderLocked, ladderFight, ladderSweep, LEAGUES, leagueOf, arenaOpponents, arenaLeft, arenaFight, SHOP, shopBuy, CLANS, CLAN_REWARDS, joinClan, leaveClan, addClanPoints, clanProgress, claimClan, utcDay, RANK_NAMES, TECH_NODES, TECH_BRANCHES, TECH_TIERS, TECH_TIER_GATE, BATCH_STEPS, techNode, techBonus, techInfo, startTech, checkTech, techRushCost, rushTech, techReady, rLevel, dailyBonus, typicalSell, creditRate, collect, QUESTS, questProgress, visibleQuests, claimQuest, FM_ODDS, alloyRate, offlineCapS, creditMult, statBonus, addXp, levelCap, atCap, rankReward, canPromote, promote, renameCost, renameCommander, setAvatar };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.VS = api;
 })(typeof self !== 'undefined' ? self : this);

@@ -4,13 +4,11 @@ const V = require('../core.js');
 if (process.env.G) V.CFG.LEVEL_GROWTH = +process.env.G;
 function seeded(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 function manageWing(s, rng) {
-  while (s.cores >= V.CFG.SUMMON_COST) V.summon(s, 1, rng);
+  while (s.cores >= V.CFG.SUMMON_COST) V.summon(s, rng);
   V.fuseAll(s);
-  const owned = Object.keys(s.wing.owned).map((k) => ({ k, p: V.parseKey(k) })).sort((a, b) => b.p.rank - a.p.rank);
-  const pick = [], roles = new Set();
-  for (const o of owned) { if (pick.length < 3 && !roles.has(o.p.sp)) { pick.push(o.k); roles.add(o.p.sp); } }
-  for (const o of owned) { for (let i = 0; i < s.wing.owned[o.k] && pick.length < 3; i++) if (pick.filter((x) => x === o.k).length < s.wing.owned[o.k] && !pick.includes(o.k)) pick.push(o.k); }
-  s.wing.active = pick;
+  const own = Object.keys(s.drones.own).map((id) => V.DRONE_BY[id]).sort((x, y) => y.rar - x.rar);
+  if (own.length) s.drones.active = own[0].id;
+  if (s.drones.active) V.levelUp(s, s.drones.active, 99);
 }
 const PRIORITY = ['ftimer', 'alloy', 'batch', 'offline', 'patrol', 'techspd', 'fcost', 'techcst', 'sell', 'odmg', 'ohull', 'woff', 'wsup', 'free', 'dmgc', 'dmgp', 'dmga', 'dmgr', 'hulp', 'hulb', 'hule', 'huls', 'summon', 'wtwin', 'heist', 'convoy', 'salv'];
 function bank(s, now) { // follow the Forge Master advice: efficiency first, power later. Save up for the top pick.
@@ -50,7 +48,7 @@ function play(days, perDay, minutes) {
       const L = s.forge.level;
       [3, 5, 8, 11, 14, 17, 20, 25].forEach((m) => { if (L >= m) mark('F' + m); });
       [10, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200].forEach((m) => { if (s.combat.best >= m) mark('S' + V.stageLabel(m)); });
-      [10, 25, 50, 75, 100].forEach((m) => { if (s.cmd.level >= m) mark('Lv' + m); });
+      [10, 25, 50, 100, 200, 300, 400, 500].forEach((m) => { if (s.cmd.level >= m) mark('Lv' + m); });
       if (Math.floor(t / dayS) % (+process.env.EVERY || 30) === 0 && !log.some((e) => e.day === Math.floor(t / dayS))) log.push({ day: Math.floor(t / dayS), foundry: L, stage: V.stageLabel(Math.max(1, s.combat.best)), lv: s.cmd.level, rank: V.RANK_NAMES[s.cmd.rank], power: V.fmt(V.power(s).power), rating: Math.round(V.power(s).rating), credits: V.fmt(s.credits), alloy: V.fmt(s.alloy) });
     } else t = nextCheck;
   }

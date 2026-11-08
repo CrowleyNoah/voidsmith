@@ -1,4 +1,4 @@
-# Voidsmith (steps 1-4: foundry, armory, combat, builds and wing)
+# Voidsmith (steps 1-4: foundry, armory, combat, builds and drones)
 
 A private idle forge game. Everything is saved on your device and works offline. No server, no paid parts.
 
@@ -28,8 +28,8 @@ A private idle forge game. Everything is saved on your device and works offline.
 ## Added in step 4
 - Bonus lines on parts (Refitted and up): Crit chance, Crit damage, Armor pierce, Overcharge, Haste, Plating, Evasion, Hull leech. Weapons lean offensive, hull parts defensive. Higher tiers roll more and bigger lines.
 - Power stays the plain number (stats x set x Codex). Fights use the lines too, so two ships with equal Power can win very differently. Each part shows its Power change and its Build change; auto decisions use Build.
-- Wing: three companion ships (Hornet, Longbow, Mender, Aegis, Static, Surge) that act in turn order. Summon with AI Cores, fuse 3 of the same rank into the next rank (6 ranks). The Summon Bay levels up with use for better odds.
-- AI Cores come only from first clears and boss first clears (no drop per win). They are never paid offline. A summon costs 30 Cores (10 for 270).
+- Drones: 37 drones (N, R, SR, SSR, UR), one active at a time, unlimited stockpile. Summon 3 for 30 AI Cores (3 free a day for an ad). Spare copies fuse into Stars (0-10) that unlock/upgrade 3 abilities. Nanites level a drone (cap 60); reset costs 10 Flux and refunds all Nanites. 9 Links (sets) give permanent bonuses; Defense = damage reduction at 1/5 of the %, cap 60%. Old Wing saves convert to drones.
+- AI Cores come from rank promotions, rank orders, the Medal shop, clan convoys and the Flux store (never from fights; a kill pays 1 Credit). Nanites come from the Drone Hangar daily, orders, ads and Flux. Flux packs are shown but payments are not connected.
 - Mission Outlook is now a real win chance from simulated fights.
 
 ## Tuning the numbers
@@ -38,7 +38,7 @@ Bump `VERSION` in `sw.js` after any change.
 
 ## Commander, ranks and research (step 5)
 - Commander level comes only from forging: 10 XP for Rusted and Refitted, 20 for Hardened, Classified and Voidborn, 30 for Exotic. The XP needed per level climbs about 10% each level. Each level adds 1.2% Damage and Hull.
-- 300 levels, 15 ranks. Every 20 levels the XP bar must fill once more, then tap the rank button (profile) to be promoted and go on. Promotions pay Flux, AI Cores and Data Shards. Each level adds +0.3% Damage and Hull.
+- 500 levels, 25 ranks (Cadet, Lieutenant, Commander, Admiral, Warlord, each I to V). Every 20 levels the XP bar must fill once more, then tap the rank button (profile) to be promoted and go on. Promotions pay Flux, AI Cores and Data Shards. Each level adds +0.18% Damage and Hull, each rank +0.9%.
 - Foundry upgrades are paid in installments (like Forge Master); research is on a Lab screen with Forge / Power / Fleet / Codex tiles.
 - Research (Data Shards): Alloy production, offline time, Credits, Foundry speed, forging XP, Damage, Hull. Shards come from boss first clears, every fifth stage first clear and promotions.
 - Pace check: `node tests/sim.js 420 3 10` plays a casual free player (3 short check-ins a day). `node tests/fit.js` re-fits the enemy curve to the pace you want.
@@ -88,7 +88,7 @@ Main screen rebuilt to look like a game, not a text page: full-width fight scene
 - One research at a time; Flux finishes it early. Old research is refunded 3 Shards per level.
 
 ## v37 look
-- theme.css: gunmetal plates, amber actions, outlined numerals; header floats over the battle scene; 5-tab bar (Forge, Battle, Lab, Wing, Shop).
+- theme.css: gunmetal plates, amber actions, outlined numerals; header floats over the battle scene; 5-tab bar (Forge, Battle, Lab, Drones, Shop).
 - Profile is one scene (ship, companion, rank banner, power plate, stats panel) with a gear box below. Rank adds +1.5% Damage/Hull per rank. "Rank" screen shows before/after and Promote.
 
 ## Ship art (assets/)

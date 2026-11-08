@@ -105,6 +105,7 @@
 
   /* ---------- more art ---------- */
   COIN.cores = '<rect x="3" y="3" width="10" height="10" rx="2" fill="#35f0ff" stroke="#c9fbff" stroke-width="1"/><rect x="6" y="6" width="4" height="4" fill="#06323a"/>';
+  COIN.nanites = '<path d="M8 1l6 3.5v7L8 15l-6-3.5v-7z" fill="#5cff9d" stroke="#d2ffe6" stroke-width="1"/><circle cx="8" cy="8" r="2.4" fill="#0a4a2a"/>';
   COIN.medals = '<circle cx="8" cy="9" r="5.5" fill="#ff9a3d" stroke="#ffe0b8" stroke-width="1"/><path d="M5 1h6l-1.5 4h-3z" fill="#ff5a6a"/>';
   const PIC = {
     ticket: '<path d="M3 9a3 3 0 000 6v5h18v-5a3 3 0 000-6V4H3z" fill="currentColor"/><path d="M9 6v12" stroke="#0006" stroke-width="2" stroke-dasharray="2 2"/>',
@@ -143,18 +144,25 @@
     static: '<path d="M4 24q6-14 10 0t10 0 10 0 10 0" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M4 33q6-10 10 0t10 0 10 0 10 0" stroke="#b27cff" stroke-width="4" fill="none" stroke-linecap="round"/>',
     surge: '<path d="M28 3L10 27h11l-4 18 21-26H26z" fill="#ffe066" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>'
   };
-  const COMP_ART = { hornet: 1, longbow: 1, mender: 1, aegis: 1, static: 1, surge: 1 };   // assets/comp/comp_<species>.png, painted, facing right like the ship
-  const spic = (id) => COMP_ART[id] ? '<img class="ico cimg" src="assets/comp/comp_' + id + '.png" alt="" draggable="false">' : SVGH(48, 48, SPIC[id] || SPIC.hornet, 'ico');
+  const COMP_ART = { hornet: 1, longbow: 1, mender: 1, aegis: 1, static: 1, surge: 1 };   // assets/comp/comp_<id>.png, painted, facing right like the ship
+  // drones without painted art yet get a clean placeholder in their rarity colour; each id gets its own shape
+  function dronePlaceholder(id) {
+    const d = V.DRONE_BY[id], c = V.D_COLOR[d ? d.rar : 0], k = V.DRONES.indexOf(d), sh = k % 4, ey = (k >> 2) % 3;
+    const body = sh === 0 ? '<path d="M8 24l12-14h18l6 14-6 14H20z"/>' : sh === 1 ? '<circle cx="26" cy="24" r="15"/>' : sh === 2 ? '<path d="M6 24l14-14 20 4 4 10-4 10-20 4z"/>' : '<rect x="9" y="11" width="34" height="26" rx="9"/>';
+    const eye = ey === 0 ? '<circle cx="32" cy="24" r="5" fill="#fff"/><circle cx="33" cy="24" r="2.4" fill="#111"/>' : ey === 1 ? '<rect x="25" y="20" width="14" height="7" rx="3" fill="#fff"/>' : '<path d="M26 18l10 6-10 6z" fill="#fff"/>';
+    return SVGH(52, 48, '<g fill="' + c + '" stroke="#0008" stroke-width="2">' + body + '</g><path d="M4 24h6" stroke="' + c + '" stroke-width="3" stroke-linecap="round"/>' + eye, 'ico');
+  }
+  const spic = (id) => COMP_ART[id] ? '<img class="ico cimg" src="assets/comp/comp_' + id + '.png" alt="" draggable="false">' : dronePlaceholder(id);
   const TECH_ICON = { ftimer: () => pic('bolt'), fcost: () => coinIcon('credits'), sell: () => pic('chest'), batch: () => pic('merge'), free: () => pic('star'), offline: () => pic('clock'), salv: () => coinIcon('alloy'), alloy: () => coinIcon('alloy'), patrol: () => pic('sword'),
     dmgc: () => slotIcon('cannon'), dmgp: () => slotIcon('pod'), dmga: () => slotIcon('array'), dmgr: () => slotIcon('coil'), hulp: () => slotIcon('plating'), hulb: () => slotIcon('bulkhead'), hule: () => slotIcon('emitter'), huls: () => slotIcon('spar'),
     techspd: () => pic('fast'), techcst: () => coinIcon('shards'), odmg: () => pic('sword'), ohull: () => pic('crown'), woff: () => pic('clan'), wsup: () => pic('user'), summon: () => pic('box'), wtwin: () => pic('plus'), heist: () => coinIcon('shards'), convoy: () => coinIcon('cores') };
   const TECH_NAME = { ftimer: 'Forge Timer', fcost: 'Forge Upgrade Cost', sell: 'Sell Price', batch: 'Multi-Forge', free: 'Free Forge', offline: 'Deep-Range Comms', salv: 'Salvage Run Bonus', alloy: 'Alloy Output', patrol: 'Offline Credits',
     dmgc: 'Cannon Mastery', dmgp: 'Pod Mastery', dmga: 'Array Mastery', dmgr: 'Coil Mastery', hulp: 'Plating Mastery', hulb: 'Bulkhead Mastery', hule: 'Emitter Mastery', huls: 'Spar Mastery',
-    techspd: 'Research Time', techcst: 'Research Cost', odmg: 'Damage Doctrine', ohull: 'Hull Doctrine', woff: 'Attack Wing', wsup: 'Support Wing', summon: 'Summon Cost', wtwin: 'Twin Summon', heist: 'Data Heist Bonus', convoy: 'Convoy Bonus' };
+    techspd: 'Research Time', techcst: 'Research Cost', odmg: 'Damage Doctrine', ohull: 'Hull Doctrine', woff: 'Drone Attack', wsup: 'Drone Support', summon: 'Summon Cost', wtwin: 'Twin Summon', heist: 'Data Heist Bonus', convoy: 'Convoy Bonus' };
   const BRANCH_ICON = { forge: () => pic('gear'), power: () => pic('sword'), fleet: () => pic('clan') };
   const ROMAN = ['I', 'II', 'III', 'IV', 'V'];
   const RICON = { alloy: () => coinIcon('alloy'), offline: () => pic('clock'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), xp: () => pic('star'), dmg: () => slotIcon('cannon'), hull: () => slotIcon('plating'), batch: () => pic('fast') };
-  const DICON = { alloy: () => coinIcon('alloy'), shards: () => coinIcon('shards'), cores: () => coinIcon('cores') };
+  const DICON = { alloy: () => coinIcon('alloy'), shards: () => coinIcon('shards'), cores: () => coinIcon('cores'), nanites: () => coinIcon('nanites') };
   const pipsRow = (n, max) => { let s = ''; for (let i = 0; i < max; i++) s += '<i class="' + (i < n ? 'on' : '') + '"></i>'; return '<span class="pp">' + s + '</span>'; };
   const infoBtn = (k) => '<button class="info" data-act="info" data-k="' + k + '" aria-label="Info">i</button>';
   function autoSheet() {
@@ -185,7 +193,9 @@
     research: () => '<h3>Research</h3><p class="sb">Data Shards come from boss first clears, every fifth stage first clear, Data Heist and promotions. Tap a node to upgrade it.</p>',
     research: () => '<h3>Research</h3><p class="sb">Three branches: Forge, Power and Fleet. Every upgrade has 5 tiers of 5 levels. Each level costs Data Shards and takes real time, and later tiers cost more and take longer. One research at a time. Flux finishes it early. A higher tier needs a higher commander level. Multi-Forge adds parts per forge, up to 10.</p>',
     codex: () => '<h3>Codex</h3><p class="sb">Every new part you forge adds +' + (V.CFG.CODEX_PART * 100) + '% to all stats. Finishing a whole tier adds +' + Math.round(V.CFG.CODEX_TIER * 100) + '% more. Now: +' + (V.codexBonus(S) * 100).toFixed(2).replace(/\.?0+$/, '') + '%. The numbers on the right are set bonuses for 4 and 8 parts of that tier or better. Only your best set counts.</p>',
-    wing: () => { const lvl = V.bayLevel(S), odds = V.summonOdds(lvl); return '<h3>Summon bay ' + lvl + '</h3><div class="chips">' + odds.map((o, r) => o > 0.0005 ? '<span class="chipx" style="--tc:' + V.RANK_COLORS[r] + '">' + V.RANKS[r] + ' ' + (o * 100 < 1 ? '<1' : (o * 100 < 10 ? (o * 100).toFixed(1) : Math.round(o * 100))) + '%</span>' : '').join('') + '</div><p class="sb">AI Cores come from first clears (' + V.CFG.CORE_FIRST + '), boss first clears (' + V.CFG.CORE_BOSS + ') and a ' + Math.round(V.CFG.CORE_DROP * 100) + '% chance on every win. Every ' + V.CFG.BAY_STEP + ' summons raises the bay for better odds. Fuse 3 of the same companion and rank into 1 of the next rank. Companions act in turn order beside your ship.</p>'; },
+    drones: () => '<h3>Drones</h3><div class="chips">' + V.CFG.DRONE_ODDS.map((o, r) => '<span class="chipx" style="--tc:' + V.D_COLOR[r] + '">' + V.D_RAR[r] + ' ' + o + '%</span>').join('') + '</div><p class="sb">One drone flies with you. Tap a drone to equip it. It adds a % to all your stats, and uses its abilities in fights. A summon gives 3 drones for ' + V.CFG.SUMMON_COST + ' AI Cores, and you get ' + V.CFG.FREE_SUMMONS + ' free a day for an ad. A spare copy fuses into a Star (max ' + V.CFG.STAR_MAX + '). Stars unlock and upgrade abilities. Nanites level a drone up to ' + V.CFG.DRONE_LEVEL_MAX + '. Reset a drone for ' + V.CFG.DRONE_RESET_FLUX + ' Flux and get every Nanite back. AI Cores come from rank promotions, rank orders, the Medal shop, clan convoys and Flux. Nanites come from the Drone Hangar, orders, ads and Flux.</p>',
+    links: () => '<h3>Links</h3><p class="sb">Every drone belongs to one Link. Own every drone in a Link for a small permanent bonus. Every ' + V.CFG.LINK_STAR_STEP + ' Stars across the Link raises it more. Attack Links add Damage, Hull Links add Hull, Defense Links make you take less damage (1/5 of the shown %, capped at ' + Math.round(V.CFG.ARMOR_MAX * 100) + '%).</p>',
+    fstore: () => '<h3>Flux Store</h3><p class="sb">Flux is premium. Credits and Alloy are worth hours of your income, so they grow as you do. Daily limits reset at midnight UTC.</p>',
     depot: () => '<h3>Depot</h3><p class="sb">Ads are never forced. Each has a daily limit and a cooldown and is a small help, not a shortcut. Deals are paid in Flux and change at midnight UTC.</p>',
     orders: () => '<h3>Orders</h3><p class="sb">A few small bonus jobs for every 20 campaign stages. Finish one, tap it to collect. Small rewards only. A new set opens when you clear the stages before it.</p>'
   };
@@ -219,8 +229,8 @@
     return h + '</div>';
   }
   function wingBtn() {
-    const w = S.wing.active.map((k) => spic(V.companionInfo(k).sp.id)).join('');
-    return '<button class="tile wingtile" data-act="goto" data-tab="wing">' + (w || '<span class="plus">+</span>') + '</button>';
+    const a = S.drones.active, w = a ? spic(a) : '';
+    return '<button class="tile wingtile" data-act="goto" data-tab="drones">' + (w || '<span class="plus">+</span>') + '</button>';
   }
   // Hold bar: parts you have not decided on. Tap away and the card shrinks to the icons above the forge; tap an icon to open its card again.
   let holdSel = null;
@@ -278,8 +288,18 @@
   /* ---------- Missions ---------- */
   let F = null; // the fight on screen (not saved)
   const VERDICTS = [[0.9, 'Easy', 'var(--good)'], [0.65, 'Favorable', 'var(--good)'], [0.4, 'Even match', 'var(--amber)'], [0.15, 'Risky', 'var(--bad)'], [-1, 'Overmatched', 'var(--bad)']];
+  /* battle backdrop: one painted picture per band of four sectors, crossfades when the band changes */
+  const BAND_KEYS = ['scrap', 'void', 'iron', 'frozen', 'origin'];
+  let bgBand = '', bgFront = 'bgA';
+  function setBackdrop(sector) {
+    const key = BAND_KEYS[Math.min(BAND_KEYS.length - 1, Math.floor(sector / 4))];
+    if (key === bgBand) return; bgBand = key;
+    const next = bgFront === 'bgA' ? 'bgB' : 'bgA', n = $(next), f = $(bgFront); if (!n || !f) return;
+    n.style.backgroundImage = 'url(assets/bg/bg_' + key + '.jpg)'; n.classList.add('on'); f.classList.remove('on'); bgFront = next;
+  }
   function arenaHtml() {
-    return '<div class="scene" id="scene"><div class="sky"></div><div class="planet"></div><div class="gnd"></div>' +
+    bgBand = ''; bgFront = 'bgA';
+    return '<div class="scene" id="scene"><div class="sky"></div><div class="bgl a" id="bgA"></div><div class="bgl b" id="bgB"></div><div class="planet"></div><div class="gnd"></div>' +
       '<div class="stagetop"><div class="sl" id="stageLbl"></div><div class="pips" id="pips"></div></div>' +
       '<div class="rw" id="rwLine"></div>' +
       '<div class="unit pl" id="pship"><div class="hp"><i id="phb"></i><span id="phn"></span></div><div id="pshipart">' + shipHtml() + '</div></div>' +
@@ -299,7 +319,7 @@
       shards: '<defs><linearGradient id="ba2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a6a"/><stop offset="1" stop-color="#7a3ad6"/></linearGradient></defs><rect width="400" height="120" fill="url(#ba2)"/><g fill="#fff" opacity=".7"><circle cx="40" cy="20" r="1.5"/><circle cx="120" cy="12" r="1.5"/><circle cx="200" cy="30" r="1.5"/><circle cx="360" cy="16" r="1.5"/></g><g fill="#1a1245" stroke="#4a3aa0" stroke-width="2"><rect x="30" y="50" width="40" height="70"/><rect x="80" y="30" width="34" height="90"/><rect x="300" y="44" width="44" height="76"/><rect x="352" y="62" width="36" height="58"/></g><g fill="#7ee7ff" opacity=".8"><rect x="38" y="60" width="8" height="5"/><rect x="38" y="78" width="8" height="5"/><rect x="88" y="44" width="8" height="5"/><rect x="88" y="64" width="8" height="5"/><rect x="310" y="58" width="8" height="5"/></g><path d="M215 20l30 30-30 60-30-60z" fill="#d6a8ff" stroke="#fff" stroke-width="3"/><path d="M215 20l-30 30h60z" fill="#f0d8ff"/><rect y="108" width="400" height="12" fill="#0e0a2e"/>',
       cores: '<defs><linearGradient id="ba3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c8fb0"/><stop offset="1" stop-color="#e8b06a"/></linearGradient></defs><rect width="400" height="120" fill="url(#ba3)"/><circle cx="70" cy="40" r="22" fill="#fff4c8" opacity=".85"/><path d="M0 92h400v28H0z" fill="#5a3a2a"/><path d="M0 100h400" stroke="#ffd08a" stroke-width="3" stroke-dasharray="18 12"/><g fill="#2a3340" stroke="#0e131a" stroke-width="3"><path d="M120 86l24-16h60l14 16z"/><path d="M230 86l20-12h46l12 12z"/><path d="M40 90l16-10h36l10 10z"/></g><path d="M150 70l30-12v12z" fill="#7ee7ff"/><circle cx="168" cy="88" r="5" fill="#ffb02e"/><circle cx="262" cy="88" r="5" fill="#ffb02e"/>'
     };
-    return '<svg class="banart" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + (A[id] || '') + '</svg>';
+    return '<svg class="banart" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' + (A[id] || A.cores || '') + '</svg>';
   }
   function renderMissions() {
     const now = Date.now(), ti = V.sweepInfo(S, now); V.rollDaily(S, now);
@@ -337,9 +357,10 @@
         opp.map((o, i) => '<div class="opp"><div class="oav">' + foeShip(['drone', 'gunship', 'raider'][i % 3], false) + '</div><div class="oi"><b>' + esc(o.name) + '</b><span>' + Math.round(o.f * 100) + '%</span></div><button class="btn pri go" data-act="arenaGo" data-i="' + i + '"' + (aleft > 0 ? '' : ' disabled') + '>' + pic('sword') + '</button></div>').join(''), 'arena');
     } else if (k === 'orders') {
       const oq = V.visibleQuests(S).filter((q) => !S.quests[q.id]);
-      const rw = (r) => (r.alloy ? coinIcon('alloy') + r.alloy : '') + (r.flux ? coinIcon('flux') + r.flux : '');
+      const rw = (r) => (r.alloy ? coinIcon('alloy') + r.alloy : '') + (r.flux ? coinIcon('flux') + r.flux : '') + (r.cores ? coinIcon('cores') + r.cores : '') + (r.nanites ? coinIcon('nanites') + r.nanites : '');
+      const qk = (q) => q.kind === 'stage' ? pic('sword') + ' ' + V.stageLabel(q.need) : q.kind === 'level' ? pic('star') + ' Lv.' + q.need : q.kind === 'arena' ? pic('trophy') + ' ' + q.need : q.kind === 'credits' ? coinIcon('credits') + ' ' + V.fmt(q.need) : pic('gear') + ' ' + V.fmt(q.need);
       sheet('<div class="sh-h">' + pic('chest') + '<b>' + oq.length + '</b>' + infoBtn('orders') + '</div>' + (oq.length ? oq.map((q) => { const have = V.questProgress(S, q), ok = have >= q.need;
-        return '<div class="opp"><div class="oi"><b>' + (q.kind === 'stage' ? pic('sword') + ' ' + V.stageLabel(q.need) : pic('gear') + ' ' + V.fmt(q.need)) + '</b><div class="bar"><i style="width:' + Math.min(100, have / q.need * 100).toFixed(1) + '%"></i></div></div><button class="btn' + (ok ? ' pri' : '') + '" data-act="quest" data-id="' + q.id + '"' + (ok ? '' : ' disabled') + '>' + rw(q.reward) + '</button></div>'; }).join('') : '<p class="sb" style="text-align:center">' + pic('star') + '</p>'), 'orders');
+        return '<div class="opp"><div class="oi"><b>' + qk(q) + '</b><div class="bar"><i style="width:' + Math.min(100, have / q.need * 100).toFixed(1) + '%"></i></div></div><button class="btn' + (ok ? ' pri' : '') + '" data-act="quest" data-id="' + q.id + '"' + (ok ? '' : ' disabled') + '>' + rw(q.reward) + '</button></div>'; }).join('') : '<p class="sb" style="text-align:center">' + pic('star') + '</p>'), 'orders');
     } else if (k === 'shop') {
       sheet('<div class="sh-h">' + pic('medal') + '<b>' + V.fmt(S.medals) + '</b>' + infoBtn('shop') + '</div>' + V.SHOP.map((it) => { const used = S.daily.shop[it.id] || 0; const kk = Object.keys(it.give)[0]; return '<div class="opp"><div class="oav sq">' + coinIcon(kk) + '</div><div class="oi"><b>' + it.text + '</b>' + pipsRow(V.CFG.SHOP_LIMIT - used, V.CFG.SHOP_LIMIT) + '</div><button class="btn" data-act="shopBuy" data-id="' + it.id + '"' + (used < V.CFG.SHOP_LIMIT && S.medals >= it.cost ? '' : ' disabled') + '>' + coinIcon('medals') + it.cost + '</button></div>'; }).join(''), 'shop');
     } else {
@@ -360,16 +381,16 @@
       $('stageLbl').textContent = 'Battle ' + V.stageLabel(c.stage);
       const k = ((c.stage - 1) % 10) + 1; let pp = ''; for (let i = 1; i <= 10; i++) pp += '<i class="' + (i < k ? 'd' : i === k ? 'c' : '') + (i === 10 ? ' b' : '') + '"></i>'; $('pips').innerHTML = pp;
       const rw0 = V.describeRewards(S, c.stage);
-      $('rwLine').innerHTML = coinIcon('credits') + V.fmt(rw0.credits) + (rw0.cores ? ' <span class="rc">◆' + rw0.cores + '</span>' : '');
+      $('rwLine').innerHTML = coinIcon('credits') + V.fmt(rw0.credits);
       $('ename').textContent = e.name; $('eart').innerHTML = foeShip(e.type, e.boss);
-      const sc = $('scene'); sc.style.setProperty('--hue', (V.sectorOf(c.stage) * 41 % 360) + 'deg');
+      const sc = $('scene'); sc.style.setProperty('--hue', (V.sectorOf(c.stage) * 41 % 360) + 'deg'); setBackdrop(V.sectorOf(c.stage));
       $('pshipart').innerHTML = shipHtml();
     }
     if (!$('matchup')) return;
     const pw = V.power(S), wc = V.winChance(S, c.stage, 80, rng), v = VERDICTS.find((x) => wc >= x[0]), rw = V.describeRewards(S, c.stage);
-    const wing = S.wing.active.map((k) => V.companionInfo(k).sp.name).join(', ') || 'none';
-    $('matchup').innerHTML = '<div class="kv"><span>Your Power</span><span style="color:var(--cyan)">' + V.fmt(pw.power) + '</span><span>Build bonus</span><span>' + (pw.build >= 1 ? '+' : '') + ((pw.build - 1) * 100).toFixed(1) + '%</span><span>Wing</span><span>' + esc(wing) + '</span><span>Win chance</span><span class="verdict" style="color:' + v[2] + '">' + Math.round(wc * 100) + '% · ' + v[1] + '</span><span>' + (rw.first ? 'First clear' : 'Win') + '</span><span>' + V.fmt(rw.credits) + ' Cr' + (rw.cores ? ' · ' + rw.cores + ' Cores' : '') + (rw.flux ? ' · ' + rw.flux + ' Flux' : '') + (rw.shards ? ' · ' + rw.shards + ' Shards' : '') + '</span></div>' +
-      '<div class="sb dim" style="margin-top:8px;font-size:12px">Power is only part of it. Bonus lines on your parts and your Wing change how a fight plays out, so two ships with equal Power can win very differently. Win chance comes from simulated fights.</div>';
+    const wing = S.drones.active ? V.DRONE_BY[S.drones.active].name : 'none';
+    $('matchup').innerHTML = '<div class="kv"><span>Your Power</span><span style="color:var(--cyan)">' + V.fmt(pw.power) + '</span><span>Build bonus</span><span>' + (pw.build >= 1 ? '+' : '') + ((pw.build - 1) * 100).toFixed(1) + '%</span><span>Drone</span><span>' + esc(wing) + '</span><span>Win chance</span><span class="verdict" style="color:' + v[2] + '">' + Math.round(wc * 100) + '% · ' + v[1] + '</span><span>' + (rw.first ? 'First clear' : 'Win') + '</span><span>' + V.fmt(rw.credits) + ' Cr' + (rw.flux ? ' · ' + rw.flux + ' Flux' : '') + (rw.shards ? ' · ' + rw.shards + ' Shards' : '') + '</span></div>' +
+      '<div class="sb dim" style="margin-top:8px;font-size:12px">Power is only part of it. Bonus lines on your parts and your Drone change how a fight plays out, so two ships with equal Power can win very differently. Win chance comes from simulated fights.</div>';
     let sh = '';
     V.SECTORS.forEach((sc, i) => {
       const n = Math.max(0, Math.min(10, c.best - i * 10)), cur = V.sectorOf(c.stage) === i;
@@ -415,8 +436,10 @@
           if (ev.heal) floatNum('p', '+' + V.fmt(ev.heal), 'heal');
         } else if (ev.who === 'c') {
           if (ev.dmg) { beam('p', 'c'); floatNum('e', '-' + V.fmt(ev.dmg), ''); }
-          else if (ev.heal !== undefined) floatNum('p', '+' + V.fmt(ev.heal), 'heal');
-          else if (ev.shieldGain) floatNum('p', '+' + V.fmt(ev.shieldGain), 'shield');
+          if (ev.heal) floatNum('p', '+' + V.fmt(ev.heal), 'heal');
+          if (ev.shieldGain) floatNum('p', '+' + V.fmt(ev.shieldGain), 'shield');
+          if (ev.stunned) floatNum('e', 'STUN', 'crit');
+          if (ev.note) floatNum('p', String(ev.note), 'dodge');
         } else if (ev.dodged) floatNum('p', 'DODGE', 'dodge');
         else { beam('e', ev.label ? 'big' : ''); floatNum('p', '-' + V.fmt(ev.dmg), ev.crit || ev.label ? 'crit' : ''); }
         missionLive();
@@ -427,9 +450,9 @@
       F.done = true;
       const rep = V.resolveFight(S, F.stage, F.win, rng);
       const dead = $(F.win ? 'eship' : 'pship'); if (dead) dead.classList.add('dead');
-      if ($('banner')) $('banner').innerHTML = rep.win ? '<div class="banner win">VICTORY<small>+' + V.fmt(rep.credits) + (rep.cores ? ' · +' + rep.cores + ' Cores' : '') + (rep.flux ? ' · +' + rep.flux + ' Flux' : '') + '</small></div>' : '<div class="banner loss">DEFEAT</div>';
-      if (rep.win && rep.first) toast(F.enemy.boss ? '<b>Boss defeated: ' + esc(F.enemy.name) + '</b>' + (rep.flux ? '<br>+' + rep.flux + ' Flux' : '') + (rep.cores ? '<br>+' + rep.cores + ' AI Cores' : '') + (rep.shards ? '<br>+' + rep.shards + ' Data Shards' : '') : 'Stage ' + V.stageLabel(F.stage) + ' cleared · +' + rep.cores + ' AI Cores' + (rep.shards ? ' · +' + rep.shards + ' Data Shards' : ''));
-      save(); head(); live(); if (tab === 'wing') renderWing();
+      if ($('banner')) $('banner').innerHTML = rep.win ? '<div class="banner win">VICTORY<small>+' + V.fmt(rep.credits) + (rep.flux ? ' · +' + rep.flux + ' Flux' : '') + '</small></div>' : '<div class="banner loss">DEFEAT</div>';
+      if (rep.win && rep.first) toast(F.enemy.boss ? '<b>Boss defeated: ' + esc(F.enemy.name) + '</b>' + (rep.flux ? '<br>+' + rep.flux + ' Flux' : '') + (rep.shards ? '<br>+' + rep.shards + ' Data Shards' : '') : 'Stage ' + V.stageLabel(F.stage) + ' cleared' + (rep.shards ? ' · +' + rep.shards + ' Data Shards' : ''));
+      save(); head(); live(); if (tab === 'drones') renderDrones();
       F.nextAt = now + 1200; return;
     }
     F = null; missionStatic();
@@ -437,29 +460,57 @@
     startFight();
   }
 
-  /* ---------- Wing: companions ---------- */
-  let lastSummon = [];
-  /* ---------- Wing ---------- */
-  function wtile(key, extra, act) {
-    const i = V.companionInfo(key);
-    return '<button class="tile wt" ' + (act || '') + ' style="--tc:' + i.color + '">' + spic(i.sp.id) + '<span class="lv">' + i.rankName + '</span>' + (extra || '') + '</button>';
+  /* ---------- Drones ---------- */
+  let lastSummon = [], dview = 'all';
+  const dcol = (id) => V.D_COLOR[V.DRONE_BY[id].rar];
+  const starPips = (n) => '<span class="stp">' + Array.from({ length: V.CFG.STAR_MAX }, (_, i) => '<i' + (i < n ? ' on' : '') + '></i>').join('') + '</span>';
+  function dtile(id, owned) {
+    const d = V.DRONE_BY[id], r = S.drones.own[id], act = S.drones.active === id;
+    return '<button class="tile wt dt' + (owned ? '' : ' off') + (act ? ' act' : '') + '" data-act="dsheet" data-id="' + id + '" style="--tc:' + V.D_COLOR[d.rar] + '">' + spic(id) +
+      '<span class="lv">' + V.D_RAR[d.rar] + (r ? ' · ' + r.l : '') + '</span>' + (r ? '<span class="cnt">' + (r.c ? '×' + (r.c + 1) : '') + '</span>' + (V.canFuse(S, id) ? '<span class="fz">' + pic('merge') + '</span>' : '') + starPips(r.s) : '') + '</button>';
   }
-  function renderWing() {
-    const lvl = V.bayLevel(S), into = S.wing.summons % V.CFG.BAY_STEP;
-    let h = '<div class="pg"><h2 class="stitle">Wing</h2><div class="wslots">';
-    for (let i = 0; i < V.CFG.WING_SLOTS; i++) { const k = S.wing.active[i]; h += k ? wtile(k, '', 'data-act="unassign" data-i="' + i + '"') : '<div class="tile empty wt">' + pic('plus', 'ghost') + '</div>'; }
-    h += '</div><div class="bay"><div class="baytop"><span class="cores">' + coinIcon('cores') + '<b>' + V.fmt(S.cores) + '</b></span><span class="baylv">Lv.' + lvl + '</span><div class="bar"><i style="width:' + (lvl < V.CFG.BAY_MAX ? into / V.CFG.BAY_STEP * 100 : 100) + '%"></i></div>' + infoBtn('wing') + '</div>' +
-      '<div class="row"><button class="btn pri big2" data-act="sum1"' + (S.cores < V.CFG.SUMMON_COST ? ' disabled' : '') + '>' + pic('box') + ' ' + coinIcon('cores') + V.CFG.SUMMON_COST + '</button><button class="btn pri big2" data-act="sum10"' + (S.cores < V.CFG.SUMMON10_COST ? ' disabled' : '') + '>×10 ' + coinIcon('cores') + V.CFG.SUMMON10_COST + '</button></div>';
-    if (lastSummon.length) h += '<div class="got">' + lastSummon.slice(0, 10).map((g) => '<span style="--tc:' + V.RANK_COLORS[g.rank] + '">' + SVGH(48, 48, SPIC[V.SPECIES[g.sp].id] || SPIC.hornet, 'ico') + '</span>').join('') + '</div>';
-    const keys = Object.keys(S.wing.owned).sort((a, b) => { const pa = V.parseKey(a), pb = V.parseKey(b); return pb.rank - pa.rank || pa.sp - pb.sp; });
-    const fusable = keys.some((k) => V.canFuse(S, k));
-    h += '</div><div class="hanghd"><span>' + pic('box') + '</span>' + (fusable ? '<button class="btn sm" data-act="fuseAll">' + pic('merge') + ' ALL</button>' : '') + '</div><div class="scroll"><div class="hang">';
-    keys.forEach((k) => { const n = S.wing.owned[k]; h += wtile(k, '<span class="cnt">×' + n + '</span>' + (V.canFuse(S, k) ? '<span class="fz">' + pic('merge') + '</span>' : ''), 'data-act="wsheet" data-key="' + k + '"'); });
-    $('tab-wing').innerHTML = h + '</div></div></div>';
+  function renderDrones() {
+    const now = Date.now(), act = S.drones.active, r = act && S.drones.own[act], free = V.freeSummonsLeft(S, now), cost = V.summonCost(S);
+    let h = '<div class="pg"><h2 class="stitle">Drones</h2><div class="bay"><div class="baytop"><span class="cores">' + coinIcon('cores') + '<b>' + V.fmt(S.cores) + '</b></span><span class="cores">' + coinIcon('nanites') + '<b>' + V.fmt(S.nanites) + '</b></span>' + '<span style="flex:1"></span><button class="btn sm" data-act="links">' + pic('clan') + '</button>' + infoBtn('drones') + '</div>';
+    if (r) {
+      const d = V.DRONE_BY[act], pct = V.droneStat(d, r.l), lc = V.levelCost(r.l), maxed = r.l >= V.CFG.DRONE_LEVEL_MAX;
+      h += '<div class="dact" style="--tc:' + V.D_COLOR[d.rar] + '"><button class="tile wt dt act" data-act="dsheet" data-id="' + act + '" style="--tc:' + V.D_COLOR[d.rar] + '">' + spic(act) + starPips(r.s) + '</button><div class="dai"><b style="color:' + V.D_COLOR[d.rar] + '">' + esc(d.name) + ' <small>' + V.D_RAR[d.rar] + '</small></b><span>Lv.' + r.l + ' · +' + (Math.round(pct * 10) / 10) + '%</span>' +
+        '<button class="btn pri sm" data-act="dlvl" data-id="' + act + '" data-n="1"' + (maxed || S.nanites < lc ? ' disabled' : '') + '>' + (maxed ? 'MAX' : pic('plus') + ' ' + coinIcon('nanites') + V.fmt(lc)) + '</button></div></div>';
+    } else h += '<p class="sb" style="text-align:center">' + pic('box') + '</p>';
+    h += '<div class="row"><button class="btn pri big2" data-act="dsum"' + (S.cores < cost ? ' disabled' : '') + '>' + pic('box') + ' ×3 ' + coinIcon('cores') + cost + '</button><button class="btn big2" data-act="dsumAd"' + (free > 0 ? '' : ' disabled') + '>' + pic('video') + ' ×3 ' + pipsRow(free, V.CFG.FREE_SUMMONS) + '</button></div>';
+    if (lastSummon.length) h += '<div class="got">' + lastSummon.map((g) => '<span style="--tc:' + V.D_COLOR[g.rar] + '">' + spic(g.id) + (g.isNew ? '<em>NEW</em>' : '') + '</span>').join('') + '</div>';
+    const list = V.DRONES.slice().sort((a, b) => b.rar - a.rar || V.DRONES.indexOf(a) - V.DRONES.indexOf(b));
+    const fusable = list.some((d) => V.canFuse(S, d.id)), have = Object.keys(S.drones.own).length;
+    h += '</div><div class="hanghd"><span class="cores">' + pic('box') + '<b>' + have + '/' + V.DRONES.length + '</b></span>' + (fusable ? '<button class="btn sm" data-act="dfuseAll">' + pic('merge') + ' ALL</button>' : '') + '</div><div class="scroll"><div class="hang">';
+    list.forEach((d) => { h += dtile(d.id, !!S.drones.own[d.id]); });
+    $('tab-drones').innerHTML = h + '</div></div></div>';
   }
-  function wingSheet(k) {
-    const i = V.companionInfo(k), n = S.wing.owned[k], free = n - V.usedInWing(S, k);
-    sheet('<div class="sh-h"><div class="tile wt" style="--tc:' + i.color + ';width:64px">' + spic(i.sp.id) + '</div><div><b>' + i.sp.name + '</b><div class="sb" style="color:' + i.color + '">' + i.rankName + ' · ' + i.sp.role + '</div></div></div><p class="sb">' + i.text + '</p><div class="row"><button class="btn pri" data-act="assign" data-key="' + k + '"' + (free > 0 && S.wing.active.length < V.CFG.WING_SLOTS ? '' : ' disabled') + '>' + pic('plus') + '</button>' + (V.canFuse(S, k) ? '<button class="btn" data-act="fuse" data-key="' + k + '">' + pic('merge') + ' 3→1</button>' : '') + '</div>', 'wing');
+  function droneSheet(id) {
+    const d = V.DRONE_BY[id], r = S.drones.own[id], col = V.D_COLOR[d.rar];
+    if (!r) { sheet('<div class="sh-h"><div class="tile wt dt off" style="--tc:' + col + ';width:64px">' + spic(id) + '</div><div><b>' + esc(d.name) + '</b><div class="sb" style="color:' + col + '">' + V.D_RAR[d.rar] + ' · ' + esc(V.LINK_OF[id].name) + '</div></div></div><p class="sb dim">?</p>', 'drone'); return; }
+    const lv = V.abilityLevels(r.s), live = V.droneAbilities(S, id), pct = V.droneStat(d, r.l), lc = V.levelCost(r.l), maxed = r.l >= V.CFG.DRONE_LEVEL_MAX;
+    const ab = d.abil.map((a, i) => lv[i] ? '<div class="abl"><b>' + esc(a.name) + ' <small>Lv.' + lv[i] + '</small></b><span>' + V.describeAbility(live.find((x) => x.name === a.name)) + '</span></div>' : '<div class="abl lock"><b>' + pic('lock') + ' ' + esc(a.name) + '</b><span>★ ' + V.D_UNLOCK[i] + '</span></div>').join('');
+    sheet('<div class="sh-h"><div class="tile wt dt" style="--tc:' + col + ';width:64px">' + spic(id) + '</div><div><b>' + esc(d.name) + '</b><div class="sb" style="color:' + col + '">' + V.D_RAR[d.rar] + ' · ' + esc(V.LINK_OF[id].name) + '</div>' + starPips(r.s) + '</div></div>' +
+      '<div class="kv"><span>Level</span><span>' + r.l + ' / ' + V.CFG.DRONE_LEVEL_MAX + '</span><span>All stats</span><span style="color:var(--cyan)">+' + (Math.round(pct * 10) / 10) + '%</span><span>Spare copies</span><span>' + r.c + '</span></div>' + ab +
+      '<div class="row"><button class="btn pri" data-act="dequip" data-id="' + id + '"' + (S.drones.active === id ? ' disabled' : '') + '>' + (S.drones.active === id ? '✔' : 'Equip') + '</button>' + (V.canFuse(S, id) ? '<button class="btn" data-act="dfuse" data-id="' + id + '">' + pic('merge') + ' ★+1</button>' : '') + '</div>' +
+      '<div class="row"><button class="btn" data-act="dlvl" data-id="' + id + '" data-n="1"' + (maxed || S.nanites < lc ? ' disabled' : '') + '>' + (maxed ? 'MAX' : pic('plus') + ' ' + coinIcon('nanites') + V.fmt(lc)) + '</button><button class="btn" data-act="dlvl" data-id="' + id + '" data-n="10"' + (maxed || S.nanites < lc ? ' disabled' : '') + '>×10</button><button class="btn" data-act="dreset" data-id="' + id + '"' + (r.l > 1 && S.flux >= V.CFG.DRONE_RESET_FLUX ? '' : ' disabled') + '>' + coinIcon('flux') + V.CFG.DRONE_RESET_FLUX + '</button></div>', 'drone');
+  }
+  function linksSheet() {
+    const STAT = { attack: 'Damage', hull: 'Hull', defense: 'Defense' };
+    sheet('<div class="sh-h">' + pic('clan') + '<b>Links</b>' + infoBtn('links') + '</div>' + V.LINKS.map((L) => {
+      const i = V.linkInfo(S, L);
+      return '<div class="opp lk"><div class="oi"><b>' + esc(L.name) + ' <small>' + STAT[L.stat] + '</small></b><div class="lkm">' + L.ids.map((id) => '<span class="' + (S.drones.own[id] ? '' : 'off') + '" style="--tc:' + dcol(id) + '">' + spic(id) + '</span>').join('') + '</div><div class="bar"><i style="width:' + (i.all ? Math.min(100, i.steps / i.maxSteps * 100) : i.owned / i.size * 100).toFixed(1) + '%"></i></div></div><div class="lkb">' + (i.all ? '+' + (Math.round(i.bonus * 10) / 10) + '%' : i.owned + '/' + i.size) + '<small>★' + i.stars + (i.next ? '/' + i.next : '') + '</small></div></div>';
+    }).join(''), 'links');
+  }
+  function fstoreSheet() {
+    const now = Date.now();
+    sheet('<div class="sh-h">' + coinIcon('flux') + '<b>' + V.fmt(S.flux) + '</b>' + infoBtn('fstore') + '<button class="btn sm" data-act="packs" style="margin-left:auto">+ ' + coinIcon('flux') + '</button></div>' + V.FSTORE.map((it) => {
+      const left = V.fstoreLeft(S, it, now), n = V.fstoreAmount(S, it), ic = it.give === 'arena' ? pic('sword') : coinIcon(it.give);
+      return '<div class="opp"><div class="oav sq">' + ic + '</div><div class="oi"><b>' + (it.give === 'arena' ? '+' : '') + V.fmt(n) + '</b>' + (it.limit ? pipsRow(left, Math.min(it.limit, 5)) : '') + '</div><button class="btn" data-act="fbuy" data-id="' + it.id + '"' + (left > 0 && S.flux >= it.cost ? '' : ' disabled') + '>' + coinIcon('flux') + it.cost + '</button></div>';
+    }).join(''), 'fstore');
+  }
+  function packsSheet() {
+    sheet('<div class="sh-h">' + coinIcon('flux') + '<b>' + V.fmt(S.flux) + '</b></div><div class="packs">' + V.FLUX_PACKS.map((p) => '<button class="pack" data-act="packBuy"><em>×2</em>' + coinIcon('flux') + '<b>' + V.fmt(p[0]) + '</b><span>$' + p[1].toFixed(2) + '</span></button>').join('') + '</div><p class="sb dim" style="text-align:center">Payments are not connected yet</p>', 'packs');
   }
 
   /* ---------- Armory ---------- */
@@ -526,7 +577,7 @@
       ['Alloy produced', V.fmt(st.alloyEarned)], ['Credits earned', V.fmt(st.creditsEarned)],
       ['Commander level', S.cmd.level + ' · ' + V.RANK_NAMES[S.cmd.rank]], ['Forge upgrades', V.fmt(st.upgrades)], ['Forge level', S.forge.level + ' / ' + V.CFG.MAX_FORGE_LEVEL],
       ['Best tier fitted', V.highestTier(S) >= 0 ? V.TIERS[V.highestTier(S)].name : 'none'],
-      ['Best stage cleared', S.combat.best ? V.stageLabel(S.combat.best) : 'none'], ['Fights won / lost', V.fmt(st.wins) + ' / ' + V.fmt(st.losses)], ['Bosses defeated', V.fmt(st.bosses)], ['Companions summoned', V.fmt(S.wing.summons)], ['Fusions', V.fmt(st.fused || 0)],
+      ['Best stage cleared', S.combat.best ? V.stageLabel(S.combat.best) : 'none'], ['Fights won / lost', V.fmt(st.wins) + ' / ' + V.fmt(st.losses)], ['Bosses defeated', V.fmt(st.bosses)], ['Drones summoned', V.fmt(S.stats.summoned || 0)], ['Fusions', V.fmt(st.fused || 0)],
       ['Time at the forge', V.fmtTime(st.seconds)], ['Service began', new Date(S.created).toLocaleDateString()]
     ];
     return '<h2>Service record</h2><div class="panel"><div class="kv">' + kv.map((r) => '<span>' + r[0] + '</span><span>' + r[1] + '</span>').join('') + '</div></div>' +
@@ -549,13 +600,13 @@
     });
   }
   function refreshDepotish() { if (tab === 'depot') renderDepot(); else if (tab === 'missions') renderMissions(); else if (tab === 'foundry') renderForge(); }
-  const ADIC = { alloy: () => coinIcon('alloy'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), flux: () => coinIcon('flux') };
-  const DEALIC = { alloy200: 'alloy', alloy600: 'alloy', cores10: 'cores', shards4: 'shards', credits: 'credits', tickets2: null };
+  const ADIC = { alloy: () => coinIcon('alloy'), credits: () => coinIcon('credits'), speed: () => pic('bolt'), flux: () => coinIcon('flux'), nanites: () => coinIcon('nanites') };
+  const DEALIC = { alloy200: 'alloy', alloy600: 'alloy', cores10: 'cores', nan300: 'nanites', shards4: 'shards', credits: 'credits', tickets2: null };
   function renderDepot() {
     const now = Date.now(); V.rollDaily(S, now);
     const ti = V.sweepInfo(S, now);
     let h = '<div class="pg"><h2 class="stitle">Store</h2><div class="dep-top"><button class="gift' + (S.daily.gift ? ' done' : '') + '" data-act="gift"' + (S.daily.gift ? ' disabled' : '') + '>' + pic('box') + '<b>+100</b>' + coinIcon('alloy') + '</button>' +
-      '<button class="gift noads' + (S.noAds ? ' done' : '') + '" data-act="noAds"' + (S.noAds ? ' disabled' : '') + '>' + pic('crown') + '<b>' + (S.noAds ? '✔' : 'NO ADS') + '</b></button>' + infoBtn('depot') + '</div>' +
+      '<button class="gift noads' + (S.noAds ? ' done' : '') + '" data-act="noAds"' + (S.noAds ? ' disabled' : '') + '>' + pic('crown') + '<b>' + (S.noAds ? '✔' : 'NO ADS') + '</b></button>' + '<button class="gift" data-act="fstore">' + coinIcon('flux') + '<b>STORE</b></button>' + infoBtn('depot') + '</div>' +
       '<div class="dgrid2">';
     V.dealsToday(now).forEach((d) => {
       const bought = !!S.daily.deals[d.id], ic = DEALIC[d.id];
@@ -618,9 +669,9 @@
     const p = V.power(S), c = S.cmd, need = V.CFG.XP_NEED(c.level);
     const tot = subTotals(), keys = Object.keys(tot).slice(0, 3);
     const lg = V.LEAGUES[V.leagueOf(S.arena.lp)];
-    const comp = S.wing.active[0] ? '<div class="pdrone">' + spic(V.companionInfo(S.wing.active[0]).sp.id) + '</div>' : '';
+    const comp = S.drones.active ? '<div class="pdrone">' + spic(S.drones.active) + '</div>' : '';
     const gear = V.SLOTS.map((sl) => { const it = S.gear[sl.id]; return it ? '<div class="ptile" style="--tc:' + tcol(it.tier) + '">' + gearIcon(it) + '<span class="lv">Lv.' + it.level + '</span></div>' : '<div class="ptile empty">' + slotIcon(sl.id) + '</div>'; }).join('');
-    const wg = []; for (let i = 0; i < V.CFG.WING_SLOTS; i++) { const k = S.wing.active[i]; if (k) { const ci = V.companionInfo(k); wg.push('<div class="ptile" style="--tc:' + ci.color + '">' + spic(ci.sp.id) + '<span class="lv">' + ci.rankName.slice(0, 3) + '</span></div>'); } else wg.push('<div class="ptile empty"><span class="plus">+</span></div>'); }
+    const wg = []; { const k = S.drones.active; if (k) { const dd = V.DRONE_BY[k]; wg.push('<div class="ptile" style="--tc:' + V.D_COLOR[dd.rar] + '">' + spic(k) + '<span class="lv">Lv.' + S.drones.own[k].l + '</span></div>'); } else wg.push('<div class="ptile empty"><span class="plus">+</span></div>'); }
     sheet('<div class="prof"><h3 class="ptitle">Profile</h3><div class="pscene"><div class="pbg"></div>' +
       '<div class="phd"><button class="avs" data-act="profile" data-v="avatar" aria-label="Picture">' + avatarSvg(S.avatar) + '</button><div><button class="nm" data-act="profile" data-v="name">' + esc(S.name) + ' <small>Lv.' + c.level + '</small> <em>✎</em></button><div class="rk">' + pic('star') + V.RANK_NAMES[c.rank] + '</div></div></div>' +
       '<button class="pbanner' + (V.canPromote(S) ? ' hot' : '') + '" data-act="rank" aria-label="Rank">' + pic('star') + '<b>' + (c.rank + 1) + '</b></button>' +
@@ -692,7 +743,7 @@
       }
     }
   }
-  function refresh() { head(); live(); if (tab === 'foundry') renderForge(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'wing') renderWing(); else if (tab === 'depot') renderDepot(); }
+  function refresh() { head(); live(); if (tab === 'foundry') renderForge(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'drones') renderDrones(); else if (tab === 'depot') renderDepot(); }
 
   /* ---------- actions ---------- */
   /* ---------- multi-forge run: keep going until the bar is full of the target tier ---------- */
@@ -731,10 +782,9 @@
     save(); refresh();
   }
   function act(a, el) {
-    if (['assign', 'unassign', 'fuse'].includes(a)) { $('modal').hidden = true; modalKind = null; }
     if (a === 'info') return infoSheet(el.dataset.k);
     if (a === 'sheet') return missionSheet(el.dataset.k);
-    if (a === 'wsheet') return wingSheet(el.dataset.key);
+    if (a === 'dsheet') return droneSheet(el.dataset.id);
     if (a === 'profile') return profile(el.dataset.v);
     if (a === 'rank') return rankSheet();
     if (a === 'cloudOpen') { $('modal').hidden = true; modalKind = null; if (window.Cloud) Cloud.open(); return; }
@@ -771,15 +821,22 @@
     if (a === 'holdSel') { const i = +el.dataset.i; holdSel = holdSel === i ? null : i; return renderForge(); }
     if (a === 'equip') { const r = V.equipHeld(S, +el.dataset.i); if (r) { buzz(18); S.lastMsg = 'Fitted ' + esc(V.itemName(r.item)); holdSel = r.index >= 0 ? r.index : null; save(); refresh(); } return; }
     if (a === 'sell') { const v = V.sellHeld(S, +el.dataset.i); if (v) { S.lastMsg = 'Sold for ' + V.fmt(v) + ' Credits'; holdSel = null; save(); refresh(); } return; }
-    if (a === 'sum1' || a === 'sum10') {
-      const r = V.summon(S, a === 'sum1' ? 1 : 10, rng);
-      if (r.ok) { lastSummon = r.got; buzz(25); const best = r.got.reduce((m, g) => g.rank > m ? g.rank : m, 0); toast('Summoned ' + r.got.length + (r.got.length > 1 ? ' companions' : ' companion') + ' · best: <span style="color:' + V.RANK_COLORS[best] + '">' + V.RANKS[best] + '</span>'); save(); head(); live(); renderWing(); }
+    if (a === 'dsum' || a === 'dsumAd') {
+      const done = (r) => { lastSummon = r.got; buzz(25); const best = r.got.reduce((m, g) => g.rar > m ? g.rar : m, 0); toast('Summoned 3 · best: <span style="color:' + V.D_COLOR[best] + '">' + V.D_RAR[best] + '</span>'); save(); head(); live(); renderDrones(); };
+      if (a === 'dsum') { const r = V.summon(S, rng); if (r.ok) done(r); return; }
+      if (V.freeSummonsLeft(S, Date.now()) > 0) adStandIn('Free summon', '3 free drones', () => { const r = V.summonFree(S, rng, Date.now()); if (r.ok) { done(r); return true; } return false; });
       return;
     }
-    if (a === 'assign') { if (V.assign(S, el.dataset.key)) { save(); renderWing(); } return; }
-    if (a === 'unassign') { if (V.unassign(S, +el.dataset.i)) { save(); renderWing(); } return; }
-    if (a === 'fuse') { const up = V.fuse(S, el.dataset.key); if (up) { buzz(30); const i = V.companionInfo(up); toast('Fused into <span style="color:' + i.color + '">' + i.sp.name + ' · ' + i.rankName + '</span>'); save(); renderWing(); } return; }
-    if (a === 'fuseAll') { const n = V.fuseAll(S); toast(n ? n + ' fusions' : 'Nothing to fuse'); save(); renderWing(); return; }
+    if (a === 'dequip') { if (V.setActive(S, el.dataset.id)) { buzz(15); save(); head(); live(); renderDrones(); droneSheet(el.dataset.id); } return; }
+    if (a === 'dfuse') { if (V.fuse(S, el.dataset.id)) { buzz(30); save(); head(); renderDrones(); droneSheet(el.dataset.id); } return; }
+    if (a === 'dfuseAll') { const n = V.fuseAll(S); toast(n ? n + ' ★' : 'Nothing to fuse'); save(); head(); renderDrones(); return; }
+    if (a === 'dlvl') { const n = V.levelUp(S, el.dataset.id, +el.dataset.n); if (n) { buzz(15); save(); head(); live(); renderDrones(); droneSheet(el.dataset.id); } return; }
+    if (a === 'dreset') { if (V.resetDrone(S, el.dataset.id)) { buzz(25); save(); head(); live(); renderDrones(); droneSheet(el.dataset.id); } return; }
+    if (a === 'links') return linksSheet();
+    if (a === 'fstore') return fstoreSheet();
+    if (a === 'packs') return packsSheet();
+    if (a === 'packBuy') { toast('Payments are not connected yet'); return; }
+    if (a === 'fbuy') { if (V.fluxBuy(S, el.dataset.id, Date.now())) { buzz(25); save(); head(); live(); fstoreSheet(); refreshDepotish(); } return; }
     if (a === 'sweepAd') { adStandIn('Sweep ticket', '+1 sweep ticket', () => V.sweepAd(S, Date.now())); return; }
     if (a === 'ad') { const o = V.AD_OFFERS.find((x) => x.id === el.dataset.id); adStandIn(o.name, o.id === 'credits' ? '+' + V.fmt(adCreditsPreview()) + ' Credits' : o.text, () => V.claimAd(S, o.id, Date.now())); return; }
     if (a === 'gift') { if (V.claimGift(S, Date.now())) { buzz(25); toast('<b>Supply drop</b><br>+100 Alloy'); save(); head(); live(); renderDepot(); } return; }
@@ -836,7 +893,7 @@
     document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.id === 'tab-' + tab));
     $('app').classList.toggle('onfoundry', tab === 'foundry');
     document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.dataset.tab === tab));
-    if (tab === 'foundry') renderForge(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'wing') renderWing(); else if (tab === 'depot') renderDepot(); else renderMore();
+    if (tab === 'foundry') renderForge(); else if (tab === 'armory') renderArmory(); else if (tab === 'missions') renderMissions(); else if (tab === 'drones') renderDrones(); else if (tab === 'depot') renderDepot(); else renderMore();
   }
   document.querySelectorAll('nav button').forEach((b) => { b.onclick = () => { tab = b.dataset.tab; showTab(); }; });
 

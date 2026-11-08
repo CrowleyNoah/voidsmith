@@ -418,3 +418,22 @@ img.cimg{object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 0 #0007
 #tab-foundry .actbar .holdcard{position:absolute;left:0;right:0;bottom:calc(100% + 56px);margin:0;z-index:6}
 .psubs{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0}.psubs span{font-size:11px;font-weight:700;color:#7fe9ff;border:1px solid #7fe9ff66;border-radius:4px;padding:1px 5px}
 #tab-foundry .actbar #f10.run{background:#8a1f1f!important;border-color:#ff6b6b!important;color:#fff;animation:cpulse 1s ease-in-out infinite}
+
+/* ---- painted battle backdrops (one per band, crossfade) ---- */
+.scene .bgl{position:absolute;inset:0;background:center 40%/cover no-repeat #0a0e17;opacity:0;transition:opacity .9s ease}
+.scene .bgl.on{opacity:1}
+.scene .bgl.a{z-index:0}.scene .bgl.b{z-index:0}
+.scene .sky{z-index:0}
+.scene:has(.bgl.on) .sky::before,.scene:has(.bgl.on) .planet{display:none}
+.scene .bgl.on~.gnd,.scene .gnd{background:linear-gradient(#0000,#04060bcc)!important}
+.scene::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(#000d,#0000 30%,#0000 55%,#000c),radial-gradient(ellipse at 50% 55%,#0000 45%,#0007)}
+
+/* ---- Drones ---- */
+.tile.dt{aspect-ratio:1;display:block;position:relative}.tile.dt.off{opacity:.38;filter:grayscale(.8)}.tile.dt.act{box-shadow:0 0 0 2px #fff,0 0 12px var(--tc)!important}
+.tile.dt .lv{font-size:10px}.stp{position:absolute;left:3px;right:3px;bottom:3px;display:flex;gap:1px;justify-content:center}.stp i{flex:1;max-width:6px;height:4px;border-radius:2px;background:#0008}.stp i.on{background:#ffd24a}
+.dact{display:flex;gap:10px;align-items:center}.dact .tile{width:84px;flex:none}.dai{display:flex;flex-direction:column;gap:5px;flex:1;font:700 14px 'Chakra Petch',sans-serif}.dai small{opacity:.8;font-size:11px}.dai span{color:var(--cyan)}
+.got span{position:relative;width:52px;height:52px}.got span em{position:absolute;top:-4px;left:-2px;font:800 8px 'Chakra Petch',sans-serif;background:#ff4d4d;color:#fff;border-radius:4px;padding:1px 3px}.got .ico{width:100%;height:100%}
+.abl{background:#0a0d4088;border-radius:10px;padding:6px 8px;margin:5px 0;display:flex;flex-direction:column;gap:2px;font-size:12px}.abl b{font:800 13px 'Chakra Petch',sans-serif}.abl small{color:#ffd24a}.abl.lock{opacity:.55}
+.lk .lkm{display:flex;gap:4px;margin:3px 0}.lk .lkm span{width:34px;height:34px;border:2px solid var(--tc);border-radius:8px;background:#0006;display:block}.lk .lkm span.off{opacity:.3;filter:grayscale(1)}.lk .lkm .ico{width:100%;height:100%}
+.lkb{font:800 15px 'Chakra Petch',sans-serif;text-align:right;display:flex;flex-direction:column;color:var(--cyan)}.lkb small{color:#ffd24a;font-size:11px}
+.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}.pack{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:12px;border:2px solid var(--stroke);background:#0a0d4088;color:#fff;font:800 14px 'Chakra Petch',sans-serif;opacity:.75}.pack .coin{width:22px;height:22px}.pack span{font-size:12px;color:#ffd24a}.pack em{position:absolute;top:-6px;right:-3px;font-style:normal;font:800 10px 'Chakra Petch',sans-serif;background:#35f0ff;color:#012;border-radius:6px;padding:1px 4px}
