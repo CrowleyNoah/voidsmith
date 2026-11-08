@@ -23,13 +23,13 @@ A private idle forge game. Everything is saved on your device and works offline.
 - Speed order matters (drones strike fast, bulwarks slow and armored). Every 4th shot of yours is an Overcharge. Crits and boss salvos happen.
 - Win to earn Credits (first clears pay 5x; rewards grow by a flat step per stage). Lose and you fall back one stage. Auto-advance can be switched off to farm a stage.
 - Boss first clears pay Flux, which can finish a Foundry upgrade early (1 Flux = 5 minutes).
-- The app patrols your best stage while closed (half pay, up to your offline time).
+- While the app is closed you earn Alloy and Credits at a set rate, for up to your offline time (4 hours to start, raised in Research). Nothing else is paid offline.
 
 ## Added in step 4
 - Bonus lines on parts (Refitted and up): Crit chance, Crit damage, Armor pierce, Overcharge, Haste, Plating, Evasion, Hull leech. Weapons lean offensive, hull parts defensive. Higher tiers roll more and bigger lines.
 - Power stays the plain number (stats x set x Codex). Fights use the lines too, so two ships with equal Power can win very differently. Each part shows its Power change and its Build change; auto decisions use Build.
 - Wing: three companion ships (Hornet, Longbow, Mender, Aegis, Static, Surge) that act in turn order. Summon with AI Cores, fuse 3 of the same rank into the next rank (6 ranks). The Summon Bay levels up with use for better odds.
-- AI Cores come from first clears, boss first clears and a 6% chance per win, and from patrol while closed.
+- AI Cores come only from first clears and boss first clears (no drop per win). They are never paid offline. A summon costs 30 Cores (10 for 270).
 - Mission Outlook is now a real win chance from simulated fights.
 
 ## Tuning the numbers
@@ -80,9 +80,9 @@ Main screen rebuilt to look like a game, not a text page: full-width fight scene
 ## Added in v25: research tree rebuilt from the Forge Master tech guide
 - Lab tab: Research and Codex. Three branches (Forge, Power, Fleet), 25 nodes, no Clan branch.
 - Each node has 25 levels in 5 tiers of 5 (I-V). Bonus per level is constant; cost and wait rise with the tier (Forge Master's T1-T5 tables, waits x1.5, Shards x SHARD_SCALE, Flux x1.5).
-- Values are about 0.8x Forge Master: Foundry speed +3%, upgrade cost -1.5%, sell +1.6%, Free Forge 0.8%, offline +12.8% of 4h per level, Power nodes +1.6% to one gear slot, research speed +3%, research cost -1.6%, summon cost -0.8%.
+- Values are about 0.8x Forge Master: Foundry speed +3%, upgrade cost -1.5%, sell +1.6%, Free Forge 0.8%, offline +16% of 4h per level (20h at level 25), Power nodes +1.6% to one gear slot, research speed +3%, research cost -1.6%, summon cost -0.8%.
 - Multi-Forge: one upgrade per tier (+2,+2,+2,+2,+1, max 10 at once), commander level 6/20/38/56/75. Tiers I-V open at commander level 1/16/34/52/70.
-- v26 additions: Alloy Output (+1.6% per level on the 1 Alloy a minute base) and Patrol Pay (offline patrol 50% -> up to 90%) in the Forge branch. Offline time node stays (4h base, +12.8% of the base per level).
+- v26 additions: Alloy Output (+1.6% per level on the 1 Alloy a minute base) and Patrol Pay (offline patrol 50% -> up to 90%) in the Forge branch. Offline time node stays (4h base, +16% of the base per level).
 - v26 installments: Foundry upgrades take several payments before the timer starts: 1 until about Foundry 8, then 2, 3 ... up to 9-10 near the end (CFG.INSTALL). One payment is PAY_X (0.2) of the old single price, so late levels are credit-limited, not just timer-limited.
 - Dropped (no equivalent here): Forging XP, crit/haste, eggs, mounts, level-ups.
 - One research at a time; Flux finishes it early. Old research is refunded 3 Shards per level.
@@ -102,3 +102,34 @@ Main screen rebuilt to look like a game, not a text page: full-width fight scene
 - `assets/bg/bg_profile.jpg` – painted hangar behind the ship on Profile (1024x1024, shown with `background-size: cover`, so it crops to the scene box).
 - `assets/comp/comp_<species>.png` – painted companion drones, 256x256, facing right like the ship. Hornet only for now; add a species to `COMP_ART` in game.js when its art exists.
 - The paper-doll ship rig and 3/4 gear icons are in the code but switched off (`USE_RIG = false` in game.js).
+
+## Stockpile (v59)
+- Alloy (1/min to start) and Credits (1/sec) build up in real time, online or not, up to your offline time (4h to start, +16% of 4h per research level, 20h at level 25).
+- The Collect button (left of the anvil) pays out what has built up. It locks for 5 seconds after each collect. Coming back after being away is just collecting a bigger stockpile.
+- Kills pay 1 Credit. Gear sells for little: base 1 (Rusted) to 40 (Apex), +2% per forge level the part was made at (guessed ladder; Forge Master's top tier is in the 50s).
+
+## Combat numbers (v60)
+- No built-in crit or overcharge: base crit chance is 0 and base crit/overcharge multipliers are 1 (no effect). They come only from bonus lines on your parts. Crit damage and Overcharge lines are +25% and +30% base (before tier and roll).
+- Every bonus line can roll on any part (no slot restrictions).
+
+## Bonus lines (v61)
+- Only parts of tier 3 (Hardened) and up roll bonus lines (2, 2, 3, 4, 4, 5, 5, 6 lines going up the tiers).
+- Each line rolls a random value from 1% up to its max: Crit chance 12, Crit damage 80, Armor pierce 20, Overcharge 40, Haste 25, Plating 15, Evasion 10, Hull leech 20. The max does not change with tier. Totals across all fitted parts still hit the caps listed in the code.
+
+## Auto menu (v62)
+- Bonus lines per part: tiers 1-2 none, tiers 3-6 one line, tiers 7-10 two lines.
+- The AUTO button (next to the stats) opens the Auto menu: Auto-Salvage on/off, tiers to always sell, and wanted bonus lines. With wanted lines picked, a part that has lines is sold unless at least one line is wanted. Also applies to multi-forge.
+
+## Hold bar (v63)
+- Parts you have not decided on sit in a bar of icons above the forge. It holds as many parts as you can forge at once (1 to start). Forging past that sells the oldest held part.
+- Equipping a held part puts the part it replaced into the bar, so you can swap back until you sell it.
+- A new part opens its card (stats, Equip, Sell). Tapping anywhere else shrinks it to its icon above the forge; tap the icon to open it again.
+- With Auto off, multi-forge puts all its parts in the bar. With Auto on, parts are decided automatically (the replaced part is sold).
+
+## Hold bar rules and the multi-forge run (v64)
+- Forging is blocked while the hold bar is full (with Auto off): equip or sell a part first. Nothing is ever sold for you to make room.
+- Multi-forge run: in the Auto menu pick a tier. The multi-forge button becomes a run (▶ x N): it forges in rounds, sells every part below that tier (or that your line filter rejects), holds the rest, and stops when the bar is full or Alloy runs out. Tap the button (now a stop square) to stop early and decide on what it caught. The run also stops if you leave the Forge tab.
+
+## Gear levels (v65)
+- A new part is made at your commander level, give or take 2 (never below 1 or above the max commander level). Part stats grow 1.75% per gear level, so leveling up and ranking up keep making new parts stronger, as in Steelborn.
+- Multi-forge run: tick any tiers you like (only tiers that can drop at your Foundry level are listed). Only parts of the ticked tiers are held; everything else is sold.

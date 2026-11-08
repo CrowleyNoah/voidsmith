@@ -1,6 +1,7 @@
 // Pace simulator: a bot plays like a casual free player and reports how long each stage of the game takes.
 // usage: node tests/sim.js [days] [sessionsPerDay] [minutesPerSession]
 const V = require('../core.js');
+if (process.env.G) V.CFG.LEVEL_GROWTH = +process.env.G;
 function seeded(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
 function manageWing(s, rng) {
   while (s.cores >= V.CFG.SUMMON_COST) V.summon(s, 1, rng);
@@ -34,8 +35,10 @@ function play(days, perDay, minutes) {
   while (t < days * dayS) {
     if (t >= nextCheck) {
       const rep = V.offline(Object.assign(s, { last: s.last }), t * 1000);
+      V.collect(s, t * 1000);
       for (let k = 0; k < minutes * 60; k++) {
         t += 1; const n = t * 1000;
+        if (k % 10 === 9) V.collect(s, n);
         V.earn(s, 1); V.checkUpgrade(s, n); V.checkTech(s, n);
         if (!s.forge.upgrade) { for (let q = 0; q < 12; q++) { const r = V.startUpgrade(s, n); if (!r.ok || !r.partial) break; } }
         if (k % 10 === 0) { V.forgeBatch(s, 999, rng); V.promote(s); bank(s, n); }

@@ -319,3 +319,102 @@ img.cimg{object-fit:contain;pointer-events:none;filter:drop-shadow(0 2px 0 #0007
 .pdrone img.cimg{width:100%;height:100%}
 .sh-h .tile img.cimg{width:76%;height:60%}
 .pdrone{width:62px;height:62px;top:-58px;left:34%}
+
+/* ===== Forge deck v2 (final layer): thin header, crisp 4x2 grid + companion tile, own action bar above the nav =====
+   Everything is scoped to #tab-foundry so no other screen is touched. */
+#tab-foundry #foundryRest{display:flex;flex-direction:column;justify-content:flex-start!important;gap:6px!important;padding:6px 8px 6px!important;overflow:visible!important}
+#tab-foundry .hud{flex:none;display:flex;flex-direction:column;gap:3px;background:#0a0f1a;border:1px solid #1b2742;border-radius:9px;padding:4px 6px}
+#tab-foundry .hud .xpr{display:flex;align-items:center;gap:6px;height:16px;margin:0!important;padding:0!important}
+#tab-foundry .hud .xpr b{font-size:12px;font-weight:800;-webkit-text-stroke:0;min-width:34px}
+#tab-foundry .hud .xpr .bar{height:12px;border-radius:6px;border-width:1px}
+#tab-foundry .hud .bar span{font-size:9px;-webkit-text-stroke:0}
+#tab-foundry .hud .rankbtn{width:32px;height:18px;border-radius:6px;border-width:1px}
+#tab-foundry .hud .rankbtn svg{width:13px;height:13px}
+#tab-foundry .hud .srow{display:flex;align-items:center;gap:2px;height:20px;margin:0!important;padding:0!important}
+#tab-foundry .hud .srow span{flex:1;height:20px;display:flex;align-items:center;justify-content:center;gap:5px;background:none!important;border:0!important;padding:0}
+#tab-foundry .hud .srow span+span{border-left:1px solid #ffffff14!important}
+#tab-foundry .hud .srow b{font-size:13px;font-weight:700;-webkit-text-stroke:0}
+#tab-foundry .hud .srow svg{width:15px;height:15px}
+#tab-foundry .hud .srow .info{flex:none;width:18px;height:18px;font-size:11px}
+
+#tab-foundry .deck{flex:none;display:grid!important;grid-template-columns:repeat(4,1fr) 1.9fr;gap:4px!important;align-items:stretch}
+#tab-foundry .deck .gear5{display:contents!important}
+#tab-foundry .deck .tile{width:auto;height:auto;aspect-ratio:1;border:1px solid color-mix(in srgb,var(--tc,#3a4a66) 60%,#000)!important;border-radius:8px!important;box-shadow:inset 0 1px 0 #ffffff1a!important;background:radial-gradient(circle at 50% 100%,color-mix(in srgb,var(--tc,#3a4a66) 34%,transparent),transparent 72%),#111a2b!important;padding:0}
+#tab-foundry .deck .tile.empty{background:#0d1422!important;border:1px solid #17223a!important;box-shadow:none!important}
+#tab-foundry .deck .tile img.gi,#tab-foundry .deck .tile .ico{inset:5% 5% 24%;width:90%;height:71%}
+#tab-foundry .deck .tile.empty .ico{inset:20%;width:60%;height:60%;opacity:.2}
+#tab-foundry .deck .tile .lv{font-size:10px;font-weight:800;bottom:2px;-webkit-text-stroke:0}
+#tab-foundry .deck .tile.wingtile{grid-column:5!important;grid-row:1/3!important;aspect-ratio:auto!important;width:auto!important;height:auto!important;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:2px;padding:4px;border-radius:8px!important}
+#tab-foundry .deck .tile.wingtile .ico{position:static;inset:auto;width:46%;height:auto;aspect-ratio:1;object-fit:contain}
+#tab-foundry .deck .tile.wingtile .plus{font-size:26px}
+
+#tab-foundry .actbar{flex:none;margin-top:auto;display:flex;align-items:center;gap:6px;height:56px;padding:4px 6px;background:#0a0f1a;border:1px solid #1b2742;border-radius:12px}
+#tab-foundry .actbar #f10{flex:none;width:44px!important;height:100%!important;min-height:0;padding:0;border-radius:10px!important;font-size:14px}
+#tab-foundry .actbar .fcol{flex:none;position:relative;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:1px;height:100%}
+#tab-foundry .actbar .ftime{position:static!important;height:11px!important;min-height:0;font-size:10px;line-height:11px;text-align:center;color:#ffb43a}
+#tab-foundry .actbar .fbtn{width:96px!important;height:36px!important;border-radius:10px!important;padding:0 4px}
+#tab-foundry .actbar .fbtn small{font-size:9px;line-height:1}#tab-foundry .actbar .fbtn b{font-size:15px;line-height:1.1}
+#tab-foundry .actbar .fbtn .dot{top:-5px;right:-5px}
+/* the deck takes the height it needs; the battle view gets everything that is left */
+#tab-foundry #arenaWrap{flex:1 1 0!important;height:auto!important;min-height:0}
+#tab-foundry #foundryRest{flex:none!important;height:auto!important;max-height:none!important}
+#tab-foundry .hud .srow span{border-radius:0!important}
+#tab-foundry .actbar .fcol .ftime:empty{display:none}
+#tab-foundry .actbar .fbtn{flex:1 1 auto;height:auto!important;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* ===== Readability pass: quiet battle breadcrumb, stat acronyms ===== */
+#tab-foundry .stagetop .sl{font:600 13px/1 'Chakra Petch',sans-serif;letter-spacing:.08em;color:#d3dbe8;opacity:.92;-webkit-text-stroke:0;text-shadow:0 1px 2px #000c}
+#tab-foundry .stagetop .pips{gap:4px;margin-top:5px}
+#tab-foundry .stagetop .pips i{width:7px;height:7px;border-width:1px}
+
+/* ===== Deck, round 3 ===== */
+/* header stats: ATK and HP only (Power lives in the top-left and the Profile). Acronym sits on the icon like a game tag. */
+#tab-foundry .hud .srow span{gap:6px}
+#tab-foundry .hud .srow .stic{position:relative;display:block;width:22px;height:22px;flex:none}
+#tab-foundry .hud .srow .stic svg{width:22px;height:22px;display:block}
+#tab-foundry .hud .srow .stic i{position:absolute;right:-5px;bottom:-4px;font:800 8px/1 'Chakra Petch',sans-serif;font-style:normal;color:#fff;letter-spacing:.02em;text-shadow:0 1px 0 #000,1px 0 0 #000,-1px 0 0 #000,0 -1px 0 #000}
+#tab-foundry .hud .srow b{margin-left:3px}
+/* the forge: big anvil, alloy count small and INSIDE its base plate */
+#tab-foundry .actbar{height:64px;padding:3px 6px;gap:8px}
+#tab-foundry .actbar .anvil{flex:1;min-width:0;height:100%;display:flex!important;align-items:center;justify-content:center;background:none!important;border:0!important;box-shadow:none!important;padding:0;position:relative}
+#tab-foundry .actbar .anvil svg{width:auto!important;max-width:100%!important;height:100%!important;margin:0;filter:drop-shadow(0 2px 0 #0008)}
+#tab-foundry .actbar .anvil:not(:disabled) svg{filter:drop-shadow(0 0 8px #ffb34799) drop-shadow(0 2px 0 #0008)}
+#tab-foundry .actbar .anvil .ac{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);margin:0!important;min-width:0!important;width:auto;height:auto;display:flex;align-items:center;gap:3px;padding:1px 7px!important;background:#10151c!important;border:1px solid #05080c!important;border-radius:6px;box-shadow:inset 0 1px 2px #000}
+#tab-foundry .actbar .anvil .ac b{font:800 12px/1 'Chakra Petch',sans-serif;-webkit-text-stroke:0;color:#fff}
+#tab-foundry .actbar .anvil .ac svg{width:12px!important;height:12px!important;filter:none!important}
+#tab-foundry .actbar{height:76px}
+#tab-foundry .actbar .anvil .ac{bottom:10%;padding:1px 6px!important;gap:3px}
+#tab-foundry .actbar .anvil .ac b{font-size:11px}
+#tab-foundry .actbar .anvil .ac svg{width:11px!important;height:11px!important}
+#tab-foundry .actbar #f10{height:100%!important}
+
+/* ---- Stockpile: Collect button (left of the anvil) ---- */
+#tab-foundry .actbar .collect{flex:none;width:64px;height:100%;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:3px;padding:3px 5px;border-radius:10px;border:1px solid #3a4f7a;background:linear-gradient(#22345a,#16233f);color:#fff;font:700 11px/1 system-ui,sans-serif}
+#tab-foundry .actbar .collect span{display:flex;align-items:center;gap:3px;min-width:0}
+#tab-foundry .actbar .collect b{flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;font-weight:800}
+#tab-foundry .actbar .collect .cr b{color:#ffd45a}#tab-foundry .actbar .collect .ca b{color:#9fe7ff}
+#tab-foundry .actbar .collect svg,#tab-foundry .actbar .collect img{width:14px;height:14px;flex:none}
+#tab-foundry .actbar .collect:not(:disabled){border-color:#ffc83d;box-shadow:0 0 8px #ffc83d55}
+#tab-foundry .actbar .collect:disabled{opacity:.55}
+#tab-foundry .actbar .collect.full{animation:cpulse 1.2s ease-in-out infinite}
+@keyframes cpulse{50%{box-shadow:0 0 14px #ffc83d}}
+
+/* ---- Auto button and filter sheet ---- */
+#tab-foundry .srow .autob{flex:none;margin-left:auto;height:26px;padding:0 10px;border-radius:13px;border:1px solid #3a4f7a;background:#16233f;color:#9fb0cc;font:800 11px/1 system-ui,sans-serif;letter-spacing:.5px}
+#tab-foundry .srow .autob.on{background:#ffb02e;border-color:#ffd27a;color:#2a1a00}
+.fh{margin:12px 0 6px;font-weight:700;display:flex;align-items:center;gap:8px}
+.fchips{display:flex;flex-wrap:wrap;gap:6px}
+.fchip{border:2px solid var(--tc,#3a4f7a);background:#0f1a30;color:#cfd8ea;border-radius:8px;padding:5px 9px;font:700 12px/1 system-ui,sans-serif}
+.fchip.on{background:var(--tc,#ffb02e);color:#111;border-color:#fff8}
+.fchip:disabled{opacity:.4}
+
+/* ---- Hold bar: undecided parts sit above the forge; tap away to shrink the card ---- */
+#tab-foundry .actbar{position:relative}
+#tab-foundry .actbar .holdbar{position:absolute;left:50%;bottom:calc(100% + 4px);transform:translateX(-50%);display:flex;gap:6px;z-index:5;max-width:100%;flex-wrap:nowrap}
+#tab-foundry .actbar .holdtile{position:relative;flex:none;width:46px;height:46px;padding:2px;border-radius:10px;background:#0d151d;border:2px solid var(--tc);box-shadow:0 2px 8px #000a}
+#tab-foundry .actbar .holdtile.sel{box-shadow:0 0 0 2px #fff8,0 2px 8px #000a}
+#tab-foundry .actbar .holdtile svg,#tab-foundry .actbar .holdtile img{width:100%;height:100%}
+#tab-foundry .actbar .holdtile .lv{position:absolute;right:2px;bottom:1px;font:800 9px/1 system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000}
+#tab-foundry .actbar .holdcard{position:absolute;left:0;right:0;bottom:calc(100% + 56px);margin:0;z-index:6}
+.psubs{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0}.psubs span{font-size:11px;font-weight:700;color:#7fe9ff;border:1px solid #7fe9ff66;border-radius:4px;padding:1px 5px}
+#tab-foundry .actbar #f10.run{background:#8a1f1f!important;border-color:#ff6b6b!important;color:#fff;animation:cpulse 1s ease-in-out infinite}

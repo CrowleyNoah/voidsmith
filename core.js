@@ -9,7 +9,7 @@
     NAME: 'Voidsmith',
     SAVE_VERSION: 1,
     MAX_FORGE_LEVEL: 25,        // 25 Foundry levels before Ascension (Ascension comes later)
-    PATROL_RATE: 0.5,           // fights you are not watching (offline patrol) pay half
+    OFFLINE_CREDIT_RATE: 1,     // while you are away, Credits come in at 1 per second, up to your offline time (research raises it)
     OFFLINE_BASE_H: 4,          // hours of offline production you start with; research raises it
     AUTO_UNLOCK_LEVEL: 3,       // forge level that unlocks Auto-Salvage
     ALLOY_COST: 1,              // one Alloy buys one forge. There is no cap on how much Alloy or Credits you can hold.
@@ -18,12 +18,14 @@
     TIME_SLOW: 1.5,             // everything waits 1.5x longer than the game this math came from
     SHARD_SCALE: 0.025,             // Data Shard price of research, against the original's potions (tuned with tests/sim.js)
     COST_SCALE: 0.4,            // tuned with tests/sim.js so Credits matter without replacing the timers
-    UPGRADE_CREDITS: (L) => Math.max(1, Math.round(fmStep(FM_COST, L) * CFG.COST_SCALE * avgSell(L) / CFG.SELL_BASE)),   // Credits to go from L to L+1: the original's price, counted in what your parts sell for at that level
-    INSTALL: (L) => { const p = 1 + (L - 1) * 34 / 24; return p < 8 ? 1 : Math.min(10, 1 + Math.floor((p - 6) * 9 / 28)); },   // how many payments a Foundry upgrade takes (Forge Master: 1 early, 8-10 late)
+    UPGRADE_CREDITS: (L) => FM_COST[Math.min(FM_COST.length, L) - 1],   // Credits per payment to go from L to L+1: Forge Master's price for its forge level L, taken as is (levels 1-25)
+    INSTALL: (L) => FM_NODES[Math.min(FM_NODES.length, L) - 1],   // payments to go from L to L+1 = the original's 'No. of Nodes' on its row for level L+1; each payment costs the row's Cost, the timer starts after the last
     PAY_X: 0.27,                 // size of one payment against the old single price
-    UPGRADE_SECONDS: (L) => Math.max(1, Math.round(FM_TIME[Math.round(fmPos(L + 1)) - 2] * (L < 16 ? CFG.TIME_SLOW : 1.2))),   // wait to go from L to L+1: the original's wait for the level it maps to, 1.5x slower up to Foundry 16, 1.2x after
-    LEVEL_GROWTH: 1.12,         // each forge level makes new gear 12% stronger
-    SELL_BASE: 3, SELL_GROWTH: 1.15,
+    UPGRADE_SECONDS: (L) => Math.max(1, Math.round(FM_TIME[Math.min(FM_TIME.length, L) - 1] * CFG.TIME_SLOW)),   // wait to go from L to L+1: the original's Time on its row for level L+1, 1.5x longer
+    LEVEL_GROWTH: 1.0175,        // each gear level makes a part this much stronger
+    GEAR_SPREAD: 2,             // a new part is made at your commander level, give or take this many levels (never below 1 or above the max commander level)
+    SELL_LEVEL: 0.0016,         // a part sells for 0.16% more per gear level (tier sets the base: Rusted 1 .. Apex 40)
+    COLLECT_LOCK_MS: 5000,      // after you collect, the button stays locked this long
     SET4: [0.02, 0.04, 0.06, 0.09, 0.12, 0.16, 0.21, 0.27, 0.34, 0.42],                      // bonus for 4 fitted parts of tier X or better
     SET8: [0.05, 0.10, 0.15, 0.22, 0.30, 0.40, 0.52, 0.66, 0.82, 1.00],                      // bonus for 8 fitted parts of tier X or better
     CODEX_PART: 0.0025,         // each part ever forged adds this to all stats
@@ -43,13 +45,13 @@
     XP_TIER: [10, 10, 20, 20, 20, 30, 40, 50, 60, 70],               // commander XP per part forged, by tier
     XP_NEED: (L) => Math.round(XP_C * Math.pow(L, XP_P)),             // XP to go from level L to L+1 (300 levels, about a year for a casual player)
     LEVEL_MAX: 300, LEVEL_BONUS: 0.003, RANK_BONUS: 0.015, RANK_LEVELS: 20, RENAME_FLUX: 50, AVATARS: 12,                               // each commander level adds this to Damage and Hull
-    FIGHT_SECONDS: 12,           // how long a fight takes (used for offline patrols)
-    CRIT_CHANCE: 0.12, CRIT_MULT: 1.6, OVERCHARGE_EVERY: 4, OVERCHARGE_MULT: 2.5,
+    FIGHT_SECONDS: 12,           // how long a fight takes (also sets the offline Credit rate)
+    CRIT_CHANCE: 0, CRIT_MULT: 1, OVERCHARGE_EVERY: 4, OVERCHARGE_MULT: 1,   // no built-in crit or overcharge: they come only from bonus lines on your parts (1 = no effect)
+    ENEMY_CRIT_MULT: 1.5,
     RUSH_SECONDS_PER_FLUX: 300, // 1 Flux finishes 5 minutes of Foundry waiting
-    SUB_COUNT: [0, 1, 2, 2, 3, 4, 4, 5, 5, 6],       // bonus lines a part rolls, by tier
-    SUB_TIER_F: (t) => 1 + 0.35 * t,     // higher tiers roll bigger lines
-    CORE_FIRST: 3, CORE_BOSS: 15, CORE_DROP: 0.06,   // AI Cores: first clears, boss first clears, chance per win
-    SUMMON_COST: 10, SUMMON10_COST: 90, FUSE_NEED: 3,
+    SUB_COUNT: [0, 0, 1, 1, 1, 1, 2, 2, 2, 2],       // bonus lines a part rolls, by tier
+    CORE_FIRST: 3, CORE_BOSS: 15, CORE_DROP: 0,   // AI Cores: first clears, boss first clears, chance per win
+    SUMMON_COST: 30, SUMMON10_COST: 270, FUSE_NEED: 3,
     BAY_STEP: 25, BAY_MAX: 20, WING_SLOTS: 3,
     RANK_F: [1, 1.5, 2.2, 3.2, 4.6, 6.5],            // companion strength by rank
     SUMMON_BASE: [70, 24, 5, 0.9, 0.1, 0],           // rank odds at Summon Bay level 1
@@ -74,21 +76,21 @@
       names: { cannon: 'Scrapper Cannon', pod: 'Junkyard Pod', array: 'Cracked Sight Array', coil: 'Leaky Coil', plating: 'Dented Plate', bulkhead: 'Patched Bulkhead', emitter: 'Flicker Emitter', spar: 'Bent Spar' } },
     { name: 'Refitted',   color: '#6fcf6f', mult: 2.2, sell: 2,  unlock: 3,  launch: true,
       names: { cannon: 'Rebuilt Autocannon', pod: 'Tube Launcher', array: 'Salvaged Targeter', coil: 'Jury Reactor', plating: 'Welded Hull', bulkhead: 'Braced Partition', emitter: 'Patched Barrier', spar: 'Reworked Strut' } },
-    { name: 'Hardened',   color: '#4aa3ff', mult: 4.8, sell: 4,  unlock: 5, launch: true,
+    { name: 'Hardened',   color: '#4aa3ff', mult: 4.8, sell: 3,  unlock: 5, launch: true,
       names: { cannon: 'Gauss Cannon', pod: 'Swarm Pod', array: 'Optic Array', coil: 'Fusion Coil', plating: 'Ceramic Plate', bulkhead: 'Reinforced Bulkhead', emitter: 'Deflector Emitter', spar: 'Titan Spar' } },
-    { name: 'Classified', color: '#b27cff', mult: 10,  sell: 8,  unlock: 8, launch: true,
+    { name: 'Classified', color: '#b27cff', mult: 10,  sell: 4,  unlock: 8, launch: true,
       names: { cannon: 'Black-Ops Railgun', pod: 'Whisper Pod', array: 'Ghost Array', coil: 'Dark Coil', plating: 'Stealth Plate', bulkhead: 'Vault Bulkhead', emitter: 'Cloak Emitter', spar: 'Redacted Spar' } },
-    { name: 'Voidborn',   color: '#ff5ec4', mult: 20,  sell: 16, unlock: 11, launch: true,
+    { name: 'Voidborn',   color: '#ff5ec4', mult: 20,  sell: 6, unlock: 11, launch: true,
       names: { cannon: 'Rift Cannon', pod: 'Singularity Pod', array: 'Eventide Array', coil: 'Hollow Coil', plating: 'Umbral Plate', bulkhead: 'Abyssal Bulkhead', emitter: 'Null Emitter', spar: 'Voidglass Spar' } },
-    { name: 'Exotic',     color: '#ffb02e', mult: 38,  sell: 32, unlock: 14, launch: true,
+    { name: 'Exotic',     color: '#ffb02e', mult: 38,  sell: 9, unlock: 14, launch: true,
       names: { cannon: 'Plasma Lance', pod: 'Nova Pod', array: 'Prism Array', coil: 'Starheart Coil', plating: 'Aegis Plate', bulkhead: 'Citadel Bulkhead', emitter: 'Bastion Emitter', spar: 'Titanite Spar' } },
-    { name: 'Ancient',    color: '#c9b37a', mult: 70,  sell: 64,  unlock: 17, launch: true,
+    { name: 'Ancient',    color: '#c9b37a', mult: 70,  sell: 13,  unlock: 17, launch: true,
       names: { cannon: 'Relic Cannon', pod: 'Elder Pod', array: 'Oracle Array', coil: 'Primal Coil', plating: 'Monolith Plate', bulkhead: 'Obelisk Bulkhead', emitter: 'Rune Emitter', spar: 'Fossil Spar' } },
-    { name: 'Dark Matter', color: '#6a5acd', mult: 130, sell: 128, unlock: 20, launch: true,
+    { name: 'Dark Matter', color: '#6a5acd', mult: 130, sell: 19, unlock: 20, launch: true,
       names: { cannon: 'Gravity Lance', pod: 'Dense Pod', array: 'Lensing Array', coil: 'Shadow Coil', plating: 'Dark Plate', bulkhead: 'Massive Bulkhead', emitter: 'Halo Emitter', spar: 'Collapsed Spar' } },
-    { name: 'Origin',     color: '#7fe3d0', mult: 240, sell: 256, unlock: 24, launch: true,
+    { name: 'Origin',     color: '#7fe3d0', mult: 240, sell: 28, unlock: 24, launch: true,
       names: { cannon: 'Genesis Cannon', pod: 'Spark Pod', array: 'Prime Array', coil: 'Seed Coil', plating: 'Cradle Plate', bulkhead: 'Genesis Bulkhead', emitter: 'Dawn Emitter', spar: 'Root Spar' } },
-    { name: 'Apex',       color: '#ff4d4d', mult: 440, sell: 512, unlock: 29, launch: true,
+    { name: 'Apex',       color: '#ff4d4d', mult: 440, sell: 40, unlock: 29, launch: true,
       names: { cannon: 'Apex Railgun', pod: 'Zenith Pod', array: 'Sovereign Array', coil: 'Crown Coil', plating: 'Apex Plate', bulkhead: 'Sovereign Bulkhead', emitter: 'Zenith Emitter', spar: 'Summit Spar' } }
   ];
   const LAUNCH_TIERS = TIERS.filter((t) => t.launch).length;
@@ -117,24 +119,20 @@
       kw: 'apex super-dreadnought, dark crimson and gold armor, colossal star fortress prow, multi-layered energy shielding, massive main engines' }
   ];
 
-  // Bonus lines on parts. Values are percent. Weapons lean offensive, hull parts lean defensive.
+  // Bonus lines on parts. Each roll is a random whole-ish percent from 1% up to the line's max (as in Forge Master). Only parts of tier 3 and up roll lines.
   const SUBS = {
-    crit:    { name: 'Crit chance',   base: 2.0, cap: 0.75, note: 'chance to hit for extra damage' },
-    critdmg: { name: 'Crit damage',   base: 8,   cap: 3,    note: 'extra damage on a crit' },
-    pierce:  { name: 'Armor pierce',  base: 6,   cap: 0.8,  note: 'ignores enemy armor' },
-    oc:      { name: 'Overcharge',    base: 10,  cap: 3,    note: 'stronger Overcharge shots' },
-    haste:   { name: 'Haste',         base: 3,   cap: 0.7,  note: 'you act sooner in turn order' },
-    armor:   { name: 'Plating',       base: 2.5, cap: 0.5,  note: 'less damage taken' },
-    dodge:   { name: 'Evasion',       base: 2,   cap: 0.45, note: 'chance to dodge a hit' },
-    leech:   { name: 'Hull leech',    base: 1.5, cap: 0.35, note: 'heals you for part of your damage' }
+    crit:    { name: 'Crit chance',   max: 12, cap: 0.75, note: 'chance to hit for extra damage' },
+    critdmg: { name: 'Crit damage',   max: 80,  cap: 3,    note: 'extra damage on a crit' },
+    pierce:  { name: 'Armor pierce',  max: 20,   cap: 0.8,  note: 'ignores enemy armor' },
+    oc:      { name: 'Overcharge',    max: 40,  cap: 3,    note: 'stronger Overcharge shots' },
+    haste:   { name: 'Haste',         max: 25,   cap: 0.7,  note: 'you act sooner in turn order' },
+    armor:   { name: 'Plating',       max: 15, cap: 0.5,  note: 'less damage taken' },
+    dodge:   { name: 'Evasion',       max: 10,   cap: 0.45, note: 'chance to dodge a hit' },
+    leech:   { name: 'Hull leech',    max: 20, cap: 0.35, note: 'heals you for part of your damage' }
   };
   const SUB_KEYS = Object.keys(SUBS);
-  const SLOT_SUBS = {
-    cannon: ['crit', 'critdmg', 'pierce', 'oc', 'haste', 'leech'], pod: ['crit', 'critdmg', 'pierce', 'oc', 'haste', 'leech'],
-    array: ['crit', 'critdmg', 'pierce', 'oc', 'haste', 'leech'], coil: ['crit', 'critdmg', 'pierce', 'oc', 'haste', 'leech'],
-    plating: ['armor', 'dodge', 'leech', 'haste', 'crit', 'critdmg'], bulkhead: ['armor', 'dodge', 'leech', 'haste', 'crit', 'critdmg'],
-    emitter: ['armor', 'dodge', 'leech', 'haste', 'crit', 'critdmg'], spar: ['armor', 'dodge', 'leech', 'haste', 'crit', 'critdmg']
-  };
+  // every bonus line can roll on any part (as in the reference games): purely random
+  const SLOT_SUBS = {}; ['cannon', 'pod', 'array', 'coil', 'plating', 'bulkhead', 'emitter', 'spar'].forEach((id) => { SLOT_SUBS[id] = SUB_KEYS.slice(); });
 
   // Wing: companion ships that act in turn order. Rank 0-5.
   const RANKS = ['Recruit', 'Veteran', 'Elite', 'Ace', 'Legend', 'Paragon'];
@@ -155,8 +153,10 @@
   // Original time (seconds) and cost (credits) to reach level n, for n = 2..35 (index 0 is level 2).
   const FM_TIME = [300, 900, 1800, 3600, 7200, 27180, 47160, 67140, 87180, 104400, 126000, 144000, 165600, 187200, 205200, 226800, 244800, 277200, 306000, 334800, 363600, 396000, 424800, 457200, 486000, 514800, 547200, 576000, 607200, 633600, 666000, 694800, 727200, 756000];
   const FM_COST = [400, 700, 1500, 3500, 10000, 25000, 50000, 33000, 50000, 83300, 116000, 112000, 150000, 160000, 182000, 170000, 161000, 155000, 150000, 146000, 157000, 168000, 179000, 190000, 201000, 212000, 223000, 234000, 245000, 256000, 267000, 278000, 289000, 300000];
+  // 'No. of Nodes' (payments) for levels 2..35 (index 0 is level 2)
+  const FM_NODES = [1,1,1,1,1,1,1,3,3,3,3,4,4,5,5,6,7,8,9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10];
   const FM_LEVELS = 35, OUR_LEVELS = 25;
-  const fmPos = (L) => 1 + (L - 1) * (FM_LEVELS - 1) / (OUR_LEVELS - 1);           // our level -> original level (fractional)
+  const fmPos = (L) => L;           // our Foundry level IS the original's level (1-25, nothing squeezed)
   // running total of an original table at a fractional level (straight lines between whole levels)
   function fmCum(arr, x) {
     let t = 0; const n = Math.floor(x), f = x - n;
@@ -176,7 +176,7 @@
   }
   function itemName(it) { return TIERS[it.tier].names[it.slot]; }
   function sellValue(it) {
-    return Math.max(1, Math.round(CFG.SELL_BASE * Math.pow(CFG.SELL_GROWTH, it.level - 1) * TIERS[it.tier].sell));
+    return Math.max(1, Math.round(TIERS[it.tier].sell * (1 + CFG.SELL_LEVEL * (it.level - 1))));
   }
 
   // Chance of each tier at Foundry level L (fractions that sum to 1). Blended between the original's levels, so 25 of ours cover its 35.
@@ -199,28 +199,29 @@
     }
     return out;
   }
-  function rollSubValue(k, tier, rng) { return Math.round(SUBS[k].base * CFG.SUB_TIER_F(tier) * (0.6 + 0.8 * rng()) * 10) / 10; }
-  function rollItem(forgeLevel, rng) {
+  function rollSubValue(k, tier, rng) { return Math.round((1 + rng() * (SUBS[k].max - 1)) * 10) / 10; }
+  function rollItem(forgeLevel, rng, cmdLevel) {
     const odds = tierOdds(forgeLevel);
     let r = rng(), tier = 0;
     for (let i = 0; i < odds.length; i++) { r -= odds[i]; if (r <= 0) { tier = i; break; } tier = i; }
     const slot = SLOTS[Math.floor(rng() * SLOTS.length) % SLOTS.length].id;
-    return { slot, tier, level: forgeLevel, subs: rollSubs(slot, tier, rng) };
+    const lvl = clamp((cmdLevel || 1) + Math.floor(rng() * (2 * CFG.GEAR_SPREAD + 1)) - CFG.GEAR_SPREAD, 1, CFG.LEVEL_MAX);
+    return { slot, tier, level: lvl, subs: rollSubs(slot, tier, rng) };
   }
 
   function newState(now) {
     const gear = {}; SLOTS.forEach((s) => { gear[s.id] = null; });
     return {
       v: CFG.SAVE_VERSION, name: 'Commander', avatar: 0, renames: 0, created: now, last: now,
-      alloy: CFG.START_ALLOY, credits: 0, shards: 0,
+      alloy: CFG.START_ALLOY, credits: 0, shards: 0, stock: { alloy: 0, credits: 0, lock: 0 },
       cmd: { level: 1, xp: 0, rank: 0 }, research: {}, tech: null, sweep: { tickets: CFG.SWEEP_MAX, at: now, day: '', ads: 0 },
       medals: 0, ladders: { alloy: 0, shards: 0, cores: 0 }, daily: { day: '', att: {}, arena: 0, shop: {}, clan: [], clanPts: 0, gift: false, deals: {}, ads: {} }, noAds: false, arena: { lp: 0, opp: [], seed: 0 }, clan: null,
       forge: { level: 1, upgrade: null, paid: 0 },
-      gear, pending: null, pendingNew: false, codex: {}, quests: {},
+      gear, held: [], codex: {}, quests: {},
       combat: { stage: 1, best: 0, push: true, speed: 1 }, flux: 0,
       stats: { fused: 0, wins: 0, losses: 0, bosses: 0, forged: 0, sold: 0, equipped: 0, alloyEarned: 0, creditsEarned: 0, upgrades: 0, bestTier: 0, seconds: 0 },
       cores: 0, wing: { owned: {}, active: [], summons: 0 },
-      settings: { vibrate: true, auto: false, filter: [], filterMin: 1 }
+      settings: { vibrate: true, auto: false, filter: [], filterMin: 1, autoTiers: [], autoSubs: [], runTiers: [] }
     };
   }
   function migrate(s, now) {
@@ -267,14 +268,22 @@
     out.wing = Object.assign({ owned: {}, active: [], summons: 0 }, s.wing || {});
     if (!Array.isArray(out.wing.active)) out.wing.active = [];
     if (!Array.isArray(out.settings.filter)) out.settings.filter = [];
+    ['autoTiers', 'autoSubs'].forEach((k) => { if (!Array.isArray(out.settings[k])) out.settings[k] = []; });
+    if (!Array.isArray(out.settings.runTiers)) out.settings.runTiers = [];
+    delete out.settings.runTier;
     // the old cargo hold is gone: anything left in it is sold
     if (Array.isArray(s.hold)) s.hold.forEach((it) => { if (it && TIERS[it.tier] && slotById(it.slot)) out.credits += sellValue(it); });
     delete out.hold; delete out.holdCap;
     if (!out.quests || typeof out.quests !== 'object') out.quests = {};
     if (!out.codex || typeof out.codex !== 'object') out.codex = {};
     Object.keys(out.gear).forEach((k) => { if (out.gear[k] && !out.gear[k].subs) out.gear[k].subs = []; });
-    if (out.pending && !out.pending.subs) out.pending.subs = [];
+    out.held = Array.isArray(s.held) ? s.held.filter((h) => h && h.it && TIERS[h.it.tier] && slotById(h.it.slot)).map((h) => ({ it: Object.assign({ subs: [] }, h.it), isNew: !!h.isNew })) : [];
+    if (s.pending && TIERS[s.pending.tier] && slotById(s.pending.slot)) out.held.push({ it: Object.assign({ subs: [] }, s.pending), isNew: !!s.pendingNew });
+    delete out.pending; delete out.pendingNew;
+    out.held = out.held.slice(-batchSize(out));
     ['alloy', 'credits'].forEach((k) => { if (!isFinite(out[k]) || out[k] < 0) out[k] = 0; });
+    out.stock = Object.assign({ alloy: 0, credits: 0, lock: 0 }, s.stock || {});
+    ['alloy', 'credits', 'lock'].forEach((k) => { if (!isFinite(out.stock[k]) || out.stock[k] < 0) out.stock[k] = 0; });
     out.forge.level = clamp(Math.floor(out.forge.level) || 1, 1, CFG.MAX_FORGE_LEVEL);
     if (out.forge.upgrade && out.forge.upgrade.to > CFG.MAX_FORGE_LEVEL) out.forge.upgrade = null;
     out.v = CFG.SAVE_VERSION; out.rv = 26;
@@ -306,8 +315,8 @@
     { id: 'batch',   branch: 'forge', cls: 1, per: 0,     text: (n) => 'Forge ' + (1 + BATCH_STEPS[n]) + ' at once', max: 5 },
     { id: 'free',    branch: 'forge', cls: 3, per: 0.8,   text: (n) => pct(n, 0.8) + ' chance to forge for free' },
     { id: 'alloy',    branch: 'forge', cls: 1, per: 1.6,   text: (n) => 'Alloy production +' + pct(n, 1.6) },
-    { id: 'patrol',   branch: 'forge', cls: 2, per: 1.6,   text: (n) => 'Offline patrol pay ' + Math.round((CFG.PATROL_RATE + n * 0.016) * 100) + '%' },
-    { id: 'offline', branch: 'forge', cls: 1, per: 12.8,  text: (n) => 'Offline time ' + (CFG.OFFLINE_BASE_H * (1 + n * 0.128)).toFixed(1).replace('.0', '') + 'h' },
+    { id: 'patrol',   branch: 'forge', cls: 2, per: 1.6,   text: (n) => 'Offline Credits ' + (CFG.OFFLINE_CREDIT_RATE + n * 0.016).toFixed(2) + '/s' },
+    { id: 'offline', branch: 'forge', cls: 1, per: 16,    text: (n) => 'Offline time ' + (CFG.OFFLINE_BASE_H * (1 + n * 0.16)).toFixed(1).replace('.0', '') + 'h' },
     { id: 'salv',    branch: 'forge', cls: 5, per: 1.6,   text: (n) => 'Salvage Run Alloy +' + pct(n, 1.6) },
     { id: 'dmgc',    branch: 'power', cls: 3, per: 1.6,   slot: 'cannon',   text: (n) => 'Main Cannon +' + pct(n, 1.6) },
     { id: 'dmgp',    branch: 'power', cls: 3, per: 1.6,   slot: 'pod',      text: (n) => 'Missile Pod +' + pct(n, 1.6) },
@@ -365,7 +374,7 @@
     return TECH_NODES.some((n) => { const o = techInfo(state, n.id); return !o.maxed && !o.locked && state.shards >= o.cost; });
   }
   const alloyRate = (state) => CFG.ALLOY_PER_SEC * (1 + techBonus(state, 'alloy'));
-  const offlineCapS = (state) => CFG.OFFLINE_BASE_H * (1 + techBonus(state, 'offline')) * 3600;   // 12.8% of the base per level: 4h up to 16.8h
+  const offlineCapS = (state) => CFG.OFFLINE_BASE_H * (1 + techBonus(state, 'offline')) * 3600;   // 16% of the base per level (Forge Master's table): 4h up to 20h at level 25
   const creditMult = (state) => 1 + techBonus(state, 'sell');
   const upgradeSecs = (state, L) => Math.max(1, Math.round(CFG.UPGRADE_SECONDS(L) / (1 + techBonus(state, 'ftimer'))));
   const upgradeCredits = (state, L) => Math.max(1, Math.round(CFG.UPGRADE_CREDITS(L) * CFG.PAY_X * (1 - techBonus(state, 'fcost'))));   // one payment
@@ -445,15 +454,15 @@
     SLOTS.forEach((sl) => { const it = gear[sl.id]; if (it && it.subs) it.subs.forEach((x) => { t[x.k] += x.v; }); });
     const cap = (k, v) => Math.min(SUBS[k].cap, v);
     return {
-      crit: cap('crit', CFG.CRIT_CHANCE + t.crit / 100), critMult: CFG.CRIT_MULT + t.critdmg / 100,
-      pierce: cap('pierce', t.pierce / 100), ocMult: CFG.OVERCHARGE_MULT * (1 + t.oc / 100),
+      crit: cap('crit', t.crit / 100), critMult: 1 + t.critdmg / 100,
+      pierce: cap('pierce', t.pierce / 100), ocMult: 1 + t.oc / 100,
       haste: cap('haste', t.haste / 100), armor: cap('armor', t.armor / 100), dodge: cap('dodge', t.dodge / 100), leech: cap('leech', t.leech / 100)
     };
   }
   // A smooth "how good is this build" multiplier. 1.0 means no bonus lines at all.
   function buildFactor(c) {
     const avgShot = (3 + c.ocMult) / 4, base = (3 + CFG.OVERCHARGE_MULT) / 4;
-    const off = ((1 + c.crit * (c.critMult - 1)) / (1 + CFG.CRIT_CHANCE * (CFG.CRIT_MULT - 1))) * (avgShot / base) * (1 + c.haste) * ((1 - 0.12) / (1 - 0.12 * (1 - c.pierce)));
+    const off = (1 + c.crit * (c.critMult - 1)) * (avgShot / base) * (1 + c.haste) * ((1 - 0.12) / (1 - 0.12 * (1 - c.pierce)));
     const def = (1 / ((1 - c.armor) * (1 - c.dodge))) * (1 + 2.4 * c.leech);
     return Math.sqrt(off * def);
   }
@@ -475,14 +484,23 @@
   function shipOf(state) { return SHIPS[hullTier(state)]; }
   function highestTier(state) { let h = -1; SLOTS.forEach((s) => { const it = state.gear[s.id]; if (it && it.tier > h) h = it.tier; }); return h; }
   const autoUnlocked = (state) => state.forge.level >= CFG.AUTO_UNLOCK_LEVEL;
+  // Auto filter: with Auto on, a part is sold (never fitted) if its tier is on the sell list, or if you picked wanted bonus lines and it has lines but none of them is wanted (one match is enough).
+  function filterHit(state, it) {
+    const st = state.settings;
+    if (st.autoTiers.includes(it.tier)) return true;
+    if (st.autoSubs.length && it.subs && it.subs.length && !it.subs.some((x) => st.autoSubs.includes(x.k))) return true;
+    return false;
+  }
+  function autoFiltered(state, it) { return !!(state.settings.auto && autoUnlocked(state) && filterHit(state, it)); }
+
 
   function addCredits(state, n) { state.credits += n; state.stats.creditsEarned += n; }
   function isUpgrade(state, it) { return powerWith(state, it).rating > power(state).rating + 1e-9; }
 
-  function equip(state, it) {
+  function equip(state, it, keepOld) {
     const old = state.gear[it.slot];
     let sold = 0;
-    if (old) { sold = sellFor(state, old); addCredits(state, sold); state.stats.sold++; }
+    if (old && !keepOld) { sold = sellFor(state, old); addCredits(state, sold); state.stats.sold++; }
     state.gear[it.slot] = it; state.stats.equipped++;
     if (it.tier > state.stats.bestTier) state.stats.bestTier = it.tier;
     return sold;
@@ -495,18 +513,17 @@
   function forgeOnce(state, rng) {
     const cost = forgeCost(state);
     if (state.alloy < cost) return { ok: false, reason: 'alloy' };
+    if (!(state.settings.auto && autoUnlocked(state)) && !holdFree(state)) return { ok: false, reason: 'full' };
     if (!(rng() < techBonus(state, 'free'))) state.alloy -= cost;
     state.stats.forged++;
-    const it = rollItem(state.forge.level, rng);
+    const it = rollItem(state.forge.level, rng, state.cmd.level);
     const lv = addXp(state, it.tier);
     const d = discover(state, it);
-    if (state.pending) { sell(state, state.pending); state.pending = null; } // an undecided item is salvaged
-    state.pendingNew = false;
     if (state.settings.auto && autoUnlocked(state)) {
-      if (isUpgrade(state, it)) { equip(state, it); return { ok: true, item: it, auto: 'equipped', isNew: d.isNew, tierDone: d.tierDone, levels: lv }; }
+      if (!autoFiltered(state, it) && isUpgrade(state, it)) { equip(state, it); return { ok: true, item: it, auto: 'equipped', isNew: d.isNew, tierDone: d.tierDone, levels: lv }; }
       sell(state, it); return { ok: true, item: it, auto: 'sold', isNew: d.isNew, tierDone: d.tierDone, levels: lv };
     }
-    state.pending = it; state.pendingNew = d.isNew;
+    holdAdd(state, it, d.isNew);
     return { ok: true, item: it, auto: null, isNew: d.isNew, tierDone: d.tierDone, levels: lv };
   }
 
@@ -514,22 +531,66 @@
   function forgeBatch(state, n, rng) {
     const sum = { forged: 0, equipped: 0, sold: 0, credits: 0, best: null, newParts: 0, tiersDone: [], levels: 0 };
     const c0 = state.credits;
-    if (state.pending) { sell(state, state.pending); state.pending = null; state.pendingNew = false; }
     while (sum.forged < n && state.alloy >= forgeCost(state)) {
       if (!(rng() < techBonus(state, 'free'))) state.alloy -= forgeCost(state);
       state.stats.forged++; sum.forged++;
-      const it = rollItem(state.forge.level, rng);
+      const it = rollItem(state.forge.level, rng, state.cmd.level);
       sum.levels += addXp(state, it.tier);
       const d = discover(state, it); if (d.isNew) sum.newParts++; if (d.tierDone) sum.tiersDone.push(it.tier);
       if (!sum.best || it.tier > sum.best.tier) sum.best = it;
-      if (isUpgrade(state, it)) { equip(state, it); sum.equipped++; } else { sell(state, it); sum.sold++; }
+      if (!autoFiltered(state, it) && isUpgrade(state, it)) { equip(state, it); sum.equipped++; } else { sell(state, it); sum.sold++; }
     }
     sum.credits = state.credits - c0;
     return sum;
   }
 
-  function equipPending(state) { if (!state.pending) return null; const it = state.pending; state.pending = null; state.pendingNew = false; return { item: it, sold: equip(state, it) }; }
-  function sellPending(state) { if (!state.pending) return 0; const it = state.pending; state.pending = null; state.pendingNew = false; return sell(state, it); }
+  // The hold bar: parts you have not decided on yet. It holds as many parts as you can forge at once. When it is full you cannot forge until you equip or sell something.
+  const holdFree = (state) => Math.max(0, batchSize(state) - state.held.length);
+  function holdAdd(state, it, isNew) { state.held.push({ it, isNew: !!isNew }); }
+
+  // Forge n parts and put them all in the hold bar (used when Auto is off).
+  function forgeHold(state, n, rng) {
+    const sum = { forged: 0, newParts: 0, tiersDone: [], levels: 0 };
+    n = Math.min(n, holdFree(state));
+    while (sum.forged < n && state.alloy >= forgeCost(state)) {
+      if (!(rng() < techBonus(state, 'free'))) state.alloy -= forgeCost(state);
+      state.stats.forged++; sum.forged++;
+      const it = rollItem(state.forge.level, rng, state.cmd.level);
+      sum.levels += addXp(state, it.tier);
+      const d = discover(state, it); if (d.isNew) sum.newParts++; if (d.tierDone) sum.tiersDone.push(it.tier);
+      holdAdd(state, it, d.isNew);
+    }
+    return sum;
+  }
+  // One round of the multi-forge run: forge up to n parts, keep (in the hold bar) every part of the tiers you ticked that passes your line filter, sell the rest.
+  // Stops by itself when the bar is full (reported as full) or you run out of Alloy (out).
+  function forgeRun(state, n, rng, tiers) {
+    const sum = { forged: 0, kept: 0, sold: 0, credits: 0, newParts: 0, tiersDone: [], levels: 0, full: false, out: false };
+    const c0 = state.credits;
+    while (sum.forged < n) {
+      if (!holdFree(state)) { sum.full = true; break; }
+      if (state.alloy < forgeCost(state)) { sum.out = true; break; }
+      if (!(rng() < techBonus(state, 'free'))) state.alloy -= forgeCost(state);
+      state.stats.forged++; sum.forged++;
+      const it = rollItem(state.forge.level, rng, state.cmd.level);
+      sum.levels += addXp(state, it.tier);
+      const d = discover(state, it); if (d.isNew) sum.newParts++; if (d.tierDone) sum.tiersDone.push(it.tier);
+      if (tiers.includes(it.tier) && !filterHit(state, it)) { holdAdd(state, it, d.isNew); sum.kept++; } else { sell(state, it); sum.sold++; }
+    }
+    if (!holdFree(state)) sum.full = true;
+    sum.credits = state.credits - c0;
+    return sum;
+  }
+  // Equip a held part: the part it replaces goes into the hold bar, so you can swap back until you sell it.
+  function equipHeld(state, idx) {
+    const h = state.held[idx]; if (!h) return null;
+    state.held.splice(idx, 1);
+    const old = state.gear[h.it.slot];
+    equip(state, h.it, true);
+    if (old) state.held.push({ it: old, isNew: false });
+    return { item: h.it, old, index: old ? state.held.length - 1 : -1 };
+  }
+  function sellHeld(state, idx) { const h = state.held[idx]; if (!h) return 0; state.held.splice(idx, 1); return sell(state, h.it); }
 
 
   /* ===================== COMBAT ===================== */
@@ -675,7 +736,7 @@
       } else {
         ne++; let m = 1, label = null;
         if (e.boss && ne % 3 === 0) { m = 2; label = 'salvo'; }
-        const crit = e.crit > 0 && rng() < e.crit; if (crit) m *= CFG.CRIT_MULT;
+        const crit = e.crit > 0 && rng() < e.crit; if (crit) m *= CFG.ENEMY_CRIT_MULT;
         let d = Math.max(1, Math.round(e.dmg * m * (0.8 + rng() * 0.4))), dodged = false;
         if (rng() < p.dodge) { d = 0; dodged = true; } else d = Math.max(1, Math.round(d * (1 - p.armor)));
         let absorbed = 0; if (shield > 0 && d > 0) { absorbed = Math.min(shield, d); shield -= absorbed; d -= absorbed; }
@@ -693,7 +754,7 @@
     return w / n;
   }
 
-  const creditsWin = (stage, state) => Math.max(1, Math.round(CFG.CREDITS_WIN(stage) * (state ? creditMult(state) : 1)));
+  const creditsWin = () => 1;   // every kill pays exactly 1 Credit: any stage, any enemy, any bonus
   const shardsFor = (stage) => isBoss(stage) ? CFG.SHARD_BOSS(stage / 10) : (stage % 10 === 5 ? CFG.SHARD_FIFTH : 0);
   function describeRewards(state, stage) {
     const first = stage > state.combat.best;
@@ -852,13 +913,13 @@
   // Rewarded ads are always optional. Each has a daily cap and a cooldown. They are small: a help, never a way to skip the waiting.
   const AD_OFFERS = [
     { id: 'alloy',   name: 'Salvage drop',   text: '+30 Alloy',                    cap: 4, cdS: 1200 },
-    { id: 'credits', name: 'Supply cache',   text: 'about 25 forges of Credits', cap: 4, cdS: 1800 },
+    { id: 'credits', name: 'Supply cache',   text: '20 minutes of Credits', cap: 4, cdS: 1800 },
     { id: 'speed',   name: 'Rush crew',      text: 'Foundry upgrade 20 minutes faster', cap: 3, cdS: 3600 },
     { id: 'flux',    name: 'Flux cell',      text: '+2 Flux',                      cap: 3, cdS: 3600 }
   ];
   // what an average forged part sells for at your Foundry level (ad and deal Credits are counted in forges)
   function typicalSell(state) { return avgSell(state.forge.level) * creditMult(state); }
-  const adCredits = (state) => Math.round(typicalSell(state) * 25);
+  const adCredits = (state) => Math.round(creditRate(state) * 1200);   // 20 minutes of the stockpile rate
   function adStatus(state, id, now) {
     rollDaily(state, now); const o = AD_OFFERS.find((x) => x.id === id), a = state.daily.ads[id] || { n: 0, at: 0 };
     const cd = Math.max(0, (a.at + o.cdS * 1000 - now) / 1000), left = o.cap - a.n;
@@ -879,7 +940,7 @@
     { id: 'alloy600', name: 'Alloy crate',    cost: 50, text: '600 Alloy' },
     { id: 'cores10',  name: 'Core shipment',  cost: 30, text: '10 AI Cores' },
     { id: 'shards4',  name: 'Data vault',     cost: 40, text: '4 Data Shards' },
-    { id: 'credits',  name: 'Credit chest',   cost: 25, text: 'about 120 forges of Credits' },
+    { id: 'credits',  name: 'Credit chest',   cost: 25, text: '1 hour of Credits' },
     { id: 'tickets2', name: 'Sweep voucher',  cost: 15, text: '2 sweep tickets' }
   ];
   function dealsToday(now) {
@@ -893,7 +954,7 @@
     state.flux -= d.cost; state.daily.deals[id] = 1;
     if (id === 'alloy200') applyReward(state, { alloy: 200 }); else if (id === 'alloy600') applyReward(state, { alloy: 600 });
     else if (id === 'cores10') applyReward(state, { cores: 10 }); else if (id === 'shards4') applyReward(state, { shards: 4 });
-    else if (id === 'credits') addCredits(state, Math.round(typicalSell(state) * 120));
+    else if (id === 'credits') addCredits(state, Math.round(creditRate(state) * 3600));   // an hour of the stockpile rate
     else if (id === 'tickets2') state.sweep.tickets += 2;
     return true;
   }
@@ -955,32 +1016,31 @@
     return 0;
   }
 
-  // Add Alloy for dt seconds while the screen is open.
-  function earn(state, dt) {
-    const gain = alloyRate(state) * dt;
-    state.alloy += gain; state.stats.alloyEarned += gain; state.stats.seconds += dt;
-    return gain;
+  // The stockpile: Alloy and Credits build up in real time (online or not) up to your offline time, and you collect them with a button.
+  const creditRate = (state) => CFG.OFFLINE_CREDIT_RATE + techBonus(state, 'patrol');   // Credits per second
+  function fillStock(state, secs) {
+    const cap = offlineCapS(state), st = state.stock;
+    st.alloy = Math.min(alloyRate(state) * cap, st.alloy + alloyRate(state) * secs);
+    st.credits = Math.min(creditRate(state) * cap, st.credits + creditRate(state) * secs);
   }
-
-  // Everything that happens while the app was closed. Production counts for your offline time (4 hours to start).
+  function earn(state, dt) { fillStock(state, dt); state.stats.seconds += dt; }
+  function collect(state, now) {
+    const st = state.stock;
+    if (now < st.lock) return { ok: false, reason: 'wait' };
+    const a = Math.floor(st.alloy), c = Math.floor(st.credits);
+    if (a < 1 && c < 1) return { ok: false, reason: 'empty' };
+    st.alloy -= a; st.credits -= c; st.lock = now + CFG.COLLECT_LOCK_MS;
+    state.alloy += a; state.stats.alloyEarned += a; addCredits(state, c);
+    return { ok: true, alloy: a, credits: c };
+  }
+  // Everything that happened while the app was closed: the stockpile kept filling (up to the cap) and Foundry/research timers ran.
   function offline(state, now) {
     const away = Math.max(0, (now - state.last) / 1000), cap = offlineCapS(state);
-    const rep = { away, cap, alloy: 0, levelUp: 0, capped: away > cap };
+    const rep = { away, cap, alloy: 0, credits: 0, levelUp: 0, capped: away > cap };
     if (away < 1) return rep;
-    const counted = Math.min(away, cap);
-    const gain = alloyRate(state) * counted;
-    state.alloy += gain; state.stats.alloyEarned += gain; rep.alloy = gain;
-    // Foundry timers run in real time whether or not the app is open
+    fillStock(state, Math.min(away, cap));
     const l = checkUpgrade(state, now); if (l) rep.levelUp = l;
     const tdone = checkTech(state, now); if (tdone) rep.techDone = tdone;
-    // your ship keeps patrolling the best cleared stage while you are away
-    rep.patrolCredits = 0; rep.patrolCores = 0;
-    if (state.combat.best >= 1) {
-      const wins = Math.floor(counted / CFG.FIGHT_SECONDS);
-      rep.patrolCredits = Math.floor(wins * creditsWin(state.combat.best, state) * (CFG.PATROL_RATE + techBonus(state, 'patrol')));
-      rep.patrolWins = wins; addCredits(state, rep.patrolCredits);
-      rep.patrolCores = Math.floor(wins * CFG.CORE_DROP * CFG.PATROL_RATE); state.cores += rep.patrolCores;
-    }
     return rep;
   }
 
@@ -1002,6 +1062,6 @@
     return s + 's';
   }
 
-  const api = { SHIPS, hullTier, shipOf, batchSize, SUBS, SUB_KEYS, SLOT_SUBS, RANKS, RANK_COLORS, SPECIES, gearCombat, buildFactor, rollSubs, wingKey, parseKey, bayLevel, summonOdds, summon, assign, unassign, canFuse, fuse, fuseAll, companionInfo, usedInWing, CFG, SLOTS, TIERS, LAUNCH_TIERS, slotById, itemStat, itemName, sellValue, sellFor, tierOdds, rollItem, newState, migrate, power, powerWith, calcPower, setBonus, codexKey, codexHas, codexTierCount, codexCount, codexBonus, discover, highestTier, SECTORS, FOES, sectorOf, isBoss, enemyFor, fighter, simulateFight, creditsWin, describeRewards, resolveFight, setStage, winChance, rushCost, rushUpgrade, autoUnlocked, isUpgrade, equip, forgeCost, forgeOnce, forgeBatch, maxForges, equipPending, sellPending, upgradeInfo, startUpgrade, checkUpgrade, earn, offline, fmt, fmtTime, stageLabel, shardsFor, AD_OFFERS, adStatus, claimAd, claimGift, DEAL_POOL, dealsToday, buyDeal, buyNoAds, useTicket, sweepInfo, sweepAd, DAILIES, dailyById, rollDaily, attemptsLeft, ladderEnemy, ladderLocked, ladderFight, ladderSweep, LEAGUES, leagueOf, arenaOpponents, arenaLeft, arenaFight, SHOP, shopBuy, CLANS, CLAN_REWARDS, joinClan, leaveClan, addClanPoints, clanProgress, claimClan, utcDay, RANK_NAMES, TECH_NODES, TECH_BRANCHES, TECH_TIERS, TECH_TIER_GATE, BATCH_STEPS, techNode, techBonus, techInfo, startTech, checkTech, techRushCost, rushTech, techReady, rLevel, dailyBonus, typicalSell, QUESTS, questProgress, visibleQuests, claimQuest, FM_ODDS, alloyRate, offlineCapS, creditMult, statBonus, addXp, levelCap, atCap, rankReward, canPromote, promote, renameCost, renameCommander, setAvatar };
+  const api = { SHIPS, hullTier, shipOf, batchSize, SUBS, SUB_KEYS, SLOT_SUBS, RANKS, RANK_COLORS, SPECIES, gearCombat, buildFactor, rollSubs, wingKey, parseKey, bayLevel, summonOdds, summon, assign, unassign, canFuse, fuse, fuseAll, companionInfo, usedInWing, CFG, SLOTS, TIERS, LAUNCH_TIERS, slotById, itemStat, itemName, sellValue, sellFor, tierOdds, rollItem, newState, migrate, power, powerWith, calcPower, setBonus, codexKey, codexHas, codexTierCount, codexCount, codexBonus, discover, highestTier, SECTORS, FOES, sectorOf, isBoss, enemyFor, fighter, simulateFight, creditsWin, describeRewards, resolveFight, setStage, winChance, rushCost, rushUpgrade, autoUnlocked, autoFiltered, isUpgrade, equip, forgeCost, forgeOnce, forgeBatch, maxForges, holdAdd, holdFree, forgeRun, forgeHold, equipHeld, sellHeld, upgradeInfo, startUpgrade, checkUpgrade, earn, offline, fmt, fmtTime, stageLabel, shardsFor, AD_OFFERS, adStatus, claimAd, claimGift, DEAL_POOL, dealsToday, buyDeal, buyNoAds, useTicket, sweepInfo, sweepAd, DAILIES, dailyById, rollDaily, attemptsLeft, ladderEnemy, ladderLocked, ladderFight, ladderSweep, LEAGUES, leagueOf, arenaOpponents, arenaLeft, arenaFight, SHOP, shopBuy, CLANS, CLAN_REWARDS, joinClan, leaveClan, addClanPoints, clanProgress, claimClan, utcDay, RANK_NAMES, TECH_NODES, TECH_BRANCHES, TECH_TIERS, TECH_TIER_GATE, BATCH_STEPS, techNode, techBonus, techInfo, startTech, checkTech, techRushCost, rushTech, techReady, rLevel, dailyBonus, typicalSell, creditRate, collect, QUESTS, questProgress, visibleQuests, claimQuest, FM_ODDS, alloyRate, offlineCapS, creditMult, statBonus, addXp, levelCap, atCap, rankReward, canPromote, promote, renameCost, renameCommander, setAvatar };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.VS = api;
 })(typeof self !== 'undefined' ? self : this);

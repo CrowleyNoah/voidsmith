@@ -40,12 +40,32 @@ for (let st = 1; st <= V.CFG.MAX_STAGE; st++) { const e = V.enemyFor(st); const 
 let sd = 9; const rg = () => (sd = (sd * 1664525 + 1013904223) >>> 0) / 4294967296;
 s = S(); assert.ok(Math.abs(V.power(s).build - 1) < 1e-9);
 for (let t = 0; t < 6; t++) for (const sl of V.SLOTS) { const it = { slot: sl.id, tier: t, level: 1, subs: V.rollSubs(sl.id, t, rg) }; assert.strictEqual(it.subs.length, Math.min(V.CFG.SUB_COUNT[t], 6)); assert.strictEqual(new Set(it.subs.map((x) => x.k)).size, it.subs.length); it.subs.forEach((x) => assert.ok(V.SLOT_SUBS[sl.id].includes(x.k) && x.v > 0)); }
-s = S(); s.gear.cannon = { slot: 'cannon', tier: 3, level: 5, subs: [{ k: 'crit', v: 8 }, { k: 'haste', v: 6 }] };
-assert.ok(V.power(s).build > 1); const cc = V.gearCombat(s.gear); assert.ok(cc.crit > 0.12 && cc.haste > 0);
-const base = { slot: 'cannon', tier: 3, level: 5, subs: [] }; const better = { slot: 'cannon', tier: 3, level: 5, subs: [{ k: 'crit', v: 20 }] };
+s = S(); s.gear.cannon = { slot: 'cannon', tier: 3, level: 5, subs: [{ k: 'crit', v: 8 }, { k: 'critdmg', v: 30 }, { k: 'haste', v: 6 }] };
+assert.ok(V.power(s).build > 1); const cc = V.gearCombat(s.gear); assert.ok(cc.crit > 0 && cc.haste > 0);
+const base = { slot: 'cannon', tier: 3, level: 5, subs: [] }; const better = { slot: 'cannon', tier: 3, level: 5, subs: [{ k: 'crit', v: 20 }, { k: 'critdmg', v: 40 }] };
 s.gear.cannon = base; assert.ok(V.isUpgrade(s, better)); s.gear.cannon = better; assert.ok(!V.isUpgrade(s, base));
+// sub counts and auto filter
+[0, 0, 1, 1, 1, 1, 2, 2, 2, 2].forEach((n, t) => assert.strictEqual(V.CFG.SUB_COUNT[t], n));
+{ const a = S(); a.forge.level = 5; a.settings.auto = true; const two = { slot: 'cannon', tier: 7, level: 5, subs: [{ k: 'crit', v: 5 }, { k: 'haste', v: 5 }] };
+  assert.ok(!V.autoFiltered(a, two)); a.settings.autoSubs = ['haste']; assert.ok(!V.autoFiltered(a, two)); a.settings.autoSubs = ['leech']; assert.ok(V.autoFiltered(a, two));
+  a.settings.autoSubs = []; a.settings.autoTiers = [7]; assert.ok(V.autoFiltered(a, two)); a.settings.auto = false; assert.ok(!V.autoFiltered(a, two)); }
+// hold bar: holds as many as you can forge at once, equipping keeps the old part for swapping back
+{ const h = S(); h.alloy = 100; const mk = (t, l) => ({ slot: 'cannon', tier: t, level: l, subs: [] });
+  V.holdAdd(h, mk(0, 1), true); assert.strictEqual(V.holdFree(h), 0); assert.strictEqual(V.forgeOnce(h, () => 0.5).reason, 'full'); assert.strictEqual(h.held.length, 1);   // batch size 1: bar full, cannot forge
+  h.held[0].it = mk(1, 1);
+  h.gear.cannon = mk(0, 1); const r = V.equipHeld(h, 0); assert.ok(r && r.old && h.gear.cannon.tier === 1 && h.held.length === 1 && h.held[0].it.tier === 0 && r.index === 0);   // old part stays
+  const r2 = V.equipHeld(h, 0); assert.ok(r2 && h.gear.cannon.tier === 0 && h.held[0].it.tier === 1);   // swapped back
+  const cr = h.credits; assert.ok(V.sellHeld(h, 0) > 0 && h.held.length === 0 && h.credits > cr);
+  h.alloy = 50; h.research.batch = 2; const bs = V.batchSize(h); const f = V.forgeHold(h, bs, () => 0.5); assert.strictEqual(f.forged, bs); assert.strictEqual(h.held.length, bs);
+  // run: keeps only the target tier or better, stops when full
+  const q = S(); q.alloy = 5000; q.forge.level = 12; q.research.batch = 2; const cap = V.batchSize(q); let rr = { full: false }, rounds = 0; q.credits = 0;
+  while (!rr.full && rounds++ < 2000) rr = V.forgeRun(q, cap, rg, [2, 4]);
+  assert.ok(rr.full && q.held.length === cap && q.held.every((x) => x.it.tier === 2 || x.it.tier === 4) && q.credits > 0); assert.strictEqual(V.forgeRun(q, cap, rg, [2, 4]).forged, 0);
+  const q2 = S(); q2.alloy = 3; q2.research.batch = 2; assert.ok(V.forgeRun(q2, 4, rg, [9]).out); }
+// gear level follows commander level +-2, never below 1 or above the max
+{ const g = S(); [1, 3, 150, V.CFG.LEVEL_MAX].forEach((cl) => { const seen = new Set(); for (let i = 0; i < 300; i++) { const it = V.rollItem(12, rg, cl); seen.add(it.level); assert.ok(it.level >= Math.max(1, cl - 2) && it.level <= Math.min(V.CFG.LEVEL_MAX, cl + 2)); } assert.ok(seen.size >= (cl === 1 || cl === V.CFG.LEVEL_MAX ? 3 : 5)); }); }
 // wing: summon, auto-fill, fuse, trim
-s = S(); s.cores = 1000; assert.ok(V.summon(s, 10, rg).ok); assert.strictEqual(s.cores, 910); assert.strictEqual(s.wing.summons, 10); assert.strictEqual(s.wing.active.length, 3);
+s = S(); s.cores = 1000; assert.ok(V.summon(s, 10, rg).ok); assert.strictEqual(s.cores, 1000 - V.CFG.SUMMON10_COST); assert.strictEqual(s.wing.summons, 10); assert.strictEqual(s.wing.active.length, 3);
 s = S(); s.wing.owned = { '0:0': 3, '1:0': 1 }; s.wing.active = ['0:0', '0:0', '1:0']; assert.ok(V.canFuse(s, '0:0')); assert.strictEqual(V.fuse(s, '0:0'), '0:1'); assert.ok(!s.wing.owned['0:0']); assert.deepStrictEqual(s.wing.active, ['1:0']);
 s.wing.owned = { '2:0': 9 }; assert.ok(V.fuseAll(s) >= 4); assert.ok(V.parseKey(Object.keys(s.wing.owned).sort()[0]).rank >= 0);
 s = S(); s.wing.owned = { '0:5': 3 }; assert.ok(!V.canFuse(s, '0:5'));
@@ -58,21 +78,22 @@ assert.ok(w1 >= w0 && w2 >= w0, 'build and wing should not hurt: ' + [w0, w1, w2
 const evs = V.simulateFight(Object.assign({}, { dmg: 700, hull: 90000, speed: 100 }, { dodge: 0.5, wing: [{ id: 'aegis', name: 'A', speed: 85, f: 3, a: 10 }, { id: 'static', name: 'S', speed: 95, f: 3, a: 25 }, { id: 'surge', name: 'U', speed: 90, f: 3, a: 50 }, { id: 'mender', name: 'M', speed: 90, f: 3, a: 5 }, { id: 'longbow', name: 'L', speed: 70, f: 3, a: 80 }] }), V.enemyFor(60), rg).events;
 assert.ok(evs.some((x) => x.who === 'c') && evs.some((x) => x.dodged) && evs.every((x) => isFinite(x.php) && isFinite(x.ehp)));
 // rewards now include AI Cores
-s = S(); let rr = V.resolveFight(s, 1, true, () => 0.99); assert.strictEqual(rr.cores, V.CFG.CORE_FIRST); rr = V.resolveFight(s, 1, true, () => 0.0); assert.strictEqual(rr.cores, 1);
+s = S(); let rr = V.resolveFight(s, 1, true, () => 0.99); assert.strictEqual(rr.cores, V.CFG.CORE_FIRST); rr = V.resolveFight(s, 1, true, () => 0.0); assert.strictEqual(rr.cores, 0);
 s.combat.best = 9; s.combat.stage = 10; rr = V.resolveFight(s, 10, true, () => 0.99); assert.strictEqual(rr.cores, V.CFG.CORE_BOSS);
 // older saves (no subs / wing) load fine
 const o2 = V.migrate({ v: 1, gear: { cannon: { slot: 'cannon', tier: 1, level: 2 } }, pending: { slot: 'pod', tier: 0, level: 1 }, hold: [{ slot: 'pod', tier: 0, level: 1 }] }, 0);
-assert.deepStrictEqual(o2.gear.cannon.subs, []); assert.deepStrictEqual(o2.pending.subs, []); assert.strictEqual(o2.cores, 0); assert.deepStrictEqual(o2.settings.filter, []);
+assert.deepStrictEqual(o2.gear.cannon.subs, []); assert.deepStrictEqual(o2.held[0].it.subs, []); assert.strictEqual(o2.held.length, 1); assert.strictEqual(o2.cores, 0); assert.deepStrictEqual(o2.settings.filter, []);
 // ---- step 5: unlimited stock, XP by tier, rank gate, research, stage labels, sweep, offline cap
 assert.strictEqual(V.stageLabel(1), '1-1'); assert.strictEqual(V.stageLabel(10), '1-10'); assert.strictEqual(V.stageLabel(11), '2-1'); assert.strictEqual(V.stageLabel(200), '20-10');
 s = S(); s.alloy = 1e9; s.credits = 1e15; assert.ok(V.forgeOnce(s, rg).ok); assert.strictEqual(V.forgeCost(s), 1); assert.ok(s.alloy > 9.9e8); // no cap on holding Alloy
 // one Alloy a minute, 4 hours offline to start, research raises both
 s = S(); assert.ok(Math.abs(V.alloyRate(s) * 60 - 1) < 1e-9); assert.strictEqual(V.offlineCapS(s), 4 * 3600);
-s.last = 0; s.alloy = 0; let rp = V.offline(s, 10 * 3600 * 1000); assert.ok(rp.capped && Math.abs(rp.alloy - 240) < 1e-6);
-s = S(); s.last = 0; s.alloy = 0; rp = V.offline(s, 2 * 3600 * 1000); assert.ok(!rp.capped && Math.abs(rp.alloy - 120) < 1e-6);
+s.last = 0; s.alloy = 0; let rp = V.offline(s, 10 * 3600 * 1000); assert.ok(rp.capped && Math.abs(s.stock.alloy - 240) < 1e-6 && Math.abs(s.stock.credits - 14400) < 1e-6 && s.alloy === 0); let col = V.collect(s, 1); assert.ok(col.ok && col.alloy === 240 && col.credits === 14400 && s.alloy === 240 && s.credits === 14400); assert.strictEqual(V.collect(s, 2).reason, 'wait'); V.earn(s, 90); col = V.collect(s, 10000); assert.ok(col.ok && col.alloy === 1 && col.credits === 90 && Math.abs(s.stock.alloy - 0.5) < 1e-6);
+assert.strictEqual(V.sellValue({ tier: 9, level: 1 }), 40); assert.ok(V.sellValue({ tier: 9, level: 25 }) < 70 && V.sellValue({ tier: 0, level: 25 }) <= 2);
+s = S(); s.last = 0; s.alloy = 0; rp = V.offline(s, 2 * 3600 * 1000); assert.ok(!rp.capped && Math.abs(s.stock.alloy - 120) < 1e-6);
 // research: costs Shards and takes real time, one at a time
 s = S(); s.shards = 1e6; s.cmd.level = 10; assert.ok(V.startTech(s, 'offline', 0)); assert.ok(s.tech && s.shards < 1e6); assert.ok(!V.startTech(s, 'sell', 0)); // one at a time
-assert.strictEqual(V.checkTech(s, 1000), ''); const tt = s.tech.endAt; assert.strictEqual(V.checkTech(s, tt), 'offline'); assert.ok(Math.abs(V.offlineCapS(s) - 4 * 1.128 * 3600) < 1e-6);
+assert.strictEqual(V.checkTech(s, 1000), ''); const tt = s.tech.endAt; assert.strictEqual(V.checkTech(s, tt), 'offline'); assert.ok(Math.abs(V.offlineCapS(s) - 4 * 1.16 * 3600) < 1e-6);
 assert.ok(V.startTech(s, 'sell', tt)); V.checkTech(s, s.tech.endAt); assert.ok(V.creditMult(s) > 1);
 s.shards = 0; assert.ok(!V.startTech(s, 'sell', 0));
 // flux finishes it early, cheaper the less is left
